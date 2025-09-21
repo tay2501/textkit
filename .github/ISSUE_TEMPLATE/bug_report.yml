@@ -2,8 +2,7 @@ name: Bug Report
 description: File a bug report
 title: "[Bug]: "
 labels: ["bug", "triage"]
-assignees:
-  - octocat
+assignees: []
 body:
   - type: markdown
     attributes:
@@ -43,6 +42,7 @@ body:
       label: Python Version
       description: What version of Python are you using?
       options:
+        - "3.13"
         - "3.12"
         - "3.11"
         - "3.10"
@@ -59,7 +59,7 @@ body:
     id: terms
     attributes:
       label: Code of Conduct
-      description: By submitting this issue, you agree to follow our [Code of Conduct](https://example.com)
+      description: By submitting this issue, you agree to follow our Code of Conduct
       options:
         - label: I agree to follow this project's Code of Conduct
           required: true
