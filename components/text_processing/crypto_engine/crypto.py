@@ -445,3 +445,22 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
                 f"Bytes decryption failed: {e}",
                 {"encrypted_length": len(encrypted_data), "error_type": type(e).__name__},
             ) from e
+
+    def configure(self, config: dict[str, Any]) -> None:
+        """Configure the cryptography manager with new settings.
+
+        Args:
+            config: Configuration data to apply
+        """
+        self._config = config
+        # Update RSA config if provided
+        if "rsa_encryption" in config:
+            self.rsa_config.update(config["rsa_encryption"])
+
+    def get_config(self) -> dict[str, Any]:
+        """Get the current configuration.
+
+        Returns:
+            Current configuration data
+        """
+        return getattr(self, '_config', {})

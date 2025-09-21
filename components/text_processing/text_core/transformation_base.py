@@ -10,23 +10,14 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Protocol, runtime_checkable
 
+from ..exceptions import ValidationError, TransformationError
 from .types import ConfigDict, ErrorContext
 
 
-class ValidationError(Exception):
-    """Validation error with context."""
-
-    def __init__(self, message: str, context: dict[str, Any] | None = None) -> None:
-        super().__init__(message)
-        self.context = context or {}
 
 
-class TransformationError(Exception):
-    """Transformation error with context."""
 
-    def __init__(self, message: str, context: dict[str, Any] | None = None) -> None:
-        super().__init__(message)
-        self.context = context or {}
+
 
 
 class TransformationBase(ABC):

@@ -20,13 +20,12 @@ from .types import (
     TransformationFactoryProtocol,
 )
 
+from ..exceptions import ValidationError, TransformationError
 from .transformation_base import (
     TransformationBase,
     TextTransformerProtocol,
     ConfigurableTransformerProtocol,
     ChainableTransformationBase,
-    ValidationError,
-    TransformationError,
 )
 
 from .core import TextTransformationEngine

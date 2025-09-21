@@ -10,6 +10,7 @@ from .case_transformer import CaseTransformer
 from .hash_transformer import HashTransformer
 from .string_transformer import StringTransformer
 from .json_transformer import JsonTransformer
+from .line_ending_transformer import LineEndingTransformer
 
 __all__ = [
     "BaseTransformer",
@@ -19,4 +20,5 @@ __all__ = [
     "HashTransformer",
     "StringTransformer",
     "JsonTransformer",
+    "LineEndingTransformer",
 ]

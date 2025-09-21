@@ -9,14 +9,11 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional, Tuple
 
+from ..exceptions import ValidationError, TransformationError
 from .types import (
     TransformationRule,
     ConfigManagerProtocol,
     CryptoManagerProtocol,
-)
-from .transformation_base import (
-    ValidationError,
-    TransformationError,
 )
 
 

@@ -10,6 +10,7 @@ from ..transformers import (
     HashTransformer,
     StringTransformer,
     JsonTransformer,
+    LineEndingTransformer,
 )
 
 
@@ -34,6 +35,7 @@ class TransformationFactory:
         self.register_transformer("hash", HashTransformer)
         self.register_transformer("string", StringTransformer)
         self.register_transformer("json", JsonTransformer)
+        self.register_transformer("line_ending", LineEndingTransformer)
 
     def register_transformer(self, name: str, transformer_class: Type[BaseTransformer]) -> None:
         """Register a new transformer strategy.

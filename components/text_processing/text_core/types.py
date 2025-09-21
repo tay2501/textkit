@@ -15,16 +15,8 @@ from pathlib import Path
 
 # Import ValidationError for TypeGuard functions
 # Note: This creates a circular import, so we'll use TYPE_CHECKING
-from typing import Any, Dict, List, Protocol, runtime_checkable, TYPE_CHECKING, TypeGuard, TypeVar
+from typing import Any, Dict, List, Protocol, runtime_checkable, TypeGuard, TypeVar
 
-if TYPE_CHECKING:
-    from ..exceptions import ValidationError
-else:
-    # Define a minimal ValidationError for runtime use
-    class ValidationError(Exception):
-        def __init__(self, message: str, context: dict[str, Any] | None = None) -> None:
-            super().__init__(message)
-            self.context = context or {}
 
 
 # Type variables for generic classes

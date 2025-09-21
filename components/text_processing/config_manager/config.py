@@ -157,3 +157,21 @@ class ConfigurationManager(ConfigurableComponent[dict[str, Any]]):
                 f"Configuration validation failed: {e}",
                 {"error_type": type(e).__name__},
             ) from e
+
+    def configure(self, config: dict[str, Any]) -> None:
+        """Configure the component with the provided configuration.
+
+        Args:
+            config: Configuration data to apply
+        """
+        # This implementation stores the config but doesn't apply it immediately
+        # Subclasses can override this method for specific configuration logic
+        self._current_config = config
+
+    def get_config(self) -> dict[str, Any]:
+        """Get the current configuration.
+
+        Returns:
+            Current configuration data
+        """
+        return getattr(self, '_current_config', {})
