@@ -88,7 +88,7 @@ class TestHashTransformer:
         """Test SHA256 hash generation."""
         result = self.transformer.transform("hello", "sha256")
         # SHA256 of "hello" should be consistent
-        expected = "2cf24dba4f21d4288094e57cd85abd2973e4da2161e5ea66a33e8dff6bf4b59e"
+        expected = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
         assert result == expected
 
     def test_base64_encode(self):

@@ -40,11 +40,15 @@ class TextTransformationEngine:
             crypto_manager: Cryptography management instance
         """
         from .factories import TransformationFactory
-        from ..config_manager.config import ConfigurationManager
 
-        self.config_manager = (
-            config_manager if config_manager is not None else ConfigurationManager()
-        )
+        self.config_manager = config_manager
+        if self.config_manager is None:
+            try:
+                from ..config_manager.core import ConfigManager
+                self.config_manager = ConfigManager()
+            except ImportError:
+                # Fallback if ConfigManager is not available
+                self.config_manager = None
         self.crypto_manager = crypto_manager
         
         # Use factory to create and manage transformers
