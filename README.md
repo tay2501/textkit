@@ -44,7 +44,7 @@ text-processing-toolkit/
 
 ### Prerequisites
 
-- **Python**: 3.13+ (minimum 3.12)
+- **Python**: 3.13
 - **Package Manager**: [uv](https://docs.astral.sh/uv/) (recommended)
 
 ### Installation
@@ -121,6 +121,19 @@ uv run ruff check . --fix  # Fix automatically
 uv run mypy .
 ```
 
+### Documentation
+
+```bash
+# Install documentation dependencies
+uv sync --group docs
+
+# Build documentation
+uv run sphinx-build docs docs/_build
+
+# Auto-build documentation with live reload
+uv run sphinx-autobuild docs docs/_build
+```
+
 ### Testing
 
 ```bash
@@ -182,14 +195,15 @@ uv run poly create project --name my_project
 - **Package Management**: uv
 - **Code Quality**: Black, Ruff, MyPy
 - **Testing**: pytest with coverage
+- **Documentation**: Sphinx with RTD theme
 - **Dependencies**:
-  - `typer` - Modern CLI framework
-  - `rich` - Rich text and beautiful formatting
-  - `pyperclip` - Clipboard operations
-  - `watchdog` - File system monitoring
-  - `cryptography` - Cryptographic operations
-  - `sqlalchemy` - Database operations
-  - `structlog` - Structured logging
+  - `typer>=0.16.1` - Modern CLI framework
+  - `rich>=14.1.0` - Rich text and beautiful formatting
+  - `pyperclip>=1.9.0` - Clipboard operations
+  - `watchdog>=6.0.0` - File system monitoring
+  - `cryptography>=45.0.6` - Cryptographic operations
+  - `sqlalchemy>=2.0.43` - Database operations
+  - `structlog>=25.4.0` - Structured logging
 
 ## 📋 Development Guidelines
 
@@ -208,6 +222,7 @@ Before submitting changes:
 - [ ] `uv run mypy .` - Type checking passes
 - [ ] `uv run pytest` - All tests pass
 - [ ] `uv run poly check` - Workspace integrity verified
+- [ ] `uv run sphinx-build docs docs/_build` - Documentation builds successfully
 
 ## 🤝 Contributing
 
