@@ -3,7 +3,7 @@
 
 # Text Processing Toolkit
 
-A modern, modular text processing workspace built with the Polylith architecture, providing reusable components for text transformation, encryption, and I/O operations.
+A modern, modular text processing workspace built with the Polylith architecture, providing reusable components for text transformation, line ending conversion, character encoding conversion, encryption, and I/O operations.
 
 ## 🏗️ Architecture
 
@@ -15,7 +15,7 @@ This workspace follows the [Polylith architecture](https://polylith.gitbook.io/)
 text-processing-toolkit/
 ├── components/           # Reusable business logic
 │   └── text_processing/
-│       ├── text_core/           # Core text transformations
+│       ├── text_core/           # Core text transformations, line endings, encoding
 │       ├── crypto_engine/       # Encryption/decryption operations
 │       ├── io_handler/          # Input/output and clipboard management
 │       └── config_manager/      # Configuration management
@@ -78,6 +78,14 @@ uv run python main.py --help
 
 # Transform text
 uv run python main.py transform --help
+
+# Line ending conversions (tr-like)
+uv run python main.py transform -r unix-to-windows
+uv run python main.py transform -r tr '\n' '\r\n'
+
+# Character encoding conversions (iconv-like)
+uv run python main.py transform -r iconv 'shift_jis' 'utf-8'
+uv run python main.py transform -r sjis-to-utf8
 
 # Encrypt/decrypt text
 uv run python main.py encrypt --help
@@ -176,13 +184,61 @@ uv run poly create base --name my_base
 uv run poly create project --name my_project
 ```
 
+## ✨ Key Features
+
+### 🔄 Line Ending Conversion (tr-like)
+Transform line endings between Unix, Windows, and Mac Classic formats:
+
+```bash
+# Convert Unix (LF) to Windows (CRLF)
+uv run python main.py transform -r unix-to-windows
+
+# tr-style character translation
+uv run python main.py transform -r tr '\n' '\r\n'
+
+# Normalize mixed line endings to Unix format
+uv run python main.py transform -r normalize
+```
+
+**Available line ending rules:**
+- `unix-to-windows`, `windows-to-unix`
+- `unix-to-mac`, `mac-to-unix`, `windows-to-mac`, `mac-to-windows`
+- `normalize` - Convert all line endings to Unix format
+- `tr` - Unix tr-like character translation
+
+### 🌐 Character Encoding Conversion (iconv-like)
+Convert between different character encodings with auto-detection:
+
+```bash
+# iconv-style conversion
+uv run python main.py transform -r iconv 'shift_jis' 'utf-8'
+
+# Auto-detect and convert to UTF-8
+uv run python main.py transform -r to-utf8
+
+# Japanese encoding conversions
+uv run python main.py transform -r sjis-to-utf8
+uv run python main.py transform -r eucjp-to-utf8
+
+# With error handling
+uv run python main.py transform -r iconv 'utf-8' 'ascii' 'replace'
+```
+
+**Supported encodings:**
+- **Japanese**: Shift_JIS, EUC-JP, ISO-2022-JP
+- **Unicode**: UTF-8, UTF-16, UTF-32
+- **Western**: Latin-1 (ISO-8859-1), Windows-1252
+- **Chinese**: GBK, GB2312, GB18030, Big5
+- **Korean**: EUC-KR
+- **Russian**: KOI8-R, Windows-1251
+
 ## 📦 Available Projects
 
 | Project | Description | Use Case |
 |---------|-------------|----------|
-| **text_transformer** | Basic text transformations | Format, case, trimming operations |
+| **text_transformer** | Basic text transformations | Format, case, trimming, line endings |
 | **crypto_processor** | Cryptographic operations | Encryption, decryption, hashing |
-| **encoding_specialist** | Text encoding conversions | Character encoding transformations |
+| **encoding_specialist** | Text encoding conversions | iconv-like character encoding transformations |
 | **format_converter** | Format conversion utilities | Between different text formats |
 | **tsv_translator** | TSV file processing | Tab-separated value file operations |
 
@@ -196,6 +252,12 @@ uv run poly create project --name my_project
 - **Code Quality**: Black, Ruff, MyPy
 - **Testing**: pytest with coverage
 - **Documentation**: Sphinx with RTD theme
+- **Key Features**:
+  - Line ending conversion (Unix tr-like)
+  - Character encoding conversion (Unix iconv-like)
+  - Text transformations and formatting
+  - Cryptographic operations
+  - File I/O and clipboard management
 - **Dependencies**:
   - `typer>=0.16.1` - Modern CLI framework
   - `rich>=14.1.0` - Rich text and beautiful formatting
@@ -241,5 +303,6 @@ This project is licensed under the MIT License.
 - Built with [Polylith](https://polylith.gitbook.io/) architecture
 - CLI powered by [Typer](https://typer.tiangolo.com/)
 - Package management with [uv](https://docs.astral.sh/uv/)
+- Inspired by Unix tools: `tr` (line ending conversion) and `iconv` (character encoding conversion)
 
 

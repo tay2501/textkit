@@ -11,6 +11,7 @@ from .hash_transformer import HashTransformer
 from .string_transformer import StringTransformer
 from .json_transformer import JsonTransformer
 from .line_ending_transformer import LineEndingTransformer
+from .encoding_transformer import EncodingTransformer
 
 __all__ = [
     "BaseTransformer",
@@ -21,4 +22,5 @@ __all__ = [
     "StringTransformer",
     "JsonTransformer",
     "LineEndingTransformer",
+    "EncodingTransformer",
 ]
