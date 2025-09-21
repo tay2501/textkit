@@ -1,7 +1,7 @@
 """Base transformer protocol and implementation."""
 
 from abc import ABC, abstractmethod
-from typing import Protocol, Dict, List, Tuple
+from typing import Protocol, Dict, List
 
 from ..types import TransformationRule
 

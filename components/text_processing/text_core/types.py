@@ -15,7 +15,7 @@ from pathlib import Path
 
 # Import ValidationError for TypeGuard functions
 # Note: This creates a circular import, so we'll use TYPE_CHECKING
-from typing import Any, Generic, Protocol, runtime_checkable, TYPE_CHECKING, TypeGuard, TypeVar
+from typing import Any, Dict, List, Protocol, runtime_checkable, TYPE_CHECKING, TypeGuard, TypeVar
 
 if TYPE_CHECKING:
     from ..exceptions import ValidationError
@@ -90,8 +90,8 @@ class TransformationRule:
 
 
 # Strategy Pattern Related Types
-TransformerStrategyT = TypeVar("TransformerStrategyT", bound="BaseTransformer")
-FactoryT = TypeVar("FactoryT", bound="TransformationFactory")
+TransformerStrategyT = TypeVar("TransformerStrategyT")
+FactoryT = TypeVar("FactoryT")
 
 @runtime_checkable
 class TransformerProtocol(Protocol):

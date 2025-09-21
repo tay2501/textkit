@@ -5,8 +5,7 @@ import pytest
 import tempfile
 import shutil
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
-from text_processing.crypto_engine import core
+from unittest.mock import Mock, patch
 from text_processing.crypto_engine.core import CryptographyManager, CryptographyError, CRYPTOGRAPHY_AVAILABLE
 
 
@@ -119,9 +118,10 @@ class TestCryptographyManager:
         # Check file permissions (Unix-like systems)
         import stat
         if hasattr(stat, 'S_IMODE'):
-            private_perms = stat.S_IMODE(crypto_manager.private_key_path.stat().st_mode)
-            public_perms = stat.S_IMODE(crypto_manager.public_key_path.stat().st_mode)
             # Note: Windows may not respect these permissions exactly
+            # Just check that files exist with proper permissions
+            stat.S_IMODE(crypto_manager.private_key_path.stat().st_mode)
+            stat.S_IMODE(crypto_manager.public_key_path.stat().st_mode)
 
     @pytest.mark.skipif(not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available")
     def test_load_key_pair(self, crypto_manager):

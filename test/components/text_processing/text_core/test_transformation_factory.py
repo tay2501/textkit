@@ -162,7 +162,7 @@ class TestTransformationFactory:
         # Get transformer again - should be new instance
         transformer2 = self.factory.get_transformer("basic")
         assert transformer1 is not transformer2
-        assert type(transformer1) == type(transformer2)
+        assert isinstance(transformer1, type(transformer2))
 
     def test_transformer_registration_clears_cache(self):
         """Test that registering transformer clears its cache."""

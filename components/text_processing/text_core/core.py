@@ -7,21 +7,14 @@ all text transformation operations in a modular, extensible way.
 
 from __future__ import annotations
 
-import hashlib
-import base64
-import json
-import re
-from typing import Any
+from typing import Dict, List, Optional, Tuple
 
 from .types import (
-    ConfigDict,
     TransformationRule,
-    TransformationRuleType,
     ConfigManagerProtocol,
     CryptoManagerProtocol,
 )
 from .transformation_base import (
-    TransformationBase,
     ValidationError,
     TransformationError,
 )
@@ -47,9 +40,10 @@ class TextTransformationEngine:
             crypto_manager: Cryptography management instance
         """
         from .factories import TransformationFactory
+        from ..config_manager.config import ConfigurationManager
 
         self.config_manager = (
-            config_manager if config_manager is not None else ConfigManager()
+            config_manager if config_manager is not None else ConfigurationManager()
         )
         self.crypto_manager = crypto_manager
         
@@ -282,7 +276,7 @@ class TextTransformationEngine:
         self._transformation_factory.register_transformer(name, transformer_class)
         self._build_available_rules()  # Rebuild rules after adding transformer
 
-    def get_transformer_factory(self) -> "TransformationFactory":
+    def get_transformer_factory(self):
         """Get the transformation factory instance.
 
         Returns:

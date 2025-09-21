@@ -2,7 +2,6 @@
 
 import pytest
 from components.text_processing.text_core.transformers import (
-    BaseTransformer,
     BasicTransformer,
     CaseTransformer,
     HashTransformer,

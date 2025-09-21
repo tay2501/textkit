@@ -46,7 +46,7 @@ class TransformationFactory:
             TypeError: If transformer_class is not a BaseTransformer subclass
         """
         if not issubclass(transformer_class, BaseTransformer):
-            raise TypeError(f"Transformer class must inherit from BaseTransformer")
+            raise TypeError("Transformer class must inherit from BaseTransformer")
 
         self._transformer_classes[name] = transformer_class
         # Clear cached instance if it exists

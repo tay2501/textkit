@@ -3,9 +3,7 @@ from text_processing.io_handler import core
 
 import pytest
 import sys
-from io import StringIO
-from unittest.mock import Mock, patch, MagicMock, mock_open
-from text_processing.io_handler import core
+from unittest.mock import patch, mock_open
 from text_processing.io_handler.core import InputOutputManager, IOError, CLIPBOARD_AVAILABLE
 
 
@@ -173,8 +171,6 @@ class TestInputOutputManager:
         """Test successful output to both clipboard and stdout."""
         test_text = "Hello output"
         with patch('pyperclip.copy') as mock_copy, \
-             patch('sys.stdout.write') as mock_write, \
-             patch('sys.stdout.flush') as mock_flush, \
              patch('builtins.print') as mock_print:
             io_manager.clipboard_available = True
             io_manager.set_output_text(test_text)
@@ -184,8 +180,7 @@ class TestInputOutputManager:
     def test_set_output_text_clipboard_only(self, io_manager, mock_clipboard_unavailable):
         """Test output when only stdout is available."""
         test_text = "Hello output"
-        with patch('builtins.print') as mock_print, \
-             patch('sys.stdout.flush') as mock_flush:
+        with patch('builtins.print') as mock_print:
             io_manager.clipboard_available = False
             io_manager.set_output_text(test_text)
             mock_print.assert_called_once_with(test_text, end="")
@@ -262,8 +257,7 @@ class TestInputOutputManager:
     def test_emergency_output_stderr_success(self, io_manager):
         """Test emergency output using stderr."""
         test_text = "Emergency message"
-        with patch('builtins.print') as mock_print, \
-             patch('sys.stderr.flush') as mock_flush:
+        with patch('builtins.print') as mock_print:
             io_manager.emergency_output(test_text)
             mock_print.assert_called_once_with(test_text, file=sys.stderr)
 

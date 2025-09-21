@@ -365,7 +365,6 @@ class CommandProcessor:
                 clipboard_length: int = len(current_clipboard)
 
                 # Show if clipboard differs from session text
-                session_different: bool = current_clipboard != self.session.current_text
                 clipboard_info: str = (
                     f"   Current clipboard: '{clipboard_display}' ({clipboard_length} chars)"
                 )
