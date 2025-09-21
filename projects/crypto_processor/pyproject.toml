@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling", "hatch-polylith-bricks"]
+build-backend = "hatchling.build"
+
+[project]
+name = "crypto-processor"
+version = "0.1.0"
+description = "Secure string processing with encryption and hashing capabilities"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "typer>=0.16.1",
+    "rich>=14.1.0",
+    "pyperclip>=1.9.0",
+    "cryptography>=45.0.6",
+]
+
+[project.scripts]
+crypto-processor = "crypto_processor.main:app"
+
+[tool.polylith.bricks]
+"../../components/text_processing/text_core" = "text_processing/text_core"
+"../../components/text_processing/crypto_engine" = "text_processing/crypto_engine"
+"../../components/text_processing/config_manager" = "text_processing/config_manager"
+"../../components/text_processing/io_handler" = "text_processing/io_handler"
+"../../bases/text_processing/cli_interface" = "text_processing/cli_interface"
+
+[tool.hatch.build.hooks.polylith-bricks]
+
+[tool.hatch.metadata]
+allow-direct-references = true

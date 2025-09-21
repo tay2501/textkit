@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling", "hatch-polylith-bricks"]
+build-backend = "hatchling.build"
+
+[project]
+name = "text-processing-toolkit"
+version = "0.1.0"
+description = "Polylith workspace for text processing applications with token-optimized architecture"
+# readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "typer>=0.16.1",
+    "rich>=14.1.0",
+    "pyperclip>=1.9.0",
+    "watchdog>=6.0.0",
+    "cryptography>=45.0.6",
+    "sqlalchemy>=2.0.43",
+    "structlog>=25.4.0",
+]
+
+[dependency-groups]
+dev = [
+    "hatch-polylith-bricks>=1.5.2",
+    "polylith-cli>=1.35.0",
+    "pytest>=8.4.1",
+    "pytest-cov>=6.2.1",
+    "mypy>=1.17.1",
+    "black>=24.0.0",
+    "ruff>=0.6.0",
+]
+
+[tool.hatch.build]
+dev-mode-dirs = ["components", "bases", "development", "."]

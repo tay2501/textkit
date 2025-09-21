@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "rsa": {
+    "key_size": 4096,
+    "public_exponent": 65537,
+    "aes_key_size": 32,
+    "aes_iv_size": 16,
+    "key_directory": "rsa"
+  },
+  "encryption": {
+    "enabled": true,
+    "auto_generate_keys": true,
+    "secure_delete": true
+  }
+}
