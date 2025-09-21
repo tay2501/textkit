@@ -8,7 +8,6 @@ including edge cases, error handling, and integration scenarios.
 import pytest
 import tempfile
 import os
-from pathlib import Path
 from unittest.mock import Mock, patch
 
 from components.text_processing.config_manager.core import ConfigurationManager as ConfigManager
@@ -160,8 +159,8 @@ class TestConfigIntegration:
     def test_config_injection(self):
         """Test configuration dependency injection."""
         # Test with mock dependencies
-        mock_storage = Mock()
-        mock_validator = Mock()
+        Mock()
+        Mock()
 
         # Should handle dependency injection
         try:
@@ -309,7 +308,7 @@ class TestConfigPerformance:
     def test_large_config_handling(self):
         """Test handling of large configuration objects."""
         # Create large configuration data
-        large_config = {f"key_{i}": f"value_{i}" * 100 for i in range(1000)}
+        {f"key_{i}": f"value_{i}" * 100 for i in range(1000)}
 
         try:
             # Should handle large configurations
@@ -356,7 +355,7 @@ class TestConfigSecurity:
     def test_config_audit_logging(self):
         """Test configuration audit logging."""
         # Test that configuration access is logged
-        with patch('logging.Logger.info') as mock_log:
+        with patch('logging.Logger.info'):
             try:
                 manager = ConfigManager()
                 if hasattr(manager, 'get_setting'):
