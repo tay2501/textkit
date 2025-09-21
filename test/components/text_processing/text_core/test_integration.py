@@ -6,7 +6,8 @@ end-to-end functionality of the text processing system.
 """
 
 import pytest
-from unittest.mock import Mock, patch
+import time
+from unittest.mock import Mock
 
 from components.text_processing.text_core.core import TextTransformationEngine
 from components.text_processing.text_core.transformation_base import (
@@ -76,7 +77,6 @@ class TestTextTransformationEngineIntegration:
             ("|t|l", ["t", "l"]), # Pipe separator
         ]
 
-        text = "  hello  "
         for rule_string, expected_rules in test_cases:
             try:
                 # Should parse without error
@@ -306,7 +306,6 @@ class TestPerformanceIntegration:
 
     def test_transformation_performance(self):
         """Test performance of transformations."""
-        import time
 
         text = "Hello World" * 100  # Reasonable size test
 
@@ -314,7 +313,7 @@ class TestPerformanceIntegration:
 
         # Perform multiple transformations
         for _ in range(100):
-            result = self.engine.apply_transformations(text, "/t/l/u")
+            self.engine.apply_transformations(text, "/t/l/u")
 
         end_time = time.time()
 
