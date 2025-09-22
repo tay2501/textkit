@@ -12,10 +12,11 @@ A powerful command-line tool suite for analyzing and translating TSV (Tab-Separa
 - **Multi-format Support**: TSV, CSV, and custom delimiter files
 - **Encoding Flexibility**: UTF-8, Shift_JIS, and other character encodings
 
-### 🔄 File Translation (`tsv-translator`)
-- **Format Conversion**: Transform between different delimited file formats
-- **Encoding Conversion**: Convert between character encodings
-- **Structure Preservation**: Maintain data integrity during transformations
+### 🔄 Text Transformation (`tsv-translator transform`)
+- **Character Width Conversion**: Full-width ↔ half-width character transformation
+- **Japanese Character Support**: Katakana, ASCII, symbols, and punctuation
+- **File & Stream Processing**: Support for files and standard input/output
+- **Format Preservation**: Maintain file structure during transformations
 
 ## Installation
 
@@ -158,21 +159,36 @@ Data type distribution:
 Average unique values per column: 58.0
 ```
 
-### `tsv-translator` - File Conversion Tool
+### `tsv-translator transform` - Text Transformation Tool
 
-Transform TSV files between different formats and encodings.
+Transform text with character width conversion and other transformations.
 
 #### Syntax
 ```bash
-tsv-translator INPUT OUTPUT
+tsv-translator transform {fh|hf} [input] [-o output]
 ```
 
 #### Options
 
 | Option | Description |
 |--------|-------------|
-| `--version` | Show version number |
+| `fh` | Convert full-width characters to half-width |
+| `hf` | Convert half-width characters to full-width |
+| `-o, --output FILE` | Output file path (default: stdout) |
 | `--help` | Show help message |
+| `--version` | Show version number |
+
+#### Examples
+```bash
+# Convert full-width to half-width
+tsv-translator transform fh input.txt -o output.txt
+
+# Convert half-width to full-width via pipe
+echo "123ABC" | tsv-translator transform hf
+
+# Process standard input/output
+cat input.txt | tsv-translator transform fh > output.txt
+```
 
 ## Data Type Detection
 
@@ -244,8 +260,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ### Version 0.1.0
 - ✨ Initial release
 - ✅ `tsv-info` command with comprehensive analysis
-- ✅ `tsv-translator` command for file conversion
+- ✅ `tsv-translator transform` command with character width conversion
 - ✅ Automatic data type detection
 - ✅ Multi-format support (TSV, CSV, custom delimiters)
 - ✅ Multiple encoding support
+- ✅ Japanese character support (Katakana, ASCII, symbols)
 - ✅ Linux-style command interface
