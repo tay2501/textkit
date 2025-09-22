@@ -3,12 +3,11 @@
 
 import sys
 from pathlib import Path
+from components.text_processing.text_core.transformers.line_ending_transformer import LineEndingTransformer
 
 # Add the project root to sys.path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
-
-from components.text_processing.text_core.transformers.line_ending_transformer import LineEndingTransformer
 
 def demo_line_ending_transformations():
     """Demonstrate line ending transformation capabilities."""

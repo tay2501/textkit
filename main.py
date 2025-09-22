@@ -5,7 +5,7 @@ This is the main entry point for the Polylith-based text processing system
 with modular components and modern CLI interface.
 """
 
-from bases.text_processing.cli_interface.core import run_cli
+from bases.text_processing.cli_interface import run_cli
 
 
 def main():

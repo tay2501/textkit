@@ -3,7 +3,7 @@
 
 version: 2
 updates:
-  # Enable version updates for Python dependencies
+  # Enable version updates for Python dependencies (using uv)
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
@@ -23,6 +23,12 @@ updates:
     labels:
       - "dependencies"
       - "python"
+      - "uv"
+    # Ignore lock file updates for now as uv manages uv.lock
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch"]
+        # Allow major and minor updates but handle patch updates via uv sync
 
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"

@@ -1,3 +1,3 @@
-from text_processing.cli_interface import core
+from .core import run_cli
 
-__all__ = ["core"]
+__all__ = ["run_cli"]

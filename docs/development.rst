@@ -35,6 +35,13 @@ Installation
 
     $ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
+4. Enable shell tab completion (optional):
+
+.. code-block:: console
+
+    $ uv run python main.py --install-completion
+    $ source ~/.bashrc  # Or restart terminal
+
 Development Workflow
 --------------------
 
@@ -213,6 +220,31 @@ Release Process
 
 Development Tools
 -----------------
+
+Shell Tab Completion
+~~~~~~~~~~~~~~~~~~~~
+
+The CLI application supports tab completion for enhanced development experience:
+
+.. code-block:: console
+
+    # Install for current shell (auto-detects shell type)
+    $ uv run python main.py --install-completion
+
+    # Install for specific shells
+    $ uv run python main.py --install-completion bash
+    $ uv run python main.py --install-completion zsh
+    $ uv run python main.py --install-completion fish
+    $ uv run python main.py --install-completion powershell
+
+Features:
+
+* **Command completion**: Tab-complete available commands (transform, encrypt, etc.)
+* **Option completion**: Tab-complete command options (--help, --name, -r)
+* **Help text display**: Show descriptions alongside suggestions (shell-dependent)
+* **Context-aware**: Intelligent suggestions based on current command context
+
+Supported shells: Bash, Zsh, Fish, PowerShell
 
 Recommended IDE Setup
 ~~~~~~~~~~~~~~~~~~~~~

@@ -65,6 +65,65 @@ text-processing-toolkit/
    uv run python main.py --help
    ```
 
+## ⌨️ Shell Tab Completion
+
+Enable tab completion for enhanced CLI experience with command and option suggestions.
+
+### Setup
+
+Install shell completion for your current shell:
+
+```bash
+# Install completion (auto-detects your shell)
+uv run python main.py --install-completion
+
+# Restart your terminal or reload shell configuration
+# Example for bash:
+source ~/.bashrc
+```
+
+### Manual Setup for Specific Shells
+
+```bash
+# For Bash
+uv run python main.py --install-completion bash
+
+# For Zsh
+uv run python main.py --install-completion zsh
+
+# For Fish
+uv run python main.py --install-completion fish
+
+# For PowerShell
+uv run python main.py --install-completion powershell
+```
+
+### Available Completions
+
+Once enabled, you can use tab completion for:
+
+- **Commands**: `transform`, `encrypt`, `decrypt`, `rules`, `status`
+- **Options**: `--help`, `--name`, `-r` (rules)
+- **Help text**: Displays descriptions alongside suggestions (shell-dependent)
+
+### Usage Examples
+
+```bash
+# Tab complete commands
+uv run python main.py [TAB][TAB]
+# Shows: transform, encrypt, decrypt, rules, status, version
+
+# Tab complete options
+uv run python main.py transform --[TAB][TAB]
+# Shows: --help, --name, -r
+
+# Tab complete with context-aware suggestions
+uv run python main.py transform -r [TAB][TAB]
+# Shows available transformation rules
+```
+
+**Supported Shells**: Bash, Zsh, Fish, PowerShell
+
 ## 🎯 Usage
 
 ### Main Application

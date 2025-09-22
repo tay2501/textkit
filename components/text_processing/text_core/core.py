@@ -7,7 +7,8 @@ all text transformation operations in a modular, extensible way.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any, Union
+import structlog
 
 from ..exceptions import ValidationError, TransformationError
 from .types import (
@@ -15,6 +16,9 @@ from .types import (
     ConfigManagerProtocol,
     CryptoManagerProtocol,
 )
+
+# Initialize logger
+logger = structlog.get_logger(__name__)
 
 
 class TextTransformationEngine:
@@ -71,39 +75,56 @@ class TextTransformationEngine:
             ValidationError: If input parameters are invalid
             TransformationError: If transformation fails
         """
-        # EAFP style: Try transformation first, validate on failure
+        import time
+        from pydantic import ValidationError as PydanticValidationError
+        from .models import TextTransformationRequest, TextTransformationResponse
+        
+        start_time = time.perf_counter()
+        applied_rules = []
+        warnings = []
+        
         try:
-            # Basic input validation
-            if not isinstance(text, str):
-                raise ValidationError(
-                    f"Invalid input type: expected str, got {type(text).__name__}",
-                    {"text_type": type(text).__name__},
-                )
-
-            if not isinstance(rule_string, str):
-                raise ValidationError(
-                    f"Invalid rule type: expected str, got {type(rule_string).__name__}",
-                    {"rule_type": type(rule_string).__name__},
-                )
-
-            if not rule_string.strip():
-                raise ValidationError("Empty rule string provided")
-
-            if not rule_string.startswith("/") and not rule_string.startswith("-"):
-                raise ValidationError(
-                    "Rule string must start with '/' or '-'",
-                    {"rule_string": rule_string},
-                )
-
+            # Use Pydantic model for comprehensive validation
+            request = TextTransformationRequest(
+                text=text,
+                rule_string=rule_string
+            )
+            
             # Parse and apply rules sequentially using strategies
-            parsed_rules = self.parse_rule_string(rule_string)
-            result = text
-
+            parsed_rules = self.parse_rule_string(request.rule_string)
+            result = request.text
+            
             for rule_name, args in parsed_rules:
                 result = self._apply_single_rule_with_strategy(result, rule_name, args)
-
+                applied_rules.append(rule_name)
+                
+            processing_time = (time.perf_counter() - start_time) * 1000
+            
+            # Log successful transformation
+            logger.info(
+                "transformation_completed",
+                applied_rules=applied_rules,
+                processing_time_ms=processing_time,
+                text_length=len(result)
+            )
+            
             return result
-
+            
+        except PydanticValidationError as e:
+            # Convert Pydantic validation errors to our ValidationError
+            error_details = []
+            for error in e.errors():
+                field = " -> ".join(str(loc) for loc in error['loc'])
+                error_details.append(f"{field}: {error['msg']}")
+            
+            raise ValidationError(
+                f"Input validation failed: {'; '.join(error_details)}",
+                {
+                    "validation_errors": e.errors(),
+                    "text_length": len(text) if isinstance(text, str) else 0,
+                    "rule_string": rule_string if isinstance(rule_string, str) else str(rule_string)
+                }
+            )
         except (ValidationError, TransformationError):
             raise
         except Exception as e:
@@ -113,6 +134,7 @@ class TextTransformationEngine:
                     "rule_string": rule_string,
                     "text_length": len(text) if isinstance(text, str) else 0,
                     "error_type": type(e).__name__,
+                    "applied_rules": applied_rules
                 }
             ) from e
 

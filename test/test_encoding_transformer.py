@@ -3,13 +3,11 @@
 import pytest
 import sys
 from pathlib import Path
+from components.text_processing.text_core.transformers.encoding_transformer import EncodingTransformer
 
 # Add the project root to sys.path to enable imports
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
-
-from components.text_processing.text_core.transformers.encoding_transformer import EncodingTransformer
-
 
 class TestEncodingTransformer:
     """Test cases for EncodingTransformer."""

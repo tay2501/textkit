@@ -5,12 +5,13 @@ build-backend = "hatchling.build"
 [project]
 name = "tsv_translator"
 version = "0.1.0"
-
-
-
+description = "A simple TSV translator tool"
 requires-python = ">=3.12"
-
 dependencies = []
+
+[project.scripts]
+tsv-translator = "tsv_translator.cli:main"
+tsv-info = "tsv_translator.info_cli:main"
 
 [tool.hatch.build.hooks.polylith-bricks]
 

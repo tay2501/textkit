@@ -92,6 +92,23 @@ class ClipboardError(Exception):
         self.context = context or {}
 
 
+class FileOperationError(Exception):
+    """File operation error.
+
+    Raised when file I/O operations fail, including read, write, and access errors.
+    """
+
+    def __init__(self, message: str, context: dict[str, Any] | None = None) -> None:
+        """Initialize file operation error.
+
+        Args:
+            message: Error description
+            context: Additional context information for debugging
+        """
+        super().__init__(message)
+        self.context = context or {}
+
+
 # Export all exceptions for easy importing
 __all__ = [
     "ValidationError",
@@ -99,4 +116,5 @@ __all__ = [
     "ConfigurationError",
     "CryptographyError",
     "ClipboardError",
+    "FileOperationError",
 ]

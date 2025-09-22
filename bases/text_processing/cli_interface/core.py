@@ -72,8 +72,44 @@ class ApplicationInterface:
         self.crypto_manager = crypto_manager
 
     def apply_transformation(self, text: str, rules: str) -> str:
-        """Apply transformation rules to text."""
-        return self.transformation_engine.apply_transformations(text, rules)
+        """Apply transformation rules to text with comprehensive validation.
+        
+        Args:
+            text: Input text to be transformed
+            rules: Transformation rules string
+            
+        Returns:
+            Transformed text
+            
+        Raises:
+            ValidationError: If input validation fails
+            TransformationError: If transformation processing fails
+        """
+        from typing import TYPE_CHECKING
+        
+        if TYPE_CHECKING:
+            from components.text_processing.text_core.models import (
+                TextTransformationRequest,
+                TextTransformationResponse
+            )
+        
+        # Enhanced logging for transformation requests
+        logger.info(
+            "transformation_request_received",
+            text_length=len(text),
+            rules=rules,
+            caller="apply_transformation"
+        )
+        
+        result = self.transformation_engine.apply_transformations(text, rules)
+        
+        logger.info(
+            "transformation_request_completed", 
+            result_length=len(result),
+            rules=rules
+        )
+        
+        return result
 
     def encrypt_text(self, text: str) -> str:
         """Encrypt text using cryptographic manager."""
@@ -299,6 +335,51 @@ def show_version() -> None:
         )
     )
 
+
+@app.command("fh", help="Convert full-width characters to half-width characters")
+
+def full_to_half(
+    text: Annotated[str | None, typer.Option("--text", "-t", help="Text to convert")] = None,
+    output: Annotated[bool, typer.Option("--output", "-o", help="Copy to clipboard")] = True,
+) -> None:
+    """Convert full-width characters to half-width characters."""
+    try:
+        import jaconv
+        
+        app_instance = get_app()
+        input_text = _get_input_text(app_instance, text)
+        
+        # Convert full-width to half-width
+        result = jaconv.z2h(input_text, kana=True, ascii=True, digit=True)
+        _output_result(app_instance, result, output)
+        
+    except ImportError:
+        console.print("[red]Error: jaconv library not found. Please install it.[/red]")
+    except Exception as e:
+        _handle_cli_error(e, "full-width to half-width conversion")
+
+
+@app.command("hf", help="Convert half-width characters to full-width characters")
+
+def half_to_full(
+    text: Annotated[str | None, typer.Option("--text", "-t", help="Text to convert")] = None,
+    output: Annotated[bool, typer.Option("--output", "-o", help="Copy to clipboard")] = True,
+) -> None:
+    """Convert half-width characters to full-width characters."""
+    try:
+        import jaconv
+        
+        app_instance = get_app()
+        input_text = _get_input_text(app_instance, text)
+        
+        # Convert half-width to full-width
+        result = jaconv.h2z(input_text, kana=True, ascii=True, digit=True)
+        _output_result(app_instance, result, output)
+        
+    except ImportError:
+        console.print("[red]Error: jaconv library not found. Please install it.[/red]")
+    except Exception as e:
+        _handle_cli_error(e, "half-width to full-width conversion")
 
 def run_cli() -> None:
     """Main CLI entry point."""

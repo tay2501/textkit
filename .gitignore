@@ -119,14 +119,56 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
-# Environments
+# Environments and Sensitive Configuration
 .env
+.env.*
+.envrc
 .venv
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
+
+# API Keys and Credentials (Security Critical)
+**/config/secrets.yml
+**/config/credentials.yml
+**/config/database.yml
+**/config/application.yml
+secrets.json
+credentials.json
+config.json
+api_keys.txt
+.secrets
+.credentials
+
+# SSH Keys and Certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+known_hosts
+authorized_keys
+
+# Cloud Provider Credentials
+.aws/credentials
+.aws/config
+.azure/
+.gcp/
+gcloud/
+.kube/config
+docker/config.json
+
+# Database Connection Strings
+database.conf
+db.conf
+connection_string.txt
 
 # Spyder project settings
 .spyderproject
@@ -185,6 +227,10 @@ tramp
 ehthumbs.db
 Thumbs.db
 
+# UV specific
+# UV cache and temporary directories
+.uv-cache/
+
 # Project specific
 # Polylith workspace artifacts
 .polylith/
@@ -198,11 +244,53 @@ Thumbs.db
 test-results/
 test-reports/
 
-# Local configuration
-.envrc
+# Personal Development Environment Settings
 .direnv/
 .claude
 .serena
+
+# IDE and Editor Personal Settings
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/extensions.json
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries/
+.idea/shelf/
+
+# Personal Git Configuration
+.gitconfig.local
+.gitmessage
+.gitignore.local
+
+# Personal Shell and Terminal Settings
+.zshrc.local
+.bashrc.local
+.aliases
+.profile.local
+.zsh_history
+.bash_history
+
+# Personal Tool Configurations
+.ripgreprc
+.tigrc
+.tmux.conf.local
+.screenrc.local
+
+# Personal Security Tools
+.gnupg/
+.ssh/config
+.netrc
+
+# Personal Backup and Temporary Files
+*.backup
+*.bak
+*.orig
+*.tmp
+*~
+.#*
+#*#
 
 # Database files
 *.db
@@ -217,3 +305,16 @@ logs/
 tmp/
 temp/
 .tmp/
+
+# Modern Python tooling
+# Streamlit
+.streamlit/
+
+# Marimo
+.marimo/
+
+# Pixi package manager
+.pixi/
+
+# Pyright type checker
+pyrightconfig.json

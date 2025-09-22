@@ -20,6 +20,13 @@ from typing import Any, Dict, List, Protocol, runtime_checkable, TypeGuard, Type
 
 
 # Type variables for generic classes
+# Pydantic imports for modern validation patterns
+from typing import Annotated, Optional
+from pydantic import BaseModel, Field, computed_field, field_validator, ConfigDict, ValidationInfo
+import structlog
+
+# Logger for validation warnings
+logger = structlog.get_logger(__name__)
 T = TypeVar("T")
 ConfigT = TypeVar("ConfigT", bound=dict[str, Any])
 
@@ -64,21 +71,98 @@ class TransformationRuleType(Enum):
     ADVANCED = auto()
 
 
-@dataclass(kw_only=True, frozen=True)
-class TransformationRule:
-    """Data class representing a transformation rule.
+class TransformationRule(BaseModel):
+    """Pydantic model representing a transformation rule.
 
-    This class is immutable to ensure rule definitions cannot be
-    accidentally modified during runtime.
+    This model provides type-safe validation and immutability for rule definitions.
+    Uses modern Pydantic v2 patterns for field validation and constraints.
     """
+    
+    model_config = ConfigDict(
+        frozen=True,  # Immutable like the original dataclass
+        str_strip_whitespace=True,
+        validate_assignment=True,
+        extra='forbid'
+    )
+    
+    name: Annotated[str, Field(
+        min_length=1,
+        max_length=50,
+        description="Human-readable rule name or identifier"
+    )]
+    
+    description: Annotated[str, Field(
+        min_length=1,
+        max_length=500,
+        description="Human-readable description of the rule"
+    )]
+    
+    example: Annotated[str, Field(
+        min_length=1,
+        max_length=200,
+        description="Example usage of the rule"
+    )]
+    
+    function: Callable[[str], str] = Field(
+        description="Function that implements the transformation"
+    )
+    
+    requires_args: bool = Field(
+        default=False,
+        description="Whether this rule requires additional arguments"
+    )
+    
+    default_args: Optional[list[str]] = Field(
+        default=None,
+        description="Default arguments for the rule"
+    )
+    
+    rule_type: TransformationRuleType = Field(
+        default=TransformationRuleType.BASIC,
+        description="Category of the transformation rule"
+    )
+    
+    @field_validator('default_args', mode='after')
+    @classmethod
+    def validate_default_args_consistency(
+        cls,
+        v: Optional[list[str]],
+        info: ValidationInfo
+    ) -> Optional[list[str]]:
+        """Ensure default_args is provided when requires_args is True."""
+        if info.context and 'requires_args' in info.context:
+            requires_args = info.context['requires_args']
+        else:
+            # Access the requires_args value from the current validation
+            requires_args = info.data.get('requires_args', False)
 
-    name: str
-    description: str
-    example: str
-    function: Callable[[str], str]
-    requires_args: bool = False
-    default_args: list[str] | None = None
-    rule_type: TransformationRuleType = TransformationRuleType.BASIC
+        # Allow empty list when requires_args is True but don't require it
+        if requires_args and v is not None and len(v) == 0:
+            # Empty list is allowed, just warn
+            logger.warning(
+                "default_args is empty but requires_args is True",
+                rule_name=info.data.get('name', 'unknown')
+            )
+
+        if not requires_args and v:
+            logger.warning(
+                "default_args provided but requires_args is False",
+                rule_name=info.data.get('name', 'unknown')
+            )
+
+        return v
+    
+    @computed_field
+    @property
+    def is_configurable(self) -> bool:
+        """Computed field indicating if the rule can be configured."""
+        return self.requires_args and bool(self.default_args)
+    
+    @computed_field
+    @property
+    def arg_count(self) -> int:
+        """Computed field showing the number of default arguments."""
+        return len(self.default_args) if self.default_args else 0
 
 
 # Strategy Pattern Related Types
