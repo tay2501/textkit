@@ -7,6 +7,7 @@ from components.text_processing.text_core.transformers import (
     HashTransformer,
     StringTransformer,
     JsonTransformer,
+    LineEndingTransformer,
 )
 from components.text_processing.text_core.types import (
     TransformationRule,
@@ -145,6 +146,73 @@ class TestStringTransformer:
         """Test replace with no arguments."""
         with pytest.raises(ValueError, match="requires exactly 2 arguments"):
             self.transformer.transform("test", "r", [])
+
+class TestLineEndingTransformer:
+    """Test LineEndingTransformer strategy with rlb functionality."""
+
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.transformer = LineEndingTransformer()
+
+    def test_unix_to_windows_transformation(self):
+        """Test Unix to Windows line ending conversion."""
+        result = self.transformer.transform("line1\nline2\nline3", "unix-to-windows")
+        assert result == "line1\r\nline2\r\nline3"
+
+    def test_windows_to_unix_transformation(self):
+        """Test Windows to Unix line ending conversion."""
+        result = self.transformer.transform("line1\r\nline2\r\nline3", "windows-to-unix")
+        assert result == "line1\nline2\nline3"
+
+    def test_normalize_mixed_line_endings(self):
+        """Test normalization of mixed line endings."""
+        mixed_text = "line1\r\nline2\nline3\rline4"
+        result = self.transformer.transform(mixed_text, "normalize")
+        assert result == "line1\nline2\nline3\nline4"
+
+    def test_rlb_removes_all_line_breaks(self):
+        """Test rlb rule removes all types of line breaks."""
+        # Test with CRLF (Windows)
+        result = self.transformer.transform("Hello\r\nWorld\r\nTest", "rlb")
+        assert result == "HelloWorldTest"
+        
+        # Test with LF (Unix)
+        result = self.transformer.transform("Hello\nWorld\nTest", "rlb")
+        assert result == "HelloWorldTest"
+        
+        # Test with CR (Mac Classic)
+        result = self.transformer.transform("Hello\rWorld\rTest", "rlb")
+        assert result == "HelloWorldTest"
+        
+        # Test with mixed line endings
+        result = self.transformer.transform("Hello\r\nWorld\nTest\rLine", "rlb")
+        assert result == "HelloWorldTestLine"
+
+    def test_rlb_preserves_other_whitespace(self):
+        """Test rlb preserves spaces and tabs but removes line breaks."""
+        text_with_spaces = "Hello World\nTest\t\tLine\r\nFinal"
+        result = self.transformer.transform(text_with_spaces, "rlb")
+        assert result == "Hello WorldTest\t\tLineFinal"
+
+    def test_rlb_empty_string(self):
+        """Test rlb with empty string."""
+        result = self.transformer.transform("", "rlb")
+        assert result == ""
+
+    def test_rlb_no_line_breaks(self):
+        """Test rlb with text that has no line breaks."""
+        result = self.transformer.transform("Hello World", "rlb")
+        assert result == "Hello World"
+
+    def test_rlb_only_line_breaks(self):
+        """Test rlb with text that contains only line breaks."""
+        result = self.transformer.transform("\n\r\n\r", "rlb")
+        assert result == ""
+
+    def test_tr_transformation_with_args(self):
+        """Test tr transformation with custom arguments."""
+        result = self.transformer.transform("hello\nworld", "tr", ["\\n", "\\r\\n"])
+        assert result == "hello\r\nworld"
 
 
 class TestJsonTransformer:

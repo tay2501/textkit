@@ -93,21 +93,7 @@ class ApplicationInterface:
                 TextTransformationResponse
             )
         
-        # Enhanced logging for transformation requests
-        logger.info(
-            "transformation_request_received",
-            text_length=len(text),
-            rules=rules,
-            caller="apply_transformation"
-        )
-        
         result = self.transformation_engine.apply_transformations(text, rules)
-        
-        logger.info(
-            "transformation_request_completed", 
-            result_length=len(result),
-            rules=rules
-        )
         
         return result
 
@@ -190,18 +176,81 @@ def _output_result(app_instance: ApplicationInterface, result: str, should_outpu
     console.print(f"[cyan]Result:[/cyan] '{preview}'")
 
 
-@app.command("transform", help="Apply transformation rules to text")
+@app.command("transform")
 def transform_text(
-    rules: Annotated[str, typer.Argument(help="Transformation rules (e.g., '/t/l')")],
-    text: Annotated[str | None, typer.Option("--text", "-t", help="Input text")] = None,
-    output: Annotated[bool, typer.Option("--output", "-o", help="Copy to clipboard")] = True,
+    rules: Annotated[str, typer.Argument(help="Transformation rules (e.g., '/t/l' for trim+lowercase)")] = None,
+    text: Annotated[str | None, typer.Option("--text", "-t", help="Input text (uses clipboard if not provided)")] = None,
+    output: Annotated[bool, typer.Option("--output", "-o", help="Copy result to clipboard")] = True,
+    show_rules: Annotated[bool, typer.Option("--show-rules", help="Show available rules and exit")] = False,
 ) -> None:
-    """Apply transformation rules to input text."""
+    """Apply **transformation rules** to input text.
+    
+    **Quick Rule Reference:**
+    - /t - Trim whitespace
+    - /l - Convert to lowercase
+    - /u - Convert to uppercase
+    - /p - Convert to PascalCase
+    - /c - Convert to camelCase
+    - /s - Convert to snake_case
+    - /k - Convert to kebab-case
+    - /R - Reverse text
+    - /r - Remove spaces
+    - /n - Normalize Unicode
+    - /e - URL encode / /d - URL decode
+    - /b - Base64 encode / /B - Base64 decode
+    - /h - Full-width (Zenkaku) / /H - Half-width (Hankaku)
+    - /j - Hiragana to Katakana / /J - Katakana to Hiragana
+    
+    **Usage Examples:**
+    
+    ```bash
+    # Basic transformations
+    text-processing-toolkit transform '/t/l' --text "  Hello World  "
+    
+    # Multiple rules (applied in sequence)
+    text-processing-toolkit transform '/t/u/R' --text "hello"
+    
+    # From clipboard (default)
+    text-processing-toolkit transform '/p'
+    
+    # Japanese text transformations
+    text-processing-toolkit transform '/j' --text "ひらがな"
+    text-processing-toolkit transform '/h' --text "ABC123"
+    ```
+    
+    **Tips:**
+    - Use `--show-rules` to see all available rules with detailed descriptions
+    - Use `text-processing-toolkit rules` for the complete rules table
+    """
+    if show_rules:
+        # Dynamically show available rules
+        try:
+            app_instance = get_app()
+            rules_data = app_instance.get_available_rules()
+            
+            console.print("\n[bold blue]Available Transformation Rules[/bold blue]")
+            console.print("=" * 60)
+            
+            for rule_key, rule_info in rules_data.items():
+                console.print(f"[cyan]/{rule_key}[/cyan] - {rule_info.name}")
+                console.print(f"    {rule_info.description}")
+                example = getattr(rule_info, "example", "N/A")
+                if example != "N/A":
+                    console.print(f"    [dim]Example: {example}[/dim]")
+                console.print()
+            
+            console.print("[dim]Tip: Combine rules like '/t/l/p' to apply multiple transformations[/dim]")
+        except Exception as e:
+            console.print(f"[red]Error loading rules: {e}[/red]")
+        return
+
+    if rules is None:
+        console.print("[red]Error: RULES argument is required when not using --show-rules[/red]")
+        raise typer.Exit(1)
+
     try:
         app_instance = get_app()
         input_text = _get_input_text(app_instance, text)
-        # Debug print for troubleshooting
-        print(f"Debug: rules={rules!r}, input_text={input_text!r}")
         result = app_instance.apply_transformation(input_text, rules)
         _output_result(app_instance, result, output)
     except Exception as e:
@@ -336,50 +385,6 @@ def show_version() -> None:
     )
 
 
-@app.command("fh", help="Convert full-width characters to half-width characters")
-
-def full_to_half(
-    text: Annotated[str | None, typer.Option("--text", "-t", help="Text to convert")] = None,
-    output: Annotated[bool, typer.Option("--output", "-o", help="Copy to clipboard")] = True,
-) -> None:
-    """Convert full-width characters to half-width characters."""
-    try:
-        import jaconv
-        
-        app_instance = get_app()
-        input_text = _get_input_text(app_instance, text)
-        
-        # Convert full-width to half-width
-        result = jaconv.z2h(input_text, kana=True, ascii=True, digit=True)
-        _output_result(app_instance, result, output)
-        
-    except ImportError:
-        console.print("[red]Error: jaconv library not found. Please install it.[/red]")
-    except Exception as e:
-        _handle_cli_error(e, "full-width to half-width conversion")
-
-
-@app.command("hf", help="Convert half-width characters to full-width characters")
-
-def half_to_full(
-    text: Annotated[str | None, typer.Option("--text", "-t", help="Text to convert")] = None,
-    output: Annotated[bool, typer.Option("--output", "-o", help="Copy to clipboard")] = True,
-) -> None:
-    """Convert half-width characters to full-width characters."""
-    try:
-        import jaconv
-        
-        app_instance = get_app()
-        input_text = _get_input_text(app_instance, text)
-        
-        # Convert half-width to full-width
-        result = jaconv.h2z(input_text, kana=True, ascii=True, digit=True)
-        _output_result(app_instance, result, output)
-        
-    except ImportError:
-        console.print("[red]Error: jaconv library not found. Please install it.[/red]")
-    except Exception as e:
-        _handle_cli_error(e, "half-width to full-width conversion")
 
 def run_cli() -> None:
     """Main CLI entry point."""

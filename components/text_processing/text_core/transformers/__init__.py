@@ -12,6 +12,7 @@ from .string_transformer import StringTransformer
 from .json_transformer import JsonTransformer
 from .line_ending_transformer import LineEndingTransformer
 from .encoding_transformer import EncodingTransformer
+from .japanese_transformer import JapaneseTransformer
 
 __all__ = [
     "BaseTransformer",
@@ -23,4 +24,5 @@ __all__ = [
     "JsonTransformer",
     "LineEndingTransformer",
     "EncodingTransformer",
+    "JapaneseTransformer",
 ]

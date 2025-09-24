@@ -102,7 +102,7 @@ uv run python main.py --install-completion powershell
 
 Once enabled, you can use tab completion for:
 
-- **Commands**: `transform`, `encrypt`, `decrypt`, `rules`, `status`
+- **Commands**: `transform`, `encrypt`, `decrypt`, `rules`, `status`, `version`
 - **Options**: `--help`, `--name`, `-r` (rules)
 - **Help text**: Displays descriptions alongside suggestions (shell-dependent)
 
@@ -149,6 +149,10 @@ uv run python main.py transform -r sjis-to-utf8
 # Encrypt/decrypt text
 uv run python main.py encrypt --help
 uv run python main.py decrypt --help
+
+# Japanese character width conversion
+uv run python main.py transform -r fh "ｈｅｌｌｏ１２３"  # Full-width to half-width
+uv run python main.py transform -r hf "hello123"        # Half-width to full-width
 ```
 
 ### Individual Projects
@@ -257,6 +261,10 @@ uv run python main.py transform -r tr '\n' '\r\n'
 
 # Normalize mixed line endings to Unix format
 uv run python main.py transform -r normalize
+
+# Remove all line breaks
+uv run python main.py transform /rlb --text "Line1\r\nLine2\nLine3"
+# Result: "Line1Line2Line3"
 ```
 
 **Available line ending rules:**
@@ -264,6 +272,32 @@ uv run python main.py transform -r normalize
 - `unix-to-mac`, `mac-to-unix`, `windows-to-mac`, `mac-to-windows`
 - `normalize` - Convert all line endings to Unix format
 - `tr` - Unix tr-like character translation
+- `rlb` - Remove all line breaks (\\r\\n, \\n, \\r)
+
+### 🇯🇵 Japanese Character Width Conversion
+Convert between full-width and half-width characters using transform rules:
+
+```bash
+# Convert full-width to half-width
+uv run python main.py transform -r fh "ｈｅｌｌｏ１２３"
+# Result: "hello123"
+
+# Convert half-width to full-width
+uv run python main.py transform -r hf "hello123"
+# Result: "ｈｅｌｌｏ１２３"
+
+# Process from clipboard
+echo "ｈｅｌｌｏ１２３" | uv run python main.py transform -r fh
+```
+
+**Available rules:**
+- `fh` - Full-width to half-width conversion
+- `hf` - Half-width to full-width conversion
+
+**Features:**
+- Converts Katakana, ASCII, and digits
+- Integrated with transform command architecture
+- Powered by `jaconv` library
 
 ### 🌐 Character Encoding Conversion (iconv-like)
 Convert between different character encodings with auto-detection:
@@ -325,6 +359,7 @@ uv run python main.py transform -r iconv 'utf-8' 'ascii' 'replace'
   - `cryptography>=45.0.6` - Cryptographic operations
   - `sqlalchemy>=2.0.43` - Database operations
   - `structlog>=25.4.0` - Structured logging
+  - `jaconv` - Japanese character width conversion
 
 ## 📋 Development Guidelines
 

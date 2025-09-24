@@ -239,12 +239,20 @@ The CLI application supports tab completion for enhanced development experience:
 
 Features:
 
-* **Command completion**: Tab-complete available commands (transform, encrypt, etc.)
+* **Command completion**: Tab-complete available commands (transform, encrypt, decrypt, rules, status, version)
 * **Option completion**: Tab-complete command options (--help, --name, -r)
+* **Transform rules completion**: Tab-complete transformation rules (fh, hf, tr, iconv, etc.)
 * **Help text display**: Show descriptions alongside suggestions (shell-dependent)
 * **Context-aware**: Intelligent suggestions based on current command context
 
 Supported shells: Bash, Zsh, Fish, PowerShell
+
+Available transform rules include:
+
+* **Japanese conversion**: ``fh`` (full-to-half), ``hf`` (half-to-full)
+* **Line endings**: ``unix-to-windows``, ``windows-to-unix``, ``tr``
+* **Encoding**: ``iconv``, ``sjis-to-utf8``, ``to-utf8``
+* **Text processing**: Case transformations, trimming, formatting
 
 Recommended IDE Setup
 ~~~~~~~~~~~~~~~~~~~~~

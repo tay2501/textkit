@@ -12,6 +12,7 @@ from ..transformers import (
     JsonTransformer,
     LineEndingTransformer,
     EncodingTransformer,
+    JapaneseTransformer,
 )
 
 
@@ -38,6 +39,7 @@ class TransformationFactory:
         self.register_transformer("json", JsonTransformer)
         self.register_transformer("line_ending", LineEndingTransformer)
         self.register_transformer("encoding", EncodingTransformer)
+        self.register_transformer("japanese", JapaneseTransformer)
 
     def register_transformer(self, name: str, transformer_class: Type[BaseTransformer]) -> None:
         """Register a new transformer strategy.

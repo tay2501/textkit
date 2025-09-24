@@ -75,6 +75,13 @@ class LineEndingTransformer(BaseTransformer):
                 function=self._normalize_line_endings,
                 rule_type=TransformationRuleType.BASIC,
             ),
+            "rlb": TransformationRule(
+                name="rlb",
+                description="Remove all line breaks (\\r\\n, \\n, \\r)",
+                example="Remove all line endings from text",
+                function=self._remove_line_breaks,
+                rule_type=TransformationRuleType.BASIC,
+            ),
         }
 
     def _apply_with_args(self, text: str, rule: TransformationRule, args: List[str]) -> str:
@@ -166,4 +173,25 @@ class LineEndingTransformer(BaseTransformer):
         # First convert CRLF to LF, then convert standalone CR to LF
         text = text.replace('\r\n', '\n')
         text = text.replace('\r', '\n')
+        return text
+
+    @staticmethod
+    def _remove_line_breaks(text: str) -> str:
+        """Remove all line breaks from text.
+        
+        Removes all types of line endings:
+        - Windows CRLF (\\r\\n)
+        - Unix LF (\\n)  
+        - Mac Classic CR (\\r)
+        
+        Args:
+            text: Input text containing line breaks
+            
+        Returns:
+            Text with all line breaks removed
+        """
+        # Remove CRLF first, then standalone CR and LF
+        text = text.replace('\r\n', '')
+        text = text.replace('\r', '')
+        text = text.replace('\n', '')
         return text
