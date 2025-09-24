@@ -3,63 +3,132 @@ Components
 
 The Text Processing Toolkit is built from modular components that can be combined to create powerful text processing applications. This document provides an overview of the available components and their functionality.
 
-Component Categories
+Available Components
 --------------------
 
-Core Components
-~~~~~~~~~~~~~~~
+Text Core Component
+~~~~~~~~~~~~~~~~~~~
 
-Core components provide fundamental text processing capabilities:
+**Location**: ``components/text_processing/text_core/``
 
-* **Text Core**: Basic text manipulation and validation
-* **Parser Core**: Text parsing and tokenization utilities
-* **Transform Core**: Text transformation and formatting
+The Text Core component provides fundamental text transformation capabilities including:
 
-Processing Components
+* **Text Transformation Engine**: Core engine for applying text transformations
+* **Transformer Classes**: Strategy pattern implementation for different text operations
+
+  * ``BasicTransformer``: Basic text operations and formatting
+  * ``CaseTransformer``: Case conversion operations (upper, lower, title, etc.)
+  * ``HashTransformer``: Text hashing operations for checksums and validation
+  * ``StringTransformer``: Advanced string manipulation and processing
+  * ``JsonTransformer``: JSON formatting and validation operations
+  * ``EncodingTransformer``: Character encoding conversions (iconv-like functionality)
+  * ``JapaneseTransformer``: Japanese character width conversions (full/half-width)
+  * ``LineEndingTransformer``: Line ending conversions (Unix tr-like functionality)
+
+* **Transformation Factory**: Factory pattern for creating transformers
+* **Base Classes**: Abstract base classes for implementing custom transformers
+* **Type System**: Comprehensive type definitions and protocols
+
+Key Features:
+- Line ending conversion (Unix/Windows/Mac)
+- Character encoding detection and conversion
+- Japanese character width transformation
+- Text case conversion and formatting
+- Hash generation and validation
+
+Crypto Engine Component
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Location**: ``components/text_processing/crypto_engine/``
+
+The Crypto Engine component provides cryptographic operations for secure text processing:
+
+* **CryptographyManager**: Central manager for encryption/decryption operations
+* **Encryption Support**: AES encryption with secure key management
+* **Hash Operations**: Various hashing algorithms for data integrity
+* **Secure Key Handling**: Safe key generation and management
+
+Key Features:
+- Text encryption and decryption
+- Multiple hashing algorithms
+- Secure random key generation
+- Password-based encryption
+
+I/O Handler Component
 ~~~~~~~~~~~~~~~~~~~~~
 
-Processing components implement specific text processing algorithms:
+**Location**: ``components/text_processing/io_handler/``
 
-* **Text Processing**: Advanced text analysis and processing
-* **Format Processing**: Document format conversion and handling
-* **Language Processing**: Natural language processing utilities
+The I/O Handler component manages input/output operations and system interactions:
 
-Integration Components
-~~~~~~~~~~~~~~~~~~~~~~
+* **InputOutputManager**: Centralized I/O operations management
+* **Clipboard Support**: System clipboard read/write operations
+* **Pipe Support**: Unix-style pipe operations for command chaining
+* **File I/O**: Safe file reading and writing with error handling
+* **Stream Processing**: Support for processing data streams
 
-Integration components handle external system interactions:
+Key Features:
+- Cross-platform clipboard operations
+- Pipe-based data processing
+- File system integration
+- Error handling and recovery
 
-* **File Integration**: File system operations and management
-* **Database Integration**: Data persistence and retrieval
-* **API Integration**: External service communication
+Configuration Manager Component
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Utility Components
-~~~~~~~~~~~~~~~~~~
+**Location**: ``components/text_processing/config_manager/``
 
-Utility components provide common helper functionality:
+The Configuration Manager component provides centralized configuration and settings management:
 
-* **Logging Utils**: Structured logging and monitoring
-* **Configuration Utils**: Configuration management and validation
-* **Testing Utils**: Testing utilities and fixtures
+* **ConfigurationManager**: Main configuration management class
+* **JSON Configuration**: JSON-based configuration file support
+* **Configuration Caching**: Efficient configuration loading and caching
+* **Settings Validation**: Type-safe configuration validation
+* **Environment Integration**: Environment variable support
+
+Key Features:
+- JSON configuration files
+- Configuration validation and type checking
+- Caching for performance
+- Environment variable integration
 
 Component Structure
 -------------------
 
-Each component follows a standardized structure:
+Each component follows a standardized structure within the Text Processing namespace:
 
 .. code-block:: text
 
-    components/
+    components/text_processing/
     └── component-name/
-        ├── __init__.py
+        ├── __init__.py          # Public API and exports
         ├── core.py              # Main component logic
-        ├── interfaces.py        # Public interfaces
-        ├── models.py           # Data models
-        ├── exceptions.py       # Component-specific exceptions
-        └── tests/             # Component tests
-            ├── __init__.py
-            ├── test_core.py
-            └── test_integration.py
+        ├── types.py             # Type definitions (if applicable)
+        ├── [component-specific modules]
+        └── __pycache__/         # Python bytecode cache
+
+**Example - Text Core Component Structure:**
+
+.. code-block:: text
+
+    components/text_processing/text_core/
+    ├── __init__.py              # Public API exports
+    ├── core.py                  # TextTransformationEngine
+    ├── types.py                 # Type definitions and protocols
+    ├── models.py                # Data models
+    ├── transformation_base.py   # Base classes for transformers
+    ├── transformers/            # Transformer implementations
+    │   ├── __init__.py
+    │   ├── base_transformer.py
+    │   ├── basic_transformer.py
+    │   ├── case_transformer.py
+    │   ├── encoding_transformer.py
+    │   ├── japanese_transformer.py
+    │   ├── line_ending_transformer.py
+    │   └── string_transformer.py
+    └── factories/               # Factory pattern implementations
+        ├── __init__.py
+        └── transformation_factory.py
 
 Component Interfaces
 --------------------

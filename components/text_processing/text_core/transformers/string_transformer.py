@@ -28,6 +28,13 @@ class StringTransformer(BaseTransformer):
                 default_args=[],
                 rule_type=TransformationRuleType.STRING_OPS,
             ),
+            "i": TransformationRule(
+                name="SQL IN List",
+                description="Convert line-separated values to SQL IN clause format",
+                example="'001\\n002\\nA01' -> '001',\\n'002',\\n'A01'",
+                function=self._to_sql_in_list,
+                rule_type=TransformationRuleType.STRING_OPS,
+            ),
         }
 
     def _apply_with_args(self, text: str, rule: TransformationRule, args: List[str]) -> str:
@@ -54,3 +61,31 @@ class StringTransformer(BaseTransformer):
 
         old_text, new_text = args[0], args[1]
         return text.replace(old_text, new_text)
+
+    def _to_sql_in_list(self, text: str) -> str:
+        """Convert line-separated values to SQL IN clause format.
+        
+        Optimized implementation using single-pass list comprehension
+        following EAFP (Easier to Ask for Forgiveness than Permission) principles.
+        
+        Args:
+            text: Input text with line-separated values
+            
+        Returns:
+            SQL IN clause formatted string with quoted values and trailing comma
+            
+        Example:
+            '001\\n002\\nA01\\nB02' -> "'001',\\n'002',\\n'A01',\\n'B02',"
+        """
+        # Single-pass processing: strip, filter empty lines, and quote in one comprehension
+        try:
+            lines = [
+                f"'{line.strip()}'"
+                for line in text.splitlines()
+                if line.strip()  # Filter out empty lines after stripping
+            ]
+            # Return result with trailing comma if lines exist, empty string otherwise
+            return ',\n'.join(lines) + (',' if lines else '')
+        except (AttributeError, TypeError):
+            # EAFP: Handle case where text is not a string or splitlines fails
+            return ""
