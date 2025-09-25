@@ -64,6 +64,8 @@ class TextTransformationEngine:
     def apply_transformations(self, text: str, rule_string: str) -> str:
         """Apply transformation rules to text using Strategy pattern.
 
+        Enhanced with EAFP-style error handling and structured logging.
+
         Args:
             text: Input text to transform
             rule_string: Rule string (e.g., '/t/l/u')
@@ -78,65 +80,140 @@ class TextTransformationEngine:
         import time
         from pydantic import ValidationError as PydanticValidationError
         from .models import TextTransformationRequest, TextTransformationResponse
+        from ..exceptions import safe_execute, handle_validation_error
         
         start_time = time.perf_counter()
         applied_rules = []
         warnings = []
         
+        # Enhanced validation using EAFP helper
+        validation_result, validation_error = handle_validation_error(
+            lambda data: TextTransformationRequest(**data),
+            {"text": text, "rule_string": rule_string},
+            logger,
+            {"operation": "request_validation"}
+        )
+        
+        if validation_error:
+            logger.error(
+                "transformation_validation_failed",
+                text_length=len(text) if isinstance(text, str) else 0,
+                rule_string=rule_string,
+                error=str(validation_error)
+            )
+            raise validation_error
+            
+        request = validation_result
+        
         try:
-            # Use Pydantic model for comprehensive validation
-            request = TextTransformationRequest(
-                text=text,
-                rule_string=rule_string
+            # Parse rules with enhanced error handling
+            parsed_rules, parse_error = safe_execute(
+                self.parse_rule_string,
+                request.rule_string,
+                logger=logger,
+                context={"operation": "rule_parsing"}
             )
             
-            # Parse and apply rules sequentially using strategies
-            parsed_rules = self.parse_rule_string(request.rule_string)
+            if parse_error:
+                raise ValidationError(
+                    f"Failed to parse rule string: {parse_error}",
+                    {"rule_string": request.rule_string}
+                ).add_context("parse_error", str(parse_error))
+                
             result = request.text
             
+            # Apply rules sequentially with detailed error tracking
             for rule_name, args in parsed_rules:
-                result = self._apply_single_rule_with_strategy(result, rule_name, args)
-                applied_rules.append(rule_name)
-                
+                try:
+                    result, transform_error = safe_execute(
+                        self._apply_single_rule_with_strategy,
+                        result, rule_name, args,
+                        logger=logger,
+                        context={
+                            "rule_name": rule_name,
+                            "args": args,
+                            "current_text_length": len(result)
+                        }
+                    )
+                    
+                    if transform_error:
+                        raise TransformationError(
+                            f"Rule '{rule_name}' failed: {transform_error}",
+                            operation="rule_application",
+                            cause=transform_error
+                        ).add_context("rule_name", rule_name).add_context("args", args)
+                        
+                    applied_rules.append(rule_name)
+                    
+                    logger.debug(
+                        "rule_applied_successfully",
+                        rule_name=rule_name,
+                        args=args,
+                        result_length=len(result)
+                    )
+                    
+                except (ValidationError, TransformationError):
+                    # Re-raise our custom exceptions
+                    raise
+                except Exception as e:
+                    # Wrap unexpected exceptions
+                    error = TransformationError(
+                        f"Unexpected error applying rule '{rule_name}': {e}",
+                        operation="rule_application",
+                        cause=e
+                    ).add_context("rule_name", rule_name).add_context("args", args)
+                    
+                    logger.exception(
+                        "unexpected_rule_error",
+                        rule_name=rule_name,
+                        args=args,
+                        error_type=type(e).__name__
+                    )
+                    raise error
+                    
             processing_time = (time.perf_counter() - start_time) * 1000
             
-            # Log successful transformation
+            # Log successful transformation with structured data
             logger.info(
                 "transformation_completed",
                 applied_rules=applied_rules,
                 processing_time_ms=processing_time,
-                text_length=len(result)
+                input_length=len(request.text),
+                output_length=len(result),
+                rule_count=len(applied_rules)
             )
             
             return result
             
-        except PydanticValidationError as e:
-            # Convert Pydantic validation errors to our ValidationError
-            error_details = []
-            for error in e.errors():
-                field = " -> ".join(str(loc) for loc in error['loc'])
-                error_details.append(f"{field}: {error['msg']}")
-            
-            raise ValidationError(
-                f"Input validation failed: {'; '.join(error_details)}",
-                {
-                    "validation_errors": e.errors(),
-                    "text_length": len(text) if isinstance(text, str) else 0,
-                    "rule_string": rule_string if isinstance(rule_string, str) else str(rule_string)
-                }
-            )
         except (ValidationError, TransformationError):
+            # Log and re-raise our custom exceptions
+            processing_time = (time.perf_counter() - start_time) * 1000
+            logger.error(
+                "transformation_failed",
+                applied_rules=applied_rules,
+                processing_time_ms=processing_time,
+                rule_string=request.rule_string,
+                partial_success=bool(applied_rules)
+            )
             raise
         except Exception as e:
-            raise TransformationError(
+            # Wrap any other unexpected exceptions
+            processing_time = (time.perf_counter() - start_time) * 1000
+            error = TransformationError(
                 f"Unexpected error during transformation: {e}",
-                {
-                    "rule_string": rule_string,
-                    "text_length": len(text) if isinstance(text, str) else 0,
-                    "error_type": type(e).__name__,
-                    "applied_rules": applied_rules
-                }
-            ) from e
+                operation="transformation_pipeline",
+                cause=e
+            ).add_context("rule_string", request.rule_string)\
+             .add_context("applied_rules", applied_rules)\
+             .add_context("processing_time_ms", processing_time)
+            
+            logger.exception(
+                "transformation_unexpected_error",
+                applied_rules=applied_rules,
+                processing_time_ms=processing_time,
+                error_type=type(e).__name__
+            )
+            raise error
 
     def _apply_single_rule_with_strategy(self, text: str, rule_name: str, args: List[str]) -> str:
         """Apply a single transformation rule using appropriate strategy.

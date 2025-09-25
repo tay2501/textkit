@@ -20,6 +20,111 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
+def configure_logging() -> None:
+    """Configure structured logging for the application.
+    
+    Uses modern structlog patterns with environment-aware configuration.
+    """
+    import sys
+    import logging
+    from typing import Any
+    
+    # Check if already configured to avoid double configuration
+    if structlog.is_configured():
+        return
+    
+    # Environment-aware processor selection
+    shared_processors = [
+        structlog.contextvars.merge_contextvars,
+        structlog.processors.add_log_level,
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.TimeStamper(fmt="iso", utc=True),
+    ]
+    
+    # Development vs Production configuration
+    if sys.stderr.isatty():
+        # Development: Pretty console output with colors
+        processors = shared_processors + [
+            structlog.dev.ConsoleRenderer(
+                colors=True,
+                exception_formatter=_get_exception_formatter(),
+                timestamp_key="timestamp"
+            ),
+        ]
+        logger_factory = structlog.PrintLoggerFactory()
+        wrapper_class = structlog.make_filtering_bound_logger(logging.DEBUG)
+    else:
+        # Production: Structured JSON output
+        try:
+            import orjson
+            json_renderer = structlog.processors.JSONRenderer(serializer=orjson.dumps)
+        except ImportError:
+            json_renderer = structlog.processors.JSONRenderer()
+            
+        processors = shared_processors + [
+            structlog.processors.dict_tracebacks,
+            json_renderer,
+        ]
+        logger_factory = structlog.stdlib.LoggerFactory()
+        wrapper_class = structlog.make_filtering_bound_logger(logging.INFO)
+    
+    # Configure structlog
+    structlog.configure(
+        processors=processors,
+        wrapper_class=wrapper_class,
+        logger_factory=logger_factory,
+        context_class=dict,
+        cache_logger_on_first_use=True,
+    )
+    
+    # Configure standard library logging
+    logging.basicConfig(
+        format="%(message)s",
+        stream=sys.stderr,
+        level=logging.INFO,
+    )
+
+
+def _get_exception_formatter() -> Any:
+    """Get the best available exception formatter for development.
+    
+    Returns:
+        Exception formatter function or None if none available
+    """
+    try:
+        from rich.traceback import Traceback
+        from rich.console import Console
+        
+        console = Console(stderr=True)
+        
+        def rich_formatter(exc_info: Any) -> str:
+            """Format exception using rich."""
+            try:
+                tb = Traceback.from_exception(*exc_info)
+                with console.capture() as capture:
+                    console.print(tb)
+                return capture.get()
+            except Exception:
+                # Fallback to default formatting
+                import traceback
+                return ''.join(traceback.format_exception(*exc_info))
+        
+        return rich_formatter
+        
+    except ImportError:
+        try:
+            import better_exceptions
+            return better_exceptions.format_exception
+        except ImportError:
+            # Use default formatting
+            return None
+
+
+# Auto-configure logging when module is imported
+configure_logging()
+
+
 class LogLevel(str, Enum):
     """Enumeration for log levels."""
     DEBUG = "DEBUG"
