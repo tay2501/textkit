@@ -21,6 +21,7 @@ dependencies = [
     "charset-normalizer>=3.4.0",
     "jaconv>=0.4.0",
     "aiofiles>=24.1.0",
+    "stringzilla>=4.0.14",
 ]
 
 [dependency-groups]
