@@ -4,7 +4,7 @@ This module provides all custom exceptions used throughout the text processing
 components to ensure consistency and avoid duplication.
 """
 
-from typing import Any
+from typing import Any, Callable
 
 
 class ValidationError(Exception):
@@ -189,10 +189,10 @@ __all__ = [
 
 # EAFP-style error handling utilities
 def safe_execute(
-    operation: callable,
+    operation: Callable[..., Any],
     *args,
-    default_return=None,
-    logger=None,
+    default_return: Any = None,
+    logger: Any = None,
     context: dict[str, Any] | None = None,
     **kwargs
 ) -> tuple[Any, Exception | None]:
@@ -230,8 +230,8 @@ def safe_execute(
 
 def safe_transform(
     text: str,
-    transformation: callable,
-    logger=None,
+    transformation: Callable[[str], str],
+    logger: Any = None,
     operation_name: str = "transform"
 ) -> tuple[str, Exception | None]:
     """Safely apply text transformation.
@@ -259,9 +259,9 @@ def safe_transform(
 
 
 def handle_validation_error(
-    validation_func: callable,
+    validation_func: Callable[[Any], Any],
     data: Any,
-    logger=None,
+    logger: Any = None,
     context: dict[str, Any] | None = None
 ) -> tuple[Any, ValidationError | None]:
     """Handle validation with proper EAFP error handling.
