@@ -65,8 +65,9 @@ class StringTransformer(BaseTransformer):
     def _to_sql_in_list(self, text: str) -> str:
         """Convert line-separated values to SQL IN clause format.
         
-        Optimized implementation using single-pass list comprehension
+        Optimized implementation using walrus operator to avoid duplicate strip() calls,
         following EAFP (Easier to Ask for Forgiveness than Permission) principles.
+        Performance improved by reducing O(2n) strip() operations to O(n).
         
         Args:
             text: Input text with line-separated values
@@ -77,15 +78,16 @@ class StringTransformer(BaseTransformer):
         Example:
             '001\\n002\\nA01\\nB02' -> "'001',\\n'002',\\n'A01',\\n'B02',"
         """
-        # Single-pass processing: strip, filter empty lines, and quote in one comprehension
         try:
+            # Single-pass processing: strip once per line using walrus operator
+            # Avoids duplicate strip() calls (was O(2n), now O(n))
             lines = [
-                f"'{line.strip()}'"
+                f"'{stripped}'"
                 for line in text.splitlines()
-                if line.strip()  # Filter out empty lines after stripping
+                if (stripped := line.strip())  # Strip once, reuse result
             ]
             # Return result with trailing comma if lines exist, empty string otherwise
-            return ',\n'.join(lines) + (',' if lines else '')
+            return ',\\n'.join(lines) + (',' if lines else '')
         except (AttributeError, TypeError):
             # EAFP: Handle case where text is not a string or splitlines fails
             return ""
