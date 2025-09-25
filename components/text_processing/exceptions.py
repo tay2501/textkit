@@ -190,11 +190,11 @@ __all__ = [
 # EAFP-style error handling utilities
 def safe_execute(
     operation: Callable[..., Any],
-    *args,
+    *args: Any,
     default_return: Any = None,
     logger: Any = None,
     context: dict[str, Any] | None = None,
-    **kwargs
+    **kwargs: Any
 ) -> tuple[Any, Exception | None]:
     """Execute operation safely following EAFP principles.
     
