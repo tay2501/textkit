@@ -41,6 +41,25 @@ Text Processing
    :undoc-members:
    :show-inheritance:
 
+StringZilla-Accelerated Components
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following components leverage StringZilla for SIMD-accelerated operations:
+
+String Transformer
+^^^^^^^^^^^^^^^^^^
+
+.. automodule:: components.text_processing.text_core.transformers.string_transformer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Key Methods:
+
+- ``_apply_stringzilla_replace()``: SIMD-optimized text replacement
+- ``_apply_sql_in_list_stringzilla()``: High-performance SQL IN list generation
+- Automatic fallback to standard implementations when StringZilla unavailable
+
 Format Processing
 ~~~~~~~~~~~~~~~~~
 

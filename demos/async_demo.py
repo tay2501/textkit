@@ -12,12 +12,10 @@ import tempfile
 
 from components.text_processing.async_core import (
     AsyncTextTransformationEngine,
-    AsyncTextStreamer,
     ChunkedProcessor,
     PerformanceMonitor,
     AsyncBenchmark,
-    AsyncIOManager,
-    StreamingConfig
+    AsyncIOManager
 )
 
 
@@ -148,7 +146,7 @@ async def demonstrate_performance_monitoring():
 
     # Show performance statistics
     stats = monitor.get_stats("text_transformation")
-    print(f"\nPerformance Statistics:")
+    print("\nPerformance Statistics:")
     print(f"- Total operations: {stats['total_operations']}")
     print(f"- Success rate: {stats['success_rate_percent']:.1f}%")
     print(f"- Average duration: {stats['average_duration_ms']:.2f}ms")
@@ -157,7 +155,7 @@ async def demonstrate_performance_monitoring():
 
     # System overview
     overview = monitor.get_system_overview()
-    print(f"\nSystem Overview:")
+    print("\nSystem Overview:")
     print(f"- Uptime: {overview['uptime_seconds']:.1f}s")
     print(f"- Total data processed: {overview['total_data_processed_bytes']:,} bytes")
     print(f"- System throughput: {overview['average_system_throughput_bytes_per_sec']:,.0f} bytes/sec")
@@ -205,7 +203,7 @@ async def demonstrate_async_io():
 
         # Show I/O statistics
         stats = io_manager.get_io_statistics()
-        print(f"\nI/O Statistics:")
+        print("\nI/O Statistics:")
         print(f"- Read operations: {stats['read_operations']}")
         print(f"- Write operations: {stats['write_operations']}")
         print(f"- Read speed: {stats['average_read_speed_bytes_per_sec']:,.0f} bytes/sec")
@@ -250,7 +248,7 @@ async def demonstrate_benchmarking():
         iterations=20
     )
 
-    print(f"\nBenchmark Results:")
+    print("\nBenchmark Results:")
     print(f"Fastest function: {comparison['comparison']['fastest_function']}")
     print(f"Speed improvement: {comparison['comparison']['speed_improvement_factor']:.2f}x")
 

@@ -4,7 +4,7 @@ This module defines a hierarchy of custom exceptions to provide better error
 handling and more informative error messages throughout the application.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 class TSVTranslatorError(Exception):
@@ -17,8 +17,8 @@ class TSVTranslatorError(Exception):
     def __init__(
         self,
         message: str,
-        context: Optional[Dict[str, Any]] = None,
-        original_error: Optional[Exception] = None
+        context: dict[str, Any] | None = None,
+        original_error: Exception | None = None
     ):
         """Initialize the exception.
 
@@ -48,7 +48,7 @@ class FileOperationError(TSVTranslatorError):
 class FileNotFoundError(FileOperationError):
     """Exception raised when a file is not found."""
 
-    def __init__(self, file_path: str, original_error: Optional[Exception] = None):
+    def __init__(self, file_path: str, original_error: Exception | None = None):
         """Initialize the exception.
 
         Args:
@@ -70,7 +70,7 @@ class FileReadError(FileOperationError):
         self,
         file_path: str,
         reason: str = "Unknown error",
-        original_error: Optional[Exception] = None
+        original_error: Exception | None = None
     ):
         """Initialize the exception.
 
@@ -95,7 +95,7 @@ class FileWriteError(FileOperationError):
         self,
         file_path: str,
         reason: str = "Unknown error",
-        original_error: Optional[Exception] = None
+        original_error: Exception | None = None
     ):
         """Initialize the exception.
 
@@ -120,7 +120,7 @@ class EncodingError(FileOperationError):
         self,
         file_path: str,
         encoding: str,
-        original_error: Optional[Exception] = None
+        original_error: Exception | None = None
     ):
         """Initialize the exception.
 
@@ -149,9 +149,9 @@ class InvalidDataError(AnalysisError):
     def __init__(
         self,
         message: str,
-        row_number: Optional[int] = None,
-        column_number: Optional[int] = None,
-        original_error: Optional[Exception] = None
+        row_number: int | None = None,
+        column_number: int | None = None,
+        original_error: Exception | None = None
     ):
         """Initialize the exception.
 
@@ -178,9 +178,9 @@ class TransformationError(TSVTranslatorError):
     def __init__(
         self,
         message: str,
-        transformation_type: Optional[str] = None,
-        input_length: Optional[int] = None,
-        original_error: Optional[Exception] = None
+        transformation_type: str | None = None,
+        input_length: int | None = None,
+        original_error: Exception | None = None
     ):
         """Initialize the exception.
 
@@ -207,9 +207,9 @@ class ConfigurationError(TSVTranslatorError):
     def __init__(
         self,
         message: str,
-        config_key: Optional[str] = None,
-        config_value: Optional[Any] = None,
-        original_error: Optional[Exception] = None
+        config_key: str | None = None,
+        config_value: Any | None = None,
+        original_error: Exception | None = None
     ):
         """Initialize the exception.
 
@@ -236,10 +236,10 @@ class ValidationError(TSVTranslatorError):
     def __init__(
         self,
         message: str,
-        field_name: Optional[str] = None,
-        field_value: Optional[Any] = None,
-        expected_type: Optional[str] = None,
-        original_error: Optional[Exception] = None
+        field_name: str | None = None,
+        field_value: Any | None = None,
+        expected_type: str | None = None,
+        original_error: Exception | None = None
     ):
         """Initialize the exception.
 

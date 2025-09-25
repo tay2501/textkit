@@ -5,7 +5,12 @@ files with advanced data type detection and comprehensive file inspection capabi
 """
 
 from .analyzer import TSVAnalyzer
-from .width_converter import WidthConverter, convert_full_to_half, convert_half_to_full, convert_width
+from .width_converter import (
+    WidthConverter,
+    convert_full_to_half,
+    convert_half_to_full,
+    convert_width,
+)
 
 __version__ = "0.1.0"
 __author__ = "Claude Code"

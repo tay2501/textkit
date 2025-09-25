@@ -13,7 +13,7 @@ from components.text_processing.config_manager.settings import (
     is_debug_mode,
     get_max_text_length
 )
-from components.text_processing.container import Container, get_service
+from components.text_processing.container import Container
 
 
 def demonstrate_basic_configuration():

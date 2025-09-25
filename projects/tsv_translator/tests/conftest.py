@@ -1,10 +1,11 @@
 """Pytest configuration and shared fixtures."""
 
-import pytest
-import tempfile
 import os
+import tempfile
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
+
+import pytest
 
 from tsv_translator.infrastructure.configuration import Configuration
 from tsv_translator.infrastructure.logging_config import setup_logging

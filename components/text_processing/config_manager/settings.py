@@ -7,12 +7,11 @@ using Pydantic BaseSettings with environment variable support.
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
-from typing import Optional, Dict, Any, List, Annotated
+from typing import Optional, Any, Annotated
 from enum import Enum
 
-from pydantic import Field, computed_field, field_validator, ConfigDict
+from pydantic import Field, computed_field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import structlog
 
@@ -27,7 +26,6 @@ def configure_logging() -> None:
     """
     import sys
     import logging
-    from typing import Any
     
     # Check if already configured to avoid double configuration
     if structlog.is_configured():

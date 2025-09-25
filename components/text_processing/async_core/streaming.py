@@ -9,12 +9,10 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import AsyncIterator, Optional, Callable, Union, Dict, Any, List
-from dataclasses import dataclass, field
-from io import StringIO
+from typing import AsyncIterator, Optional, Union, Dict, Any, List
+from dataclasses import dataclass
 import structlog
 
-from ..text_core.models import TextTransformationRequest
 from ..text_core.core import TextTransformationEngine
 from ..config_manager.settings import ApplicationSettings, get_settings
 

@@ -1,0 +1,236 @@
+name: Performance Benchmarks
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+    types: [opened, synchronize, reopened]
+  schedule:
+    - cron: '0 2 * * 0'  # Weekly on Sundays at 2 AM UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  benchmarks:
+    name: Run Performance Benchmarks
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          uv sync --dev
+
+      - name: Create benchmark data
+        run: |
+          mkdir -p benchmark_data
+
+          # Create test files of various sizes
+          echo "Creating benchmark test files..."
+
+          # Small file (1KB)
+          python -c "print('A' * 1000)" > benchmark_data/small.txt
+
+          # Medium file (100KB)
+          python -c "print('B' * 100000)" > benchmark_data/medium.txt
+
+          # Large file (1MB)
+          python -c "print('C' * 1000000)" > benchmark_data/large.txt
+
+          # UTF-8 file with various encodings
+          python -c "
+          import codecs
+          text = 'Hello 世界 🌍 Café naïve résumé\n' * 1000
+          with open('benchmark_data/utf8.txt', 'w', encoding='utf-8') as f:
+              f.write(text)
+          "
+
+      - name: Run text transformation benchmarks
+        run: |
+          echo "Running text transformation benchmarks..."
+
+          # Time text transformation operations
+          /usr/bin/time -v uv run python -c "
+          import sys
+          sys.path.insert(0, '.')
+
+          # Basic text operations benchmark
+          import time
+
+          files = ['benchmark_data/small.txt', 'benchmark_data/medium.txt', 'benchmark_data/large.txt']
+
+          for filename in files:
+              with open(filename, 'r') as f:
+                  content = f.read()
+
+              start = time.time()
+
+              # Basic transformations
+              upper_content = content.upper()
+              lower_content = content.lower()
+              reversed_content = content[::-1]
+
+              end = time.time()
+
+              size_kb = len(content) / 1024
+              print(f'{filename}: {size_kb:.1f}KB processed in {end-start:.4f}s ({size_kb/(end-start):.1f} KB/s)')
+          " 2>&1 | tee performance-${{ matrix.python-version }}.txt
+
+      - name: Run encoding benchmarks
+        run: |
+          echo "Running encoding benchmarks..."
+
+          /usr/bin/time -v uv run python -c "
+          import sys
+          sys.path.insert(0, '.')
+          import time
+          import codecs
+
+          filename = 'benchmark_data/utf8.txt'
+          encodings = ['utf-8', 'utf-16', 'latin-1', 'ascii', 'cp1252']
+
+          with open(filename, 'r', encoding='utf-8') as f:
+              content = f.read()
+
+          for encoding in encodings:
+              try:
+                  start = time.time()
+                  encoded = content.encode(encoding, errors='ignore')
+                  decoded = encoded.decode(encoding)
+                  end = time.time()
+
+                  print(f'{encoding}: {len(encoded)} bytes in {end-start:.4f}s')
+              except Exception as e:
+                  print(f'{encoding}: Error - {e}')
+          " 2>&1 | tee -a performance-${{ matrix.python-version }}.txt
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results-${{ matrix.python-version }}
+          path: performance-${{ matrix.python-version }}.txt
+          retention-days: 30
+
+      - name: Comment benchmark results on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = './performance-${{ matrix.python-version }}.txt';
+
+            if (fs.existsSync(path)) {
+              const results = fs.readFileSync(path, 'utf8');
+
+              const comment = `
+              ## Performance Benchmark Results (Python ${{ matrix.python-version }})
+
+              <details>
+              <summary>Click to expand benchmark results</summary>
+
+              \`\`\`
+              ${results}
+              \`\`\`
+
+              </details>
+
+              *Results from commit: ${context.sha.substring(0, 7)}*
+              `;
+
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+
+  memory-profiling:
+    name: Memory Profiling
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies with profiling tools
+        run: |
+          uv sync --dev
+          uv add memory-profiler psutil
+
+      - name: Run memory profiling
+        run: |
+          echo "Running memory profiling..."
+
+          # Create a memory profiling script
+          cat > memory_test.py << 'EOF'
+          import sys
+          import psutil
+          import os
+
+          def get_memory_usage():
+              process = psutil.Process(os.getpid())
+              return process.memory_info().rss / 1024 / 1024  # MB
+
+          def memory_intensive_task():
+              """Simulate text processing operations"""
+              print(f"Initial memory: {get_memory_usage():.1f} MB")
+
+              # Large text processing
+              large_text = "A" * 1000000  # 1MB string
+              print(f"After 1MB string creation: {get_memory_usage():.1f} MB")
+
+              # Text transformations
+              upper_text = large_text.upper()
+              print(f"After uppercase: {get_memory_usage():.1f} MB")
+
+              lower_text = large_text.lower()
+              print(f"After lowercase: {get_memory_usage():.1f} MB")
+
+              # List operations
+              text_list = [large_text] * 10  # 10MB of text
+              print(f"After list creation: {get_memory_usage():.1f} MB")
+
+              # Cleanup
+              del large_text, upper_text, lower_text, text_list
+              print(f"After cleanup: {get_memory_usage():.1f} MB")
+
+          if __name__ == "__main__":
+              memory_intensive_task()
+          EOF
+
+          uv run python memory_test.py > memory-profile.txt
+
+      - name: Upload memory profile
+        uses: actions/upload-artifact@v4
+        with:
+          name: memory-profile
+          path: memory-profile.txt
+          retention-days: 30

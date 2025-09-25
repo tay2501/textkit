@@ -11,10 +11,9 @@ from pydantic import ValidationError as PydanticValidationError
 from components.text_processing.text_core.models import (
     TextTransformationRequest,
     TextTransformationResponse,
-    RuleValidationRequest,
     ConfigurationModel
 )
-from components.text_processing.text_core.types import TransformationRule, TransformationRuleType
+from components.text_processing.text_core.types import TransformationRule
 
 
 def test_transformation_request_validation():

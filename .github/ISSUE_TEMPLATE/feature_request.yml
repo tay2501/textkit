@@ -1,50 +1,153 @@
 name: Feature Request
-description: Suggest an idea for this project
+description: Suggest an idea to enhance the Text Processing Toolkit
 title: "[Feature]: "
-labels: ["enhancement"]
+labels: ["enhancement", "triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to suggest a new feature!
-  - type: textarea
-    id: problem
+        ## Thank you for suggesting a new feature! ✨
+
+        Before submitting, please search existing issues to see if someone has already suggested this feature.
+
+        **Please be as specific as possible to help us understand and implement your idea.**
+
+  - type: dropdown
+    id: category
     attributes:
-      label: Is your feature request related to a problem? Please describe.
-      description: A clear and concise description of what the problem is.
-      placeholder: I'm always frustrated when...
+      label: Feature Category
+      description: Which area does this feature belong to?
+      options:
+        - CLI Interface & User Experience
+        - Text Processing & Transformation
+        - File Format Support
+        - Encryption & Security
+        - Performance & Optimization
+        - Configuration & Settings
+        - Interactive Features
+        - API & Integration
+        - Developer Tools
+        - Documentation
+        - Other
     validations:
       required: true
+
   - type: textarea
-    id: solution
+    id: problem-statement
     attributes:
-      label: Describe the solution you'd like
-      description: A clear and concise description of what you want to happen.
+      label: Problem or Use Case
+      description: What problem does this feature solve? What use case does it address?
+      placeholder: |
+        Describe the problem or need this feature addresses.
+
+        Example:
+        "When processing large text files, users need to transform encoding formats, but currently the toolkit doesn't support batch processing of multiple encoding formats in a single command."
     validations:
       required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: Describe your ideal solution for this feature
+      placeholder: |
+        Provide a detailed description of what you'd like to see implemented.
+
+        Example:
+        "Add a `--batch-encoding` flag that allows specifying multiple target encodings:
+        `textkit transform --method encoding --batch-encoding utf-8,shift-jis,euc-jp input.txt`
+
+        This would generate separate output files for each encoding format."
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-workflow
+    attributes:
+      label: User Workflow Example
+      description: Show how users would interact with this feature
+      placeholder: |
+        Provide a step-by-step example of how this feature would be used:
+
+        1. User runs: textkit [command] [options]
+        2. Tool processes input according to new feature
+        3. Expected output/behavior
+    validations:
+      required: true
+
   - type: textarea
     id: alternatives
     attributes:
-      label: Describe alternatives you've considered
-      description: A clear and concise description of any alternative solutions or features you've considered.
+      label: Alternative Solutions
+      description: What alternatives have you considered or tried?
+      placeholder: |
+        - Current workarounds you're using
+        - Other tools that provide this functionality
+        - Different approaches to solving this problem
     validations:
       required: false
+
   - type: dropdown
     id: priority
     attributes:
-      label: Priority
-      description: How important is this feature to you?
+      label: Priority Level
+      description: How important is this feature for your workflow?
       options:
-        - Low
-        - Medium
-        - High
-        - Critical
+        - Low - Nice to have, not blocking current work
+        - Medium - Would significantly improve workflow
+        - High - Current workflow is difficult without this
+        - Critical - Blocking important use cases
     validations:
       required: true
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Perceived Complexity
+      description: How complex do you think this feature would be to implement?
+      options:
+        - Simple - Small addition or configuration change
+        - Moderate - New functionality within existing components
+        - Complex - Major new component or significant changes
+        - Not sure
+    validations:
+      required: false
+
   - type: textarea
     id: additional-context
     attributes:
-      label: Additional context
-      description: Add any other context or screenshots about the feature request here.
+      label: Additional Context
+      description: Any other context, examples, or resources that would help
+      placeholder: |
+        - Links to relevant documentation or examples
+        - Screenshots or mockups
+        - Related issues or discussions
+        - Technical specifications or requirements
     validations:
       required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Are you interested in contributing to this feature?
+      options:
+        - label: I'd be willing to help implement this feature
+          required: false
+        - label: I can provide testing and feedback during development
+          required: false
+        - label: I have expertise in this area and can offer guidance
+          required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched for existing issues that might be related to this feature
+          required: true
+        - label: I have provided sufficient detail for the development team to understand this request
+          required: true
+        - label: I agree to follow this project's Code of Conduct
+          required: true

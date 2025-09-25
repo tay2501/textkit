@@ -7,7 +7,7 @@ default values, environment variables, and validation.
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from .exceptions import ConfigurationError
 
@@ -18,7 +18,7 @@ class Configuration:
 
     # File handling
     default_encoding: str = 'utf-8'
-    fallback_encodings: List[str] = field(default_factory=lambda: ['cp932', 'shift_jis', 'iso-8859-1'])
+    fallback_encodings: list[str] = field(default_factory=lambda: ['cp932', 'shift_jis', 'iso-8859-1'])
     max_file_size: int = 100_000_000  # 100MB
     preview_lines: int = 5
 
@@ -27,7 +27,7 @@ class Configuration:
     log_format: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     enable_console_logging: bool = True
     enable_file_logging: bool = False
-    log_file_path: Optional[str] = None
+    log_file_path: str | None = None
 
     # Analysis
     max_unique_values_preview: int = 5
@@ -68,7 +68,7 @@ class Configuration:
             raise ConfigurationError(f"Invalid log_level: {self.log_level}")
 
     @classmethod
-    def from_dict(cls, config_dict: Dict[str, Any]) -> 'Configuration':
+    def from_dict(cls, config_dict: dict[str, Any]) -> 'Configuration':
         """Create configuration from dictionary.
 
         Args:
@@ -144,7 +144,7 @@ class Configuration:
 
         return cls.from_dict(config_dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert configuration to dictionary.
 
         Returns:
@@ -171,7 +171,7 @@ class Configuration:
         current_dict.update(kwargs)
         return self.from_dict(current_dict)
 
-    def get_log_file_path(self) -> Optional[Path]:
+    def get_log_file_path(self) -> Path | None:
         """Get log file path as Path object.
 
         Returns:
@@ -185,7 +185,7 @@ class Configuration:
 class ConfigurationManager:
     """Manages application configuration with multiple sources."""
 
-    def __init__(self, config: Optional[Configuration] = None):
+    def __init__(self, config: Configuration | None = None):
         """Initialize configuration manager.
 
         Args:
@@ -198,7 +198,7 @@ class ConfigurationManager:
         """Get current configuration."""
         return self._config
 
-    def load_from_file(self, file_path: Union[str, Path]) -> None:
+    def load_from_file(self, file_path: str | Path) -> None:
         """Load configuration from file.
 
         Args:
@@ -213,7 +213,7 @@ class ConfigurationManager:
 
         try:
             import json
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, encoding='utf-8') as f:
                 config_dict = json.load(f)
             self._config = Configuration.from_dict(config_dict)
         except Exception as e:
@@ -223,7 +223,7 @@ class ConfigurationManager:
                 config_value=str(file_path)
             ) from e
 
-    def save_to_file(self, file_path: Union[str, Path]) -> None:
+    def save_to_file(self, file_path: str | Path) -> None:
         """Save current configuration to file.
 
         Args:
@@ -269,7 +269,7 @@ class ConfigurationManager:
 
 
 # Global configuration instance
-_config_manager: Optional[ConfigurationManager] = None
+_config_manager: ConfigurationManager | None = None
 
 
 def get_config() -> Configuration:
@@ -287,7 +287,7 @@ def get_config() -> Configuration:
     return _config_manager.config
 
 
-def init_config(config: Optional[Configuration] = None) -> None:
+def init_config(config: Configuration | None = None) -> None:
     """Initialize global configuration.
 
     Args:

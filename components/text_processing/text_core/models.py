@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from typing import Annotated, Optional, Any, Dict, List
 from pydantic import BaseModel, Field, field_validator, ConfigDict, ValidationInfo
-import re
 import structlog
 
 # Logger for validation messages

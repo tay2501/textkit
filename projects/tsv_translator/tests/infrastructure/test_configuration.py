@@ -2,8 +2,9 @@
 
 import json
 import os
-import pytest
 from pathlib import Path
+
+import pytest
 
 from tsv_translator.infrastructure.configuration import (
     Configuration,
@@ -232,7 +233,7 @@ class TestConfigurationManager:
 
         # Verify file was created and contains correct data
         assert config_file.exists()
-        with open(config_file, 'r', encoding='utf-8') as f:
+        with open(config_file, encoding='utf-8') as f:
             saved_data = json.load(f)
 
         assert saved_data['default_encoding'] == 'utf-16'

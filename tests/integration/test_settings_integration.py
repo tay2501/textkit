@@ -8,7 +8,6 @@ and validates proper integration with the existing codebase.
 import os
 import tempfile
 from pathlib import Path
-from typing import Any
 
 import pytest
 from pydantic import ValidationError as PydanticValidationError
@@ -19,12 +18,11 @@ from components.text_processing.config_manager.settings import (
     HotkeyConfig,
     TransformationRulesConfig,
     LogLevel,
-    get_settings,
     reload_settings,
     is_debug_mode,
     get_max_text_length
 )
-from components.text_processing.container import Container, get_container, inject, get_service
+from components.text_processing.container import Container, inject
 
 
 def test_application_settings_defaults():

@@ -8,7 +8,7 @@ import logging
 import logging.handlers
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from .configuration import Configuration, get_config
 from .exceptions import ConfigurationError
@@ -48,7 +48,7 @@ class TSVTranslatorLogger:
             name: Logger name
         """
         self.logger = logging.getLogger(name)
-        self._context: Dict[str, Any] = {}
+        self._context: dict[str, Any] = {}
 
     def set_context(self, **kwargs: Any) -> None:
         """Set context for subsequent log messages.
@@ -117,7 +117,7 @@ class TSVTranslatorLogger:
         context = {**self._context, **kwargs}
         self.logger.exception(message, extra={'context': context})
 
-    def _log(self, level: int, message: str, extra_context: Dict[str, Any]) -> None:
+    def _log(self, level: int, message: str, extra_context: dict[str, Any]) -> None:
         """Internal log method.
 
         Args:
@@ -141,7 +141,7 @@ class PerformanceLogger:
         """
         self.logger = logger
         self.operation = operation
-        self.start_time: Optional[float] = None
+        self.start_time: float | None = None
 
     def __enter__(self) -> 'PerformanceLogger':
         """Start timing."""
@@ -173,7 +173,7 @@ class PerformanceLogger:
                 )
 
 
-def setup_logging(config: Optional[Configuration] = None) -> None:
+def setup_logging(config: Configuration | None = None) -> None:
     """Setup logging configuration.
 
     Args:

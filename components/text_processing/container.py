@@ -7,7 +7,7 @@ using modern Python patterns and Pydantic integration.
 
 from __future__ import annotations
 
-from typing import TypeVar, Type, Dict, Any, Callable, Optional, Union, get_type_hints
+from typing import TypeVar, Type, Dict, Any, Callable, Optional
 from functools import wraps
 import inspect
 import structlog

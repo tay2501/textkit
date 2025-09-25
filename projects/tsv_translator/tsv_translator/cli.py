@@ -3,12 +3,11 @@
 import argparse
 import sys
 from pathlib import Path
-from typing import Optional
 
 from .width_converter import convert_width
 
 
-def read_text_input(input_source: Optional[str] = None) -> str:
+def read_text_input(input_source: str | None = None) -> str:
     """Read text from file or stdin."""
     if input_source and input_source != '-':
         # Read from file
@@ -35,7 +34,7 @@ def read_text_input(input_source: Optional[str] = None) -> str:
         return sys.stdin.buffer.read().decode(encoding)
 
 
-def write_text_output(text: str, output_dest: Optional[str] = None) -> None:
+def write_text_output(text: str, output_dest: str | None = None) -> None:
     """Write text to file or stdout."""
     if output_dest and output_dest != '-':
         # Write to file

@@ -62,8 +62,30 @@ The typical data flow in the Text Processing Toolkit follows this pattern:
 
 1. **Input Processing**: Raw text data enters through base applications
 2. **Component Pipeline**: Data flows through various processing components
-3. **Transformation**: Components apply specific text transformations
+3. **Transformation**: Components apply specific text transformations with optional SIMD acceleration
 4. **Output Generation**: Processed data is formatted and delivered
+
+Performance Optimization
+-------------------------
+
+The toolkit implements multiple performance optimization strategies:
+
+**SIMD Acceleration with StringZilla**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+StringZilla integration provides hardware-accelerated string operations:
+
+* **SIMD Instructions**: Leverages AVX-512, NEON for parallel processing
+* **Zero-Copy Operations**: Memory-efficient string views and lazy iteration
+* **Fallback Compatibility**: Graceful degradation to standard Python implementations
+* **Performance Gains**: Up to 10x faster string operations on supported hardware
+
+**Optimized Components**
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+* **String Transformer**: SIMD-accelerated text replacement and SQL list generation
+* **Memory Management**: Efficient processing of large datasets (160K+ characters)
+* **Hardware Detection**: Automatic SIMD capability detection and optimization
 
 Component Dependencies
 ----------------------

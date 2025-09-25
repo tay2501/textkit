@@ -88,10 +88,7 @@ class ApplicationInterface:
         from typing import TYPE_CHECKING
         
         if TYPE_CHECKING:
-            from components.text_processing.text_core.models import (
-                TextTransformationRequest,
-                TextTransformationResponse
-            )
+            pass
         
         result = self.transformation_engine.apply_transformations(text, rules)
         

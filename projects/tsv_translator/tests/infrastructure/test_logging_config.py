@@ -10,13 +10,13 @@ import pytest
 from tsv_translator.infrastructure.configuration import Configuration
 from tsv_translator.infrastructure.exceptions import ConfigurationError
 from tsv_translator.infrastructure.logging_config import (
+    PerformanceLogger,
     StructuredFormatter,
     TSVTranslatorLogger,
-    PerformanceLogger,
-    setup_logging,
     get_logger,
     log_performance,
     quick_setup,
+    setup_logging,
 )
 
 

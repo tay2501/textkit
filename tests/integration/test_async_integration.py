@@ -7,11 +7,8 @@ performance monitoring, and I/O operations to ensure proper integration.
 
 import asyncio
 import tempfile
-import time
 from pathlib import Path
-from typing import List, Dict, Any
 
-import pytest
 
 from components.text_processing.async_core import (
     AsyncTextTransformationEngine,
@@ -19,10 +16,8 @@ from components.text_processing.async_core import (
     ChunkedProcessor,
     PerformanceMonitor,
     AsyncBenchmark,
-    AsyncIOManager,
-    StreamingConfig
+    AsyncIOManager
 )
-from components.text_processing.text_core.core import TextTransformationEngine
 from components.text_processing.config_manager.settings import ApplicationSettings
 
 
@@ -437,7 +432,7 @@ async def run_all_tests():
             import traceback
             traceback.print_exc()
 
-    print(f"\n=== Test Results ===")
+    print("\n=== Test Results ===")
     print(f"Passed: {passed_tests}")
     print(f"Failed: {failed_tests}")
     print(f"Total:  {len(test_functions)}")

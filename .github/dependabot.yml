@@ -1,21 +1,17 @@
-# Configuration for Dependabot updates
-# See https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+# Dependabot configuration for Text Processing Toolkit
+# Docs: https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
 updates:
-  # Enable version updates for Python dependencies (using uv)
+  # Python dependencies via pip ecosystem (compatible with uv)
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-      timezone: "JP"
+      timezone: "Asia/Tokyo"
     open-pull-requests-limit: 10
-    reviewers:
-      - "dependabot[bot]"
-    assignees:
-      - "dependabot[bot]"
     commit-message:
       prefix: "deps"
       prefix-development: "deps-dev"
@@ -24,28 +20,57 @@ updates:
       - "dependencies"
       - "python"
       - "uv"
-    # Ignore lock file updates for now as uv manages uv.lock
+    # Group related dependencies for cleaner PRs
+    groups:
+      testing:
+        patterns:
+          - "pytest*"
+          - "coverage*"
+          - "*test*"
+      linting:
+        patterns:
+          - "ruff*"
+          - "mypy*"
+          - "black*"
+          - "flake8*"
+      security:
+        patterns:
+          - "cryptography*"
+          - "certifi*"
+      build-tools:
+        patterns:
+          - "hatch*"
+          - "setuptools*"
+          - "wheel*"
+          - "build*"
+    # Allow all update types but be selective about what we auto-merge
     ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-patch"]
-        # Allow major and minor updates but handle patch updates via uv sync
+      # Skip major version updates for core dependencies to avoid breaking changes
+      - dependency-name: "sqlalchemy"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typer"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "rich"
+        update-types: ["version-update:semver-major"]
 
-  # Enable version updates for GitHub Actions
+  # GitHub Actions updates
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "10:00"
-      timezone: "JP"
+      timezone: "Asia/Tokyo"
     open-pull-requests-limit: 5
-    reviewers:
-      - "dependabot[bot]"
-    assignees:
-      - "dependabot[bot]"
     commit-message:
       prefix: "ci"
       include: "scope"
     labels:
       - "dependencies"
       - "github-actions"
+      - "automation"
+    # Group GitHub Actions updates
+    groups:
+      actions:
+        patterns:
+          - "*"

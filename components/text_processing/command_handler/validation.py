@@ -7,7 +7,7 @@ and contexts, ensuring data integrity and proper error handling.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Callable, Optional
+from typing import Any, Dict, List, Callable
 from dataclasses import dataclass
 
 from .core import CommandContext

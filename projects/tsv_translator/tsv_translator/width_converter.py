@@ -1,7 +1,6 @@
 """Character width conversion utilities for full-width and half-width transformations."""
 
 import unicodedata
-from typing import Dict, Optional
 
 
 class WidthConverter:
@@ -9,10 +8,10 @@ class WidthConverter:
 
     def __init__(self):
         """Initialize the width converter with character mappings."""
-        self._full_to_half_map: Optional[Dict[str, str]] = None
-        self._half_to_full_map: Optional[Dict[str, str]] = None
+        self._full_to_half_map: dict[str, str] | None = None
+        self._half_to_full_map: dict[str, str] | None = None
 
-    def _build_full_to_half_map(self) -> Dict[str, str]:
+    def _build_full_to_half_map(self) -> dict[str, str]:
         """Build mapping from full-width to half-width characters."""
         if self._full_to_half_map is not None:
             return self._full_to_half_map
@@ -63,7 +62,7 @@ class WidthConverter:
         self._full_to_half_map = mapping
         return mapping
 
-    def _build_half_to_full_map(self) -> Dict[str, str]:
+    def _build_half_to_full_map(self) -> dict[str, str]:
         """Build mapping from half-width to full-width characters."""
         if self._half_to_full_map is not None:
             return self._half_to_full_map

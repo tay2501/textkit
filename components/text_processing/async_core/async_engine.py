@@ -14,10 +14,10 @@ from functools import wraps
 from concurrent.futures import ThreadPoolExecutor
 import structlog
 
-from ..text_core.models import TextTransformationRequest, TextTransformationResponse
+from ..text_core.models import TextTransformationRequest
 from ..text_core.core import TextTransformationEngine
 from ..config_manager.settings import ApplicationSettings, get_settings
-from ..exceptions import ValidationError, TransformationError
+from ..exceptions import TransformationError
 
 # Initialize logger
 logger = structlog.get_logger(__name__)

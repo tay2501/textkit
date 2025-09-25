@@ -10,13 +10,13 @@ from __future__ import annotations
 import asyncio
 import aiofiles
 import time
-from typing import AsyncIterator, Optional, List, Dict, Any, Union, Callable
+from typing import AsyncIterator, Optional, List, Dict, Any, Union
 from pathlib import Path
 from dataclasses import dataclass
 import structlog
 
 from ..config_manager.settings import ApplicationSettings, get_settings
-from ..exceptions import FileOperationError, ClipboardError
+from ..exceptions import FileOperationError
 
 # Initialize logger
 logger = structlog.get_logger(__name__)

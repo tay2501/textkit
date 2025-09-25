@@ -1,5 +1,5 @@
 name: Bug Report
-description: File a bug report
+description: File a bug report to help us improve the Text Processing Toolkit
 title: "[Bug]: "
 labels: ["bug", "triage"]
 assignees: []
@@ -7,35 +7,79 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report!
-  - type: input
-    id: contact
-    attributes:
-      label: Contact Details
-      description: How can we get in touch with you if we need more info?
-      placeholder: ex. email@example.com
-    validations:
-      required: false
+        ## Thank you for reporting a bug! 🐛
+
+        Before submitting, please search existing issues to avoid duplicates.
+
+        **For security vulnerabilities, please use the Security tab instead of this issue tracker.**
+
   - type: textarea
-    id: what-happened
+    id: description
     attributes:
-      label: What happened?
-      description: Also tell us, what did you expect to happen?
-      placeholder: Tell us what you see!
-      value: "A bug happened!"
+      label: Bug Description
+      description: A clear and concise description of what the bug is
+      placeholder: |
+        What happened and what did you expect to happen?
+
+        Example:
+        When I run `textkit transform --method uppercase myfile.txt`, I expect the text to be converted to uppercase, but instead I get an error message.
     validations:
       required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Run command '...'
+        2. With input file '...'
+        3. See error
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+      placeholder: A clear description of what you expected to happen
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which component is affected?
+      options:
+        - CLI Interface
+        - Text Transformation
+        - Crypto/Encryption
+        - File I/O
+        - Configuration
+        - Interactive Session
+        - Unknown/Not Sure
+    validations:
+      required: true
+
   - type: dropdown
     id: version
     attributes:
       label: Version
-      description: What version of our software are you running?
+      description: What version are you running?
       options:
-        - 0.1.0 (Default)
-        - main branch
-        - custom build
+        - Latest (main branch)
+        - 0.1.0
+        - Custom build
+        - Other (specify in additional context)
     validations:
       required: true
+
   - type: dropdown
     id: python-version
     attributes:
@@ -45,21 +89,67 @@ body:
         - "3.13"
         - "3.12"
         - "3.11"
-        - "3.10"
-        - Other
+        - Other (specify in additional context)
     validations:
       required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      description: What OS are you using?
+      options:
+        - Windows 11
+        - Windows 10
+        - macOS (latest)
+        - macOS (older version)
+        - Ubuntu/Debian
+        - Other Linux
+        - Other (specify in additional context)
+    validations:
+      required: true
+
   - type: textarea
     id: logs
     attributes:
-      label: Relevant log output
-      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      label: Error Output/Logs
+      description: Please copy and paste any relevant error messages or log output
+      placeholder: Paste error messages, stack traces, or log output here...
       render: shell
-  - type: checkboxes
-    id: terms
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
     attributes:
-      label: Code of Conduct
-      description: By submitting this issue, you agree to follow our Code of Conduct
+      label: Additional Context
+      description: Add any other context about the problem here
+      placeholder: |
+        - Configuration files used
+        - Input file examples
+        - Environment details
+        - Screenshots (if applicable)
+    validations:
+      required: false
+
+  - type: input
+    id: contact
+    attributes:
+      label: Contact (Optional)
+      description: How can we reach you for follow-up questions?
+      placeholder: ex. email@example.com or @username
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm the following
       options:
+        - label: I have searched for existing issues that might be related to this bug
+          required: true
+        - label: I have provided enough information to reproduce the issue
+          required: true
         - label: I agree to follow this project's Code of Conduct
           required: true

@@ -7,7 +7,7 @@ all text transformation operations in a modular, extensible way.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple, Any, Union
+from typing import Dict, List, Optional, Tuple
 import structlog
 
 from ..exceptions import ValidationError, TransformationError
@@ -78,8 +78,7 @@ class TextTransformationEngine:
             TransformationError: If transformation fails
         """
         import time
-        from pydantic import ValidationError as PydanticValidationError
-        from .models import TextTransformationRequest, TextTransformationResponse
+        from .models import TextTransformationRequest
         from ..exceptions import safe_execute, handle_validation_error
         
         start_time = time.perf_counter()

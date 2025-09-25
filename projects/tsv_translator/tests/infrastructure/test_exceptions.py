@@ -3,16 +3,16 @@
 import pytest
 
 from tsv_translator.infrastructure.exceptions import (
-    TSVTranslatorError,
-    FileOperationError,
+    AnalysisError,
+    ConfigurationError,
+    EncodingError,
     FileNotFoundError,
+    FileOperationError,
     FileReadError,
     FileWriteError,
-    EncodingError,
-    AnalysisError,
     InvalidDataError,
     TransformationError,
-    ConfigurationError,
+    TSVTranslatorError,
     ValidationError,
 )
 
@@ -75,7 +75,7 @@ class TestFileOperationErrors:
     def test_file_not_found_error_with_original(self):
         """Test FileNotFoundError with original exception."""
         file_path = "/path/to/missing/file.tsv"
-        original = IOError("Permission denied")
+        original = OSError("Permission denied")
         error = FileNotFoundError(file_path, original_error=original)
 
         assert error.file_path == file_path

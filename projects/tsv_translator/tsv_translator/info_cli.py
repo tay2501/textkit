@@ -3,7 +3,7 @@
 import argparse
 import sys
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any
 
 from .analyzer import TSVAnalyzer
 
@@ -17,7 +17,7 @@ def format_size(size_bytes: int) -> str:
     return f"{size_bytes:.1f}TB"
 
 
-def print_basic_info(info: Dict[str, Any]) -> None:
+def print_basic_info(info: dict[str, Any]) -> None:
     """Print basic file information."""
     print(f"File: {info['file_path']}")
     print(f"Size: {format_size(info['file_size'])}")
@@ -29,14 +29,14 @@ def print_basic_info(info: Dict[str, Any]) -> None:
     print(f"Encoding: {info['encoding']}")
 
 
-def print_headers(headers: List[str]) -> None:
+def print_headers(headers: list[str]) -> None:
     """Print column headers."""
     print("\nHeaders:")
     for i, header in enumerate(headers, 1):
         print(f"  {i:2}. {header}")
 
 
-def print_columns(columns: List[Dict[str, Any]]) -> None:
+def print_columns(columns: list[dict[str, Any]]) -> None:
     """Print detailed column information."""
     print("\nColumn Details:")
     print(f"{'#':<3} {'Name':<20} {'Type':<10} {'Non-Empty':<10} {'Empty':<7} {'Unique':<8} {'Samples'}")
@@ -52,7 +52,7 @@ def print_columns(columns: List[Dict[str, Any]]) -> None:
               f"{col['unique_count']:<8} {samples}")
 
 
-def print_preview(preview_data: List[List[str]], headers: List[str] = None) -> None:
+def print_preview(preview_data: list[list[str]], headers: list[str] = None) -> None:
     """Print file content preview."""
     if not preview_data:
         print("\nPreview: (empty file)")
@@ -95,7 +95,7 @@ def print_preview(preview_data: List[List[str]], headers: List[str] = None) -> N
         print("  " + " | ".join(formatted_row))
 
 
-def print_statistics(stats: Dict[str, Any]) -> None:
+def print_statistics(stats: dict[str, Any]) -> None:
     """Print file statistics."""
     print("\nStatistics:")
     print(f"Data completeness: {stats.get('data_completeness', 0):.1f}%")

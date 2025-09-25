@@ -4,13 +4,13 @@ import csv
 import re
 from collections import Counter
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 
 class TSVAnalyzer:
     """Analyze TSV files and extract information."""
 
-    def __init__(self, file_path: Union[str, Path], delimiter: str = '\t',
+    def __init__(self, file_path: str | Path, delimiter: str = '\t',
                  encoding: str = 'utf-8', has_header: bool = True):
         """Initialize TSV analyzer.
 
@@ -24,8 +24,8 @@ class TSVAnalyzer:
         self.delimiter = delimiter
         self.encoding = encoding
         self.has_header = has_header
-        self._data: Optional[List[List[str]]] = None
-        self._headers: Optional[List[str]] = None
+        self._data: list[list[str]] | None = None
+        self._headers: list[str] | None = None
 
     def _load_data(self) -> None:
         """Load TSV data from file."""
@@ -33,7 +33,7 @@ class TSVAnalyzer:
             return
 
         try:
-            with open(self.file_path, 'r', encoding=self.encoding, newline='') as file:
+            with open(self.file_path, encoding=self.encoding, newline='') as file:
                 reader = csv.reader(file, delimiter=self.delimiter)
                 self._data = list(reader)
 
@@ -45,7 +45,7 @@ class TSVAnalyzer:
         except Exception as e:
             raise RuntimeError(f"Failed to load TSV file: {e}")
 
-    def get_basic_info(self) -> Dict[str, Any]:
+    def get_basic_info(self) -> dict[str, Any]:
         """Get basic file information."""
         self._load_data()
 
@@ -73,12 +73,12 @@ class TSVAnalyzer:
             'encoding': self.encoding
         }
 
-    def get_headers(self) -> List[str]:
+    def get_headers(self) -> list[str]:
         """Get column headers."""
         self._load_data()
         return self._headers or []
 
-    def _detect_data_type(self, values: List[str]) -> str:
+    def _detect_data_type(self, values: list[str]) -> str:
         """Detect data type from sample values."""
         # Remove empty values for analysis
         non_empty = [v.strip() for v in values if v.strip()]
@@ -114,7 +114,7 @@ class TSVAnalyzer:
 
         return 'text'
 
-    def get_column_details(self) -> List[Dict[str, Any]]:
+    def get_column_details(self) -> list[dict[str, Any]]:
         """Get detailed information about each column."""
         self._load_data()
 
@@ -153,7 +153,7 @@ class TSVAnalyzer:
 
         return columns
 
-    def get_preview(self, num_lines: int = 5) -> List[List[str]]:
+    def get_preview(self, num_lines: int = 5) -> list[list[str]]:
         """Get preview of file content."""
         self._load_data()
 
@@ -162,7 +162,7 @@ class TSVAnalyzer:
 
         return self._data[:num_lines]
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get file statistics."""
         basic_info = self.get_basic_info()
         columns = self.get_column_details()
