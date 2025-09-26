@@ -143,9 +143,51 @@ def get_app() -> ApplicationInterface:
 
 
 def _handle_cli_error(error: Exception, operation: str) -> None:
-    """Centralized CLI error handling."""
-    console.print(f"[red]Error in {operation}: {error}[/red]")
+    """Centralized CLI error handling with Rich markup escaping."""
+    try:
+        safe_message = _safe_format_error(error, operation)
+        _robust_console_print(safe_message, "red")
+    except Exception:
+        # Ultimate fallback
+        print(f"CRITICAL ERROR in {operation}: {type(error).__name__}")
+    
     raise typer.Exit(1)
+
+
+def _safe_format_error(error: Exception, operation: str) -> str:
+    """Safely format error message with Rich markup escaping.
+    
+    Follows EAFP (Easier to Ask for Forgiveness than Permission) principle.
+    """
+    from rich.markup import escape
+    from pathlib import Path
+    import re
+    
+    try:
+        error_msg = str(error)
+        
+        # Handle Windows path issues in error messages
+        if re.search(r'[A-Za-z]:[\\/]', error_msg):
+            # Clean up Windows path artifacts in error messages
+            error_msg = re.sub(r'[A-Za-z]:[\\/][^"\']*', '[path]', error_msg)
+        
+        # Escape Rich markup characters to prevent interpretation
+        safe_error_msg = escape(error_msg)
+        
+        return f"Error in {operation}: {safe_error_msg}"
+        
+    except Exception as formatting_error:
+        # Fallback if even error formatting fails
+        return f"Error in {operation}: [Unable to format error message: {type(error).__name__}]"
+
+
+def _robust_console_print(message: str, style: str = "red") -> None:
+    """Robustly print messages to console with fallback handling."""
+    try:
+        console.print(f"[{style}]{message}[/{style}]")
+    except Exception:
+        # Fallback to plain print if Rich fails
+        print(f"ERROR: {message}")
 
 
 def _get_input_text(app_instance: ApplicationInterface, text: str | None = None) -> str:
@@ -172,12 +214,91 @@ def _output_result(app_instance: ApplicationInterface, result: str, should_outpu
     preview = result[:100] + "..." if len(result) > 100 else result
     console.print(f"[cyan]Result:[/cyan] '{preview}'")
 
+def _output_result_enhanced(app_instance: ApplicationInterface, result: str, output_folder: str | None = None, clipboard: bool = True) -> None:
+    """Enhanced output handling with file output and clipboard control.
+    
+    Follows EAFP principle and modern pathlib best practices.
+    """
+    from pathlib import Path
+    import datetime
+    
+    outputs_performed = []
+    
+    # Handle clipboard output
+    if clipboard:
+        try:
+            app_instance.io_manager.set_output_text(result)
+            outputs_performed.append("clipboard")
+        except Exception as clipboard_error:
+            console.print("[yellow]Warning: Failed to copy to clipboard[/yellow]")
+    
+    # Handle file output
+    if output_folder:
+        try:
+            # Use pathlib for cross-platform path handling
+            output_path = Path(output_folder)
+            
+            # Ensure output directory exists
+            output_path.mkdir(parents=True, exist_ok=True)
+            
+            # Generate filename with timestamp
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"transformed_text_{timestamp}.txt"
+            file_path = output_path / filename
+            
+            # Write result to file using UTF-8 encoding
+            file_path.write_text(result, encoding='utf-8')
+            
+            outputs_performed.append(f"file: {file_path}")
+            
+        except Exception as file_error:
+            _robust_console_print(f"Failed to write to file: {_safe_format_error(file_error, 'file output')}", "yellow")
+    
+    # Show success message
+    if outputs_performed:
+        output_list = " and ".join(outputs_performed)
+        console.print(f"[green]Success: Result saved to {output_list}[/green]")
+    else:
+        console.print("[cyan]Result processed (no output destinations specified)[/cyan]")
+    
+    # Show preview regardless of output destinations
+    preview = result[:100] + "..." if len(result) > 100 else result
+    console.print(f"[cyan]Result:[/cyan] '{preview}'")
+
+
+def _normalize_rule_argument(rules: str | None) -> str | None:
+    """Normalize rule argument to handle Windows path expansion issues.
+    
+    On Windows, arguments like '/l' can be expanded to 'L:/' by the shell.
+    This function detects and corrects such cases.
+    """
+    import re
+    from pathlib import Path
+    
+    if not rules:
+        return rules
+        
+    # Handle Windows drive path expansion
+    if re.match(r'^[A-Za-z]:[\\/]$', rules):
+        # This looks like 'C:/' or 'L:/' - extract the drive letter as rule
+        drive_letter = rules[0].lower()
+        return f'/{drive_letter}'
+    
+    # Handle other Windows path patterns that might contain rules
+    if re.match(r'^[A-Za-z]:[\\/]', rules):
+        # Try to extract rule pattern from path
+        rule_match = re.search(r'([/-][a-zA-Z0-9_+-]+(?:[/-][a-zA-Z0-9_+-]+)*)', rules)
+        if rule_match:
+            return rule_match.group(1)
+    
+    return rules
 
 @app.command("transform")
 def transform_text(
     rules: Annotated[str, typer.Argument(help="Transformation rules (e.g., '/t/l' for trim+lowercase)")] = None,
     text: Annotated[str | None, typer.Option("--text", "-t", help="Input text (uses clipboard if not provided)")] = None,
-    output: Annotated[bool, typer.Option("--output", "-o", help="Copy result to clipboard")] = True,
+    output: Annotated[str | None, typer.Option("--output", "-o", help="Output folder path (if not specified, no file output)")] = None,
+    clipboard: Annotated[bool, typer.Option("--clipboard/--no-clipboard", help="Copy result to clipboard")] = True,
     show_rules: Annotated[bool, typer.Option("--show-rules", help="Show available rules and exit")] = False,
 ) -> None:
     """Apply **transformation rules** to input text.
@@ -210,6 +331,12 @@ def transform_text(
     # From clipboard (default)
     text-processing-toolkit transform '/p'
     
+    # Output to file
+    text-processing-toolkit transform '/l' --text "HELLO" --output ./output
+    
+    # Disable clipboard
+    text-processing-toolkit transform '/u' --text "hello" --no-clipboard
+    
     # Japanese text transformations
     text-processing-toolkit transform '/j' --text "ひらがな"
     text-processing-toolkit transform '/h' --text "ABC123"
@@ -218,6 +345,8 @@ def transform_text(
     **Tips:**
     - Use `--show-rules` to see all available rules with detailed descriptions
     - Use `text-processing-toolkit rules` for the complete rules table
+    - Use `--output` to save result to a file in specified folder
+    - Use `--no-clipboard` to disable clipboard copying
     """
     if show_rules:
         # Dynamically show available rules
@@ -245,11 +374,14 @@ def transform_text(
         console.print("[red]Error: RULES argument is required when not using --show-rules[/red]")
         raise typer.Exit(1)
 
+    # Normalize rule argument to handle Windows path expansion
+    normalized_rules = _normalize_rule_argument(rules)
+    
     try:
         app_instance = get_app()
         input_text = _get_input_text(app_instance, text)
-        result = app_instance.apply_transformation(input_text, rules)
-        _output_result(app_instance, result, output)
+        result = app_instance.apply_transformation(input_text, normalized_rules)
+        _output_result_enhanced(app_instance, result, output_folder=output, clipboard=clipboard)
     except Exception as e:
         _handle_cli_error(e, "text transformation")
 

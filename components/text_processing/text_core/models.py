@@ -36,7 +36,6 @@ class TextTransformationRequest(BaseModel):
 
     rule_string: Annotated[str, Field(
         min_length=1,
-        pattern=r'^[/-].*',
         description="Transformation rule string (must start with / or -)"
     )]
 
@@ -48,9 +47,15 @@ class TextTransformationRequest(BaseModel):
     @field_validator('rule_string', mode='after')
     @classmethod
     def validate_rule_format(cls, v: str, info: ValidationInfo) -> str:
-        """Enhanced validation for rule string format."""
+        """Enhanced validation for rule string format with simplified Windows handling."""
+        import re
+        
         if not v.strip():
             raise ValueError("Rule string cannot be empty")
+
+        # Simple validation - must start with / or -
+        if not re.match(r'^[/-]', v):
+            raise ValueError(f"Rule string must start with / or -, got: {v}")
 
         # Check for balanced quotes if present
         if "'" in v or '"' in v:
