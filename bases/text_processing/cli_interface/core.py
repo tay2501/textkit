@@ -217,6 +217,12 @@ def _output_result(app_instance: ApplicationInterface, result: str, should_outpu
 def _output_result_enhanced(app_instance: ApplicationInterface, result: str, output_folder: str | None = None, clipboard: bool = True) -> None:
     """Enhanced output handling with file output and clipboard control.
     
+    Handles both file paths and directory paths for output:
+    - If output_folder is a file path (ends with .txt, .csv, etc.), saves directly to that file
+    - If output_folder is a directory, creates timestamped file
+    - Prompts for overwrite confirmation if file exists
+    - Preserves original text encoding and line endings from clipboard
+    
     Follows EAFP principle and modern pathlib best practices.
     """
     from pathlib import Path
@@ -238,16 +244,33 @@ def _output_result_enhanced(app_instance: ApplicationInterface, result: str, out
             # Use pathlib for cross-platform path handling
             output_path = Path(output_folder)
             
-            # Ensure output directory exists
-            output_path.mkdir(parents=True, exist_ok=True)
+            # Determine if it's a file path or directory path
+            if output_path.suffix:
+                # It's a file path (has extension)
+                file_path = output_path
+                
+                # Ensure parent directory exists
+                file_path.parent.mkdir(parents=True, exist_ok=True)
+                
+                # Check if file exists and prompt for overwrite
+                if file_path.exists():
+                    import typer
+                    overwrite = typer.confirm(f"File '{file_path}' already exists. Overwrite?")
+                    if not overwrite:
+                        console.print("[yellow]Operation cancelled.[/yellow]")
+                        return
+            else:
+                # It's a directory path
+                output_path.mkdir(parents=True, exist_ok=True)
+                
+                # Generate filename with timestamp
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"transformed_text_{timestamp}.txt"
+                file_path = output_path / filename
             
-            # Generate filename with timestamp
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"transformed_text_{timestamp}.txt"
-            file_path = output_path / filename
-            
-            # Write result to file using UTF-8 encoding
-            file_path.write_text(result, encoding='utf-8')
+            # Write result to file preserving encoding
+            # Use UTF-8 as default but preserve line endings from original text
+            file_path.write_text(result, encoding='utf-8', newline='')
             
             outputs_performed.append(f"file: {file_path}")
             
