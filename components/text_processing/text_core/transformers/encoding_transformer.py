@@ -67,11 +67,11 @@ class EncodingTransformer(BaseTransformer):
         self._rules = {
             "iconv": TransformationRule(
                 name="iconv",
-                description="Convert character encoding like Unix iconv (e.g., shift_jis to utf-8)",
-                example="iconv 'shift_jis' 'utf-8' - Convert from Shift_JIS to UTF-8",
+                description="Convert character encoding like Unix iconv (use -f <from> -t <to>)",
+                example="iconv -f shift_jis -t utf-8 - Convert from Shift_JIS to UTF-8",
                 function=self._iconv_transform,
                 requires_args=True,
-                default_args=["auto", "utf-8"],
+                default_args=["-f", "auto", "-t", "utf-8"],
                 rule_type=TransformationRuleType.BASIC,
             ),
             "to-utf8": TransformationRule(
@@ -97,48 +97,6 @@ class EncodingTransformer(BaseTransformer):
                 function=self._detect_encoding,
                 rule_type=TransformationRuleType.BASIC,
             ),
-            "sjis-to-utf8": TransformationRule(
-                name="sjis-to-utf8",
-                description="Convert Shift_JIS to UTF-8",
-                example="Convert Shift_JIS encoded text to UTF-8",
-                function=self._sjis_to_utf8,
-                rule_type=TransformationRuleType.BASIC,
-            ),
-            "utf8-to-sjis": TransformationRule(
-                name="utf8-to-sjis",
-                description="Convert UTF-8 to Shift_JIS",
-                example="Convert UTF-8 text to Shift_JIS",
-                function=self._utf8_to_sjis,
-                rule_type=TransformationRuleType.BASIC,
-            ),
-            "eucjp-to-utf8": TransformationRule(
-                name="eucjp-to-utf8",
-                description="Convert EUC-JP to UTF-8",
-                example="Convert EUC-JP encoded text to UTF-8",
-                function=self._eucjp_to_utf8,
-                rule_type=TransformationRuleType.BASIC,
-            ),
-            "utf8-to-eucjp": TransformationRule(
-                name="utf8-to-eucjp",
-                description="Convert UTF-8 to EUC-JP",
-                example="Convert UTF-8 text to EUC-JP",
-                function=self._utf8_to_eucjp,
-                rule_type=TransformationRuleType.BASIC,
-            ),
-            "latin1-to-utf8": TransformationRule(
-                name="latin1-to-utf8",
-                description="Convert Latin-1 (ISO-8859-1) to UTF-8",
-                example="Convert Latin-1 encoded text to UTF-8",
-                function=self._latin1_to_utf8,
-                rule_type=TransformationRuleType.BASIC,
-            ),
-            "utf8-to-latin1": TransformationRule(
-                name="utf8-to-latin1",
-                description="Convert UTF-8 to Latin-1 (ISO-8859-1)",
-                example="Convert UTF-8 text to Latin-1",
-                function=self._utf8_to_latin1,
-                rule_type=TransformationRuleType.BASIC,
-            ),
             "detect-encoding-advanced": TransformationRule(
                 name="detect-encoding-advanced",
                 description="Advanced character encoding detection with confidence score",
@@ -151,9 +109,33 @@ class EncodingTransformer(BaseTransformer):
     def _apply_with_args(self, text: str, rule: TransformationRule, args: List[str]) -> str:
         """Apply transformation that requires arguments."""
         if rule.name == "iconv":
-            if len(args) < 2:
-                raise ValueError("iconv transformation requires exactly 2 arguments: source and target encodings")
-            return self._iconv_transform(text, args[0], args[1], args[2] if len(args) > 2 else "strict")
+            # Parse Unix iconv-style arguments: -f <from> -t <to>
+            source_encoding = "auto"
+            target_encoding = "utf-8"
+            error_mode = "strict"
+            
+            i = 0
+            while i < len(args):
+                if args[i] == "-f" and i + 1 < len(args):
+                    source_encoding = args[i + 1]
+                    i += 2
+                elif args[i] == "-t" and i + 1 < len(args):
+                    target_encoding = args[i + 1]
+                    i += 2
+                elif args[i] == "--error" and i + 1 < len(args):
+                    error_mode = args[i + 1]
+                    i += 2
+                else:
+                    # Backward compatibility: if no flags, treat as positional args
+                    if i == 0:
+                        source_encoding = args[i]
+                    elif i == 1:
+                        target_encoding = args[i]
+                    elif i == 2:
+                        error_mode = args[i]
+                    i += 1
+            
+            return self._iconv_transform(text, source_encoding, target_encoding, error_mode)
         elif rule.name == "from-utf8":
             if len(args) < 1:
                 if rule.default_args:

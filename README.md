@@ -139,20 +139,43 @@ uv run python main.py --help
 uv run python main.py transform --help
 
 # Line ending conversions (tr-like)
-uv run python main.py transform -r unix-to-windows
-uv run python main.py transform -r tr '\n' '\r\n'
+uv run python main.py transform unix-to-windows
+uv run python main.py transform tr '\n' '\r\n'
 
 # Character encoding conversions (iconv-like)
-uv run python main.py transform -r iconv 'shift_jis' 'utf-8'
-uv run python main.py transform -r sjis-to-utf8
+uv run python main.py transform iconv -f shift_jis -t utf-8
+uv run python main.py transform to-utf8  # Auto-detect encoding
 
 # Encrypt/decrypt text
 uv run python main.py encrypt --help
 uv run python main.py decrypt --help
 
 # Japanese character width conversion
-uv run python main.py transform -r fh "ｈｅｌｌｏ１２３"  # Full-width to half-width
-uv run python main.py transform -r hf "hello123"        # Half-width to full-width
+uv run python main.py transform fh "ｈｅｌｌｏ１２３"  # Full-width to half-width
+uv run python main.py transform hf "hello123"        # Half-width to full-width
+```
+
+### Windows Usage Notes
+
+On Windows, some shells (like Git Bash) may expand paths starting with `/` (e.g., `/to-utf8` becomes `D:/Applications/Git/to-utf8`). To avoid this:
+
+**Option 1: Use PowerShell (Recommended)**
+```powershell
+# PowerShell handles rules correctly
+$env:PYTHONPATH = "."; uv run python main.py transform "/to-utf8" --text "Hello"
+```
+
+**Option 2: Use rules without leading slash**
+```bash
+# Works in all shells
+uv run python main.py transform "to-utf8" --text "Hello"
+uv run python main.py transform "iconv -f shift_jis -t utf-8" --text "日本語"
+```
+
+**Option 3: Use quoted expanded path**
+```bash
+# If your shell expands /to-utf8 to a full path, quote the full path
+uv run python main.py transform "D:/Applications/Git/to-utf8" --text "Hello"
 ```
 
 ### Individual Projects
@@ -334,18 +357,21 @@ uv run python main.py transform -r r old_text new_text
 Convert between different character encodings with auto-detection:
 
 ```bash
-# iconv-style conversion
-uv run python main.py transform -r iconv 'shift_jis' 'utf-8'
+# iconv-style conversion (Unix-compatible syntax)
+uv run python main.py transform -r iconv -f shift_jis -t utf-8
+uv run python main.py transform -r iconv -f euc-jp -t utf-8
 
 # Auto-detect and convert to UTF-8
 uv run python main.py transform -r to-utf8
 
-# Japanese encoding conversions
-uv run python main.py transform -r sjis-to-utf8
-uv run python main.py transform -r eucjp-to-utf8
+# Convert from UTF-8 to specific encoding
+uv run python main.py transform -r from-utf8 shift_jis
 
 # With error handling
-uv run python main.py transform -r iconv 'utf-8' 'ascii' 'replace'
+uv run python main.py transform -r iconv -f utf-8 -t ascii --error replace
+
+# Detect character encoding
+uv run python main.py transform -r detect-encoding
 ```
 
 **Supported encodings:**

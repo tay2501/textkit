@@ -22,7 +22,21 @@ from typing import Any, Dict, List, Protocol, runtime_checkable, TypeGuard, Type
 # Type variables for generic classes
 # Pydantic imports for modern validation patterns
 from typing import Annotated, Optional
-from pydantic import BaseModel, Field, computed_field, field_validator, ConfigDict, ValidationInfo
+try:
+    from pydantic import BaseModel, Field, computed_field, field_validator, ConfigDict, ValidationInfo
+except ImportError:
+    # Fallback for environments where pydantic is not available
+    class BaseModel:
+        def __init__(self, **kwargs):
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+
+    Field = lambda **kwargs: None
+    computed_field = lambda *args, **kwargs: lambda func: func
+    field_validator = lambda *args, **kwargs: lambda func: func
+    ConfigDict = dict
+    ValidationInfo = object
+
 import structlog
 
 # Logger for validation warnings

@@ -47,15 +47,16 @@ class TextTransformationRequest(BaseModel):
     @field_validator('rule_string', mode='after')
     @classmethod
     def validate_rule_format(cls, v: str, info: ValidationInfo) -> str:
-        """Enhanced validation for rule string format with simplified Windows handling."""
+        """Enhanced validation for rule string format with Windows compatibility."""
         import re
         
         if not v.strip():
             raise ValueError("Rule string cannot be empty")
 
-        # Simple validation - must start with / or -
-        if not re.match(r'^[/-]', v):
-            raise ValueError(f"Rule string must start with / or -, got: {v}")
+        # Windows compatibility: Allow rules without leading slash for better shell compatibility
+        # Accept patterns: /rule, -flag, rule-name, or full Windows paths
+        if not re.match(r'^([/-]|[a-zA-Z]|[A-Za-z]:[\\\\/])', v):
+            raise ValueError(f"Invalid rule string format, got: {v}")
 
         # Check for balanced quotes if present
         if "'" in v or '"' in v:

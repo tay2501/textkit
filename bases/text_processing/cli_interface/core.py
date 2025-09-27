@@ -160,7 +160,6 @@ def _safe_format_error(error: Exception, operation: str) -> str:
     Follows EAFP (Easier to Ask for Forgiveness than Permission) principle.
     """
     from rich.markup import escape
-    from pathlib import Path
     import re
     
     try:
@@ -176,7 +175,7 @@ def _safe_format_error(error: Exception, operation: str) -> str:
         
         return f"Error in {operation}: {safe_error_msg}"
         
-    except Exception as formatting_error:
+    except Exception:
         # Fallback if even error formatting fails
         return f"Error in {operation}: [Unable to format error message: {type(error).__name__}]"
 
@@ -235,7 +234,7 @@ def _output_result_enhanced(app_instance: ApplicationInterface, result: str, out
         try:
             app_instance.io_manager.set_output_text(result)
             outputs_performed.append("clipboard")
-        except Exception as clipboard_error:
+        except Exception:
             console.print("[yellow]Warning: Failed to copy to clipboard[/yellow]")
     
     # Handle file output
@@ -293,26 +292,52 @@ def _normalize_rule_argument(rules: str | None) -> str | None:
     """Normalize rule argument to handle Windows path expansion issues.
     
     On Windows, arguments like '/l' can be expanded to 'L:/' by the shell.
+    Git Bash on Windows can expand '/to-utf8' to 'D:/Applications/Git/to-utf8'.
     This function detects and corrects such cases.
     """
     import re
-    from pathlib import Path
     
     if not rules:
         return rules
         
-    # Handle Windows drive path expansion
-    if re.match(r'^[A-Za-z]:[\\/]$', rules):
+    # Handle Windows drive path expansion for single character rules
+    if re.match(r'^[A-Za-z]:[\\\\/]$', rules):
         # This looks like 'C:/' or 'L:/' - extract the drive letter as rule
         drive_letter = rules[0].lower()
         return f'/{drive_letter}'
     
+    # Handle Git Bash Windows path expansion
+    # Pattern: D:/Applications/Git/to-utf8 -> /to-utf8
+    git_path_match = re.match(r'^[A-Za-z]:[\\\\/][^/\\]*[\\\\/]Git[\\\\/](.+)', rules)
+    if git_path_match:
+        rule_part = git_path_match.group(1)
+        # Ensure it starts with /
+        if not rule_part.startswith('/'):
+            rule_part = '/' + rule_part
+        return rule_part
+    
     # Handle other Windows path patterns that might contain rules
-    if re.match(r'^[A-Za-z]:[\\/]', rules):
+    if re.match(r'^[A-Za-z]:[\\\\/]', rules):
         # Try to extract rule pattern from path
         rule_match = re.search(r'([/-][a-zA-Z0-9_+-]+(?:[/-][a-zA-Z0-9_+-]+)*)', rules)
         if rule_match:
             return rule_match.group(1)
+    
+    # Handle Windows path patterns that might contain rules
+    # Look for patterns like "Applications" that might be expanded from "/to-utf8"
+    if len(rules) > 2 and not rules.startswith('/') and not rules.startswith('-'):
+        # This might be a Windows path expansion artifact
+        # Check if this looks like a mangled rule name
+        common_expansions = {
+            'Applications': '/to-utf8',  # Common Windows expansion
+            'Users': '/u',
+            'Program Files': '/p',
+            'Windows': '/w',
+            'System32': '/s',
+        }
+        
+        if rules in common_expansions:
+            return common_expansions[rules]
     
     return rules
 
@@ -342,6 +367,12 @@ def transform_text(
     - /h - Full-width (Zenkaku) / /H - Half-width (Hankaku)
     - /j - Hiragana to Katakana / /J - Katakana to Hiragana
     
+    **Character Encoding (iconv-like):**
+    - /iconv -f <from> -t <to> - Convert character encoding (Unix iconv style)
+    - /to-utf8 - Auto-detect and convert to UTF-8
+    - /from-utf8 <encoding> - Convert UTF-8 to target encoding
+    - /detect-encoding - Detect character encoding
+    
     **Usage Examples:**
     
     ```bash
@@ -353,6 +384,12 @@ def transform_text(
     
     # From clipboard (default)
     text-processing-toolkit transform '/p'
+    
+    # Character encoding conversions (iconv-like)
+    text-processing-toolkit transform '/iconv -f shift_jis -t utf-8' --text "日本語"
+    text-processing-toolkit transform '/iconv -f euc-jp -t utf-8' --text "日本語"
+    text-processing-toolkit transform '/to-utf8' --text "auto-detect encoding"
+    text-processing-toolkit transform '/detect-encoding' --text "analyze text"
     
     # Output to file
     text-processing-toolkit transform '/l' --text "HELLO" --output ./output
@@ -370,6 +407,7 @@ def transform_text(
     - Use `text-processing-toolkit rules` for the complete rules table
     - Use `--output` to save result to a file in specified folder
     - Use `--no-clipboard` to disable clipboard copying
+    - For encoding: Use Unix iconv syntax with -f (from) and -t (to) flags
     """
     if show_rules:
         # Dynamically show available rules

@@ -286,6 +286,26 @@ class TextTransformationEngine:
 
                 return rules
 
+            # Handle Windows path expansion (e.g., D:/Applications/Git/to-utf8)
+            import re
+            git_path_match = re.match(r'^[A-Za-z]:[\\\\/][^/\\]*[\\\\/]Git[\\\\/](.+)', rule_string)
+            if git_path_match:
+                rule_name = git_path_match.group(1)
+                return [(rule_name, [])]
+
+            # Handle rules with arguments (space-separated)
+            # Example: "iconv -f shift_jis -t utf-8"
+            parts = rule_string.split()
+            if len(parts) > 1:
+                rule_name = parts[0]
+                args = parts[1:]
+                return [(rule_name, args)]
+
+            # Handle simple rules without leading slash for Windows compatibility
+            # This allows simple rule names like "to-utf8", "iconv", etc.
+            if re.match(r'^[a-zA-Z][a-zA-Z0-9_-]*$', rule_string):
+                return [(rule_string, [])]
+
             raise ValidationError(
                 f"Invalid rule string format: '{rule_string}'"
             )
