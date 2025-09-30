@@ -1,5 +1,5 @@
 [tool.polylith]
-namespace = "text_processing"
+namespace = "textkit"
 git_tag_pattern = "stable-*"
 
 [tool.polylith.structure]

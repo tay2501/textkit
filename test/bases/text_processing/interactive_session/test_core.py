@@ -1,4 +1,4 @@
-from text_processing.interactive_session import core
+from textkit.interactive_session import core
 
 
 def test_sample():

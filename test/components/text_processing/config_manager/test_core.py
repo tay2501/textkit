@@ -1,4 +1,4 @@
-from text_processing.config_manager import core
+from textkit.config_manager import core
 
 
 import pytest
@@ -7,7 +7,7 @@ import tempfile
 import shutil
 from pathlib import Path
 from unittest.mock import patch
-from text_processing.config_manager.core import ConfigurationManager, ConfigurationError, ConfigDict
+from textkit.config_manager.core import ConfigurationManager, ConfigurationError, ConfigDict
 
 
 class TestConfigurationManager:

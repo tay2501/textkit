@@ -70,8 +70,8 @@ def transform_text(
         text-processing-toolkit transform '/p'
 
         # Character encoding conversions (iconv-like)
-        text-processing-toolkit transform '/iconv -f shift_jis -t utf-8' --text "日本語"
-        text-processing-toolkit transform '/iconv -f euc-jp -t utf-8' --text "日本語"
+        text-processing-toolkit transform '/iconv -f shift_jis -t utf-8' --text "日本誁E
+        text-processing-toolkit transform '/iconv -f euc-jp -t utf-8' --text "日本誁E
         text-processing-toolkit transform '/to-utf8' --text "auto-detect encoding"
         text-processing-toolkit transform '/detect-encoding' --text "analyze text"
 

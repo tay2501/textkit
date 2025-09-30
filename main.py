@@ -5,14 +5,14 @@ This is the main entry point for the Polylith-based text processing system
 with modular components and modern CLI interface.
 """
 
-from bases.text_processing.cli_interface import run_cli
+from textkit.cli_interface import run_cli
 
 
 def main():
     """Main entry point for the application with enhanced logging."""
     try:
         # Initialize structured logging first
-        from components.config_manager.settings import configure_logging
+        from textkit.config_manager.settings import configure_logging
         configure_logging()
         
         # Get logger after configuration

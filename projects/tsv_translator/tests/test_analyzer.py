@@ -75,7 +75,7 @@ class TestTSVAnalyzer:
         assert 'data_completeness' in stats
         assert stats['data_completeness'] == 100.0  # No empty cells
         assert stats['empty_cells'] == 0
-        assert stats['total_cells'] == 16  # 4 rows × 4 columns
+        assert stats['total_cells'] == 16  # 4 rows ÁE4 columns
         assert 'data_type_distribution' in stats
 
     def test_detect_data_type_integer(self, sample_tsv_file: Path):
@@ -231,7 +231,7 @@ Charlie\t35\t\t78.3
 
     def test_analyzer_unicode_content(self, temp_dir: Path):
         """Test analysis with Unicode content."""
-        content = "名前\t年齢\t都市\n太郎\t25\t東京\n花子\t30\t大阪"
+        content = "名前\t年齢\t都币En太郎\t25\t東京\n花子\t30\t大阪"
         file_path = temp_dir / "unicode.tsv"
         file_path.write_text(content, encoding='utf-8')
 

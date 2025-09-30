@@ -37,10 +37,10 @@ def register_iconv_command(
 
         ```bash
         # Convert from Shift_JIS to UTF-8
-        textkit iconv -f shift_jis -t utf-8 --text "日本語"
+        textkit iconv -f shift_jis -t utf-8 --text "日本誁E
 
         # Auto-detect source encoding and convert to UTF-8
-        textkit iconv -f auto -t utf-8 --text "日本語"
+        textkit iconv -f auto -t utf-8 --text "日本誁E
 
         # Convert from clipboard (default)
         textkit iconv -f shift_jis -t utf-8

@@ -1,4 +1,4 @@
-from text_processing.cli_interface import core
+from textkit.cli_interface import core
 
 
 def test_sample():
