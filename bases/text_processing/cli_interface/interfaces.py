@@ -9,27 +9,32 @@ from __future__ import annotations
 
 from typing import Any, TYPE_CHECKING
 
+from .abstractions import (
+    ApplicationServiceInterface,
+    ConfigurationManagerInterface,
+    CryptographyManagerInterface,
+    InputOutputManagerInterface,
+    TextTransformationEngineInterface,
+)
+
 if TYPE_CHECKING:
-    from components.text_processing.text_core import TextTransformationEngine
-    from components.text_processing.crypto_engine import CryptographyManager
-    from components.text_processing.config_manager import ConfigurationManager
-    from components.text_processing.io_handler import InputOutputManager
+    pass
 
 
-class ApplicationInterface:
+class ApplicationInterface(ApplicationServiceInterface):
     """Main application interface with component orchestration.
 
     This class serves as the facade for all application operations,
     coordinating between different components while maintaining
-    loose coupling and high cohesion.
+    loose coupling and high cohesion through dependency injection.
     """
 
     def __init__(
         self,
-        config_manager: ConfigurationManager,
-        transformation_engine: TextTransformationEngine,
-        io_manager: InputOutputManager,
-        crypto_manager: CryptographyManager | None = None,
+        config_manager: ConfigurationManagerInterface,
+        transformation_engine: TextTransformationEngineInterface,
+        io_manager: InputOutputManagerInterface,
+        crypto_manager: CryptographyManagerInterface | None = None,
     ) -> None:
         """Initialize the application with injected dependencies.
 

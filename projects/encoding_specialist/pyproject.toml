@@ -5,13 +5,26 @@ build-backend = "hatchling.build"
 [project]
 name = "encoding_specialist"
 version = "0.1.0"
-
-
-
+description = "Specialized text encoding conversion and detection tool"
 requires-python = ">=3.12"
+dependencies = [
+    "typer>=0.16.1",
+    "rich>=14.1.0",
+    "pyperclip>=1.9.0",
+    "charset-normalizer>=3.4.0",
+]
 
-dependencies = []
+[project.scripts]
+encoding-specialist = "encoding_specialist.main:app"
 
 [tool.hatch.build.hooks.polylith-bricks]
 
+# カスタムトップネームスペース設定
+[tool.polylith.build]
+top-namespace = "textkit"
+
 [tool.polylith.bricks]
+"../../components/text_core" = "text_processing/text_core"
+"../../components/config_manager" = "text_processing/config_manager"
+"../../components/io_handler" = "text_processing/io_handler"
+"../../bases/text_processing/cli_interface" = "text_processing/cli_interface"

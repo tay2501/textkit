@@ -7,7 +7,7 @@ and configuration options.
 from unittest.mock import patch, MagicMock
 import structlog
 
-from components.text_processing.config_manager.settings import configure_logging, _get_exception_formatter
+from components.config_manager.settings import configure_logging, _get_exception_formatter
 
 
 class TestLoggingConfiguration:

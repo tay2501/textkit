@@ -6,7 +6,7 @@ and boundary scenarios that might not be covered in basic functionality tests.
 """
 
 import pytest
-from components.text_processing.text_core.transformers import (
+from components.text_core.transformers import (
     BasicTransformer,
     CaseTransformer,
     HashTransformer,

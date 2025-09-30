@@ -10,8 +10,8 @@ import tempfile
 import os
 from unittest.mock import Mock, patch
 
-from components.text_processing.config_manager.core import ConfigurationManager as ConfigManager
-from components.text_processing.config_manager.config import (
+from components.config_manager.core import ConfigurationManager as ConfigManager
+from components.config_manager.config import (
     ConfigurationManager,
     ConfigurationError,
 )

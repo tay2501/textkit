@@ -1,7 +1,7 @@
 """Tests for transformer strategy classes."""
 
 import pytest
-from components.text_processing.text_core.transformers import (
+from components.text_core.transformers import (
     BasicTransformer,
     CaseTransformer,
     HashTransformer,
@@ -9,7 +9,7 @@ from components.text_processing.text_core.transformers import (
     JsonTransformer,
     LineEndingTransformer,
 )
-from components.text_processing.text_core.types import (
+from components.text_core.types import (
     TransformationRule,
     TransformationRuleType,
 )

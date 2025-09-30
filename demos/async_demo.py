@@ -10,7 +10,7 @@ import time
 from pathlib import Path
 import tempfile
 
-from components.text_processing.async_core import (
+from components.async_core import (
     AsyncTextTransformationEngine,
     ChunkedProcessor,
     PerformanceMonitor,

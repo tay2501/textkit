@@ -5,13 +5,26 @@ build-backend = "hatchling.build"
 [project]
 name = "format_converter"
 version = "0.1.0"
-
-
-
+description = "Multi-format text converter for various data formats"
 requires-python = ">=3.12"
+dependencies = [
+    "typer>=0.16.1",
+    "rich>=14.1.0",
+    "pyperclip>=1.9.0",
+    "stringzilla>=4.0.14",
+]
 
-dependencies = []
+[project.scripts]
+format-converter = "format_converter.main:app"
 
 [tool.hatch.build.hooks.polylith-bricks]
 
+# カスタムトップネームスペース設定
+[tool.polylith.build]
+top-namespace = "textkit"
+
 [tool.polylith.bricks]
+"../../components/text_core" = "text_processing/text_core"
+"../../components/config_manager" = "text_processing/config_manager"
+"../../components/io_handler" = "text_processing/io_handler"
+"../../bases/text_processing/cli_interface" = "text_processing/cli_interface"

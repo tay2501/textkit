@@ -17,10 +17,14 @@ dependencies = [
 [project.scripts]
 text-transformer = "text_transformer.main:app"
 
+# カスタムトップネームスペース設定
+[tool.polylith.build]
+top-namespace = "textkit"
+
 [tool.polylith.bricks]
-"../../components/text_processing/text_core" = "text_processing/text_core"
-"../../components/text_processing/config_manager" = "text_processing/config_manager"
-"../../components/text_processing/io_handler" = "text_processing/io_handler"
+"../../components/text_core" = "text_processing/text_core"
+"../../components/config_manager" = "text_processing/config_manager"
+"../../components/io_handler" = "text_processing/io_handler"
 "../../bases/text_processing/cli_interface" = "text_processing/cli_interface"
 
 [tool.hatch.build.hooks.polylith-bricks]

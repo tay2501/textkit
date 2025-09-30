@@ -12,7 +12,7 @@ def main():
     """Main entry point for the application with enhanced logging."""
     try:
         # Initialize structured logging first
-        from components.text_processing.config_manager.settings import configure_logging
+        from components.config_manager.settings import configure_logging
         configure_logging()
         
         # Get logger after configuration

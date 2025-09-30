@@ -1,10 +1,7 @@
-from text_processing.text_core import core
-
-
 import pytest
 from unittest.mock import Mock
-from text_processing.text_core.core import TextTransformationEngine
-from text_processing.text_core.transformation_base import TransformationError, ValidationError
+from components.text_core.core import TextTransformationEngine
+from components.text_core.exceptions import TransformationError, ValidationError
 
 
 class TestTextTransformationEngine:

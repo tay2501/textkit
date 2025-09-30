@@ -6,14 +6,14 @@ system with environment variables and dependency injection.
 """
 
 import os
-from components.text_processing.config_manager.settings import (
+from components.config_manager.settings import (
     ApplicationSettings,
     get_settings,
     reload_settings,
     is_debug_mode,
     get_max_text_length
 )
-from components.text_processing.container import Container
+from components.dependency_injection.container import Container
 
 
 def demonstrate_basic_configuration():

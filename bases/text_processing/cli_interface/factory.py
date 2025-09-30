@@ -7,53 +7,44 @@ fully configured application instances with proper dependency injection.
 
 from __future__ import annotations
 
-# Import Polylith components
-from components.text_processing.text_core import TextTransformationEngine
-from components.text_processing.crypto_engine import CryptographyManager
-from components.text_processing.config_manager import ConfigurationManager
-from components.text_processing.io_handler import InputOutputManager
+from .abstractions import ApplicationServiceInterface
 
-from .interfaces import ApplicationInterface
+
+class ComponentInitializationError(Exception):
+    """Exception raised when component initialization fails."""
+    pass
 
 
 class ApplicationFactory:
     """Factory for creating application instances with dependency injection.
 
     This factory follows the EAFP (Easier to Ask for Forgiveness than Permission)
-    pattern and ensures loose coupling between components.
+    pattern and uses Lagom dependency injection container for loose coupling.
     """
 
     @staticmethod
-    def create_application() -> ApplicationInterface:
-        """Create a fully configured application instance.
+    def create_application() -> ApplicationServiceInterface:
+        """Create a fully configured application instance using DI container.
 
         Returns:
-            ApplicationInterface: Configured application ready for use
+            ApplicationServiceInterface: Configured application ready for use
 
         Raises:
             ConfigurationError: If required configuration is missing
             ComponentInitializationError: If core components fail to initialize
         """
-        # Initialize core components following dependency order
-        config_manager = ConfigurationManager()
-        io_manager = InputOutputManager()
-        transformation_engine = TextTransformationEngine(config_manager)
+        from .container import get_container
+        from .abstractions import ApplicationServiceInterface
 
-        # Initialize optional crypto manager using EAFP pattern
-        crypto_manager = None
+        # Get the configured DI container
+        container = get_container()
+
+        # Resolve the application service with all dependencies injected
         try:
-            crypto_manager = CryptographyManager(config_manager)
-        except Exception:
-            # Crypto unavailable - gracefully continue without it
-            # This allows the application to work even without crypto dependencies
-            pass
-
-        # Link components with their dependencies
-        transformation_engine.set_crypto_manager(crypto_manager)
-
-        return ApplicationInterface(
-            config_manager=config_manager,
-            transformation_engine=transformation_engine,
-            io_manager=io_manager,
-            crypto_manager=crypto_manager
-        )
+            app_service = container[ApplicationServiceInterface]
+            return app_service
+        except Exception as e:
+            # Enhanced error handling for dependency resolution failures
+            raise ComponentInitializationError(
+                f"Failed to initialize application with dependency injection: {e}"
+            ) from e

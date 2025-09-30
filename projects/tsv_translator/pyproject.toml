@@ -31,7 +31,12 @@ tsv-info = "tsv_translator.info_cli:main"
 
 [tool.hatch.build.hooks.polylith-bricks]
 
+# カスタムトップネームスペース設定
+[tool.polylith.build]
+top-namespace = "textkit"
+
 [tool.polylith.bricks]
+"../../components/config_manager" = "text_processing/config_manager"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

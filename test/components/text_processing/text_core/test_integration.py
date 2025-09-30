@@ -9,8 +9,8 @@ import pytest
 import time
 from unittest.mock import Mock
 
-from components.text_processing.text_core.core import TextTransformationEngine
-from components.text_processing.text_core.transformation_base import (
+from components.text_core.core import TextTransformationEngine
+from components.text_core.transformation_base import (
     ValidationError,
     TransformationError,
 )

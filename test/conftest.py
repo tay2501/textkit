@@ -31,12 +31,12 @@ def mock_logger():
 @pytest.fixture
 def sample_validation_error():
     """Provide a sample ValidationError for testing."""
-    from components.text_processing.exceptions import ValidationError
+    from components.text_core.exceptions import ValidationError
     return ValidationError("Test validation error", context={"field": "test"})
 
 
 @pytest.fixture
 def sample_transformation_error():
     """Provide a sample TransformationError for testing."""
-    from components.text_processing.exceptions import TransformationError
+    from components.text_core.exceptions import TransformationError
     return TransformationError("Test transformation error", operation="test_op")

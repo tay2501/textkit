@@ -1,140 +1,52 @@
-"""
-Core CLI interface for the text processing toolkit.
+"""Refactored CLI interface core - Polylith architecture compliant.
 
-This module provides a modern, type-safe CLI using Typer with rich formatting,
-comprehensive help system, and auto-completion support.
+This module provides the main CLI entry point with separated responsibilities
+following Polylith architecture principles and single responsibility pattern.
 """
 
 from __future__ import annotations
 
-import sys
-from typing import Annotated, Any
-
 import typer
 from rich.console import Console
-from rich.panel import Panel
-from rich.table import Table
+from typing import TYPE_CHECKING
 
-# Import our Polylith components
-from components.text_processing.text_core import TextTransformationEngine
-from components.text_processing.crypto_engine import CryptographyManager
-from components.text_processing.config_manager import ConfigurationManager
-from components.text_processing.io_handler import InputOutputManager
+# Import application factory and interface
+from .factory import ApplicationFactory
+from .abstractions import ApplicationServiceInterface
 
-# Rich console for beautiful output
+# Import command modules
+from .commands.transform_cmd import transform_text
+from .commands.crypto_cmd import register_crypto_commands
+from .commands.rules_cmd import register_rules_command
+from .commands.status_cmd import register_status_commands
+from .commands.iconv_cmd import register_iconv_command
+
+# Import middleware
+from .middleware.output_manager import output_result_enhanced, output_result_simple
+from .middleware.error_handler import ErrorHandler
+
+if TYPE_CHECKING:
+    pass
+
+# Initialize console and error handler
 console = Console()
-
-
-class ApplicationFactory:
-    """Factory for creating application instances with dependency injection."""
-
-    @staticmethod
-    def create_application() -> 'ApplicationInterface':
-        """Create a fully configured application instance."""
-        # Initialize components
-        config_manager = ConfigurationManager()
-        io_manager = InputOutputManager()
-        transformation_engine = TextTransformationEngine(config_manager)
-
-        # Initialize crypto manager if available
-        crypto_manager = None
-        try:
-            crypto_manager = CryptographyManager(config_manager)
-        except Exception:
-            # Crypto unavailable - continue without it
-            pass
-
-        # Link components
-        transformation_engine.set_crypto_manager(crypto_manager)
-
-        return ApplicationInterface(
-            config_manager=config_manager,
-            transformation_engine=transformation_engine,
-            io_manager=io_manager,
-            crypto_manager=crypto_manager
-        )
-
-
-class ApplicationInterface:
-    """Main application interface with component orchestration."""
-
-    def __init__(
-        self,
-        config_manager: ConfigurationManager,
-        transformation_engine: TextTransformationEngine,
-        io_manager: InputOutputManager,
-        crypto_manager: CryptographyManager | None = None,
-    ) -> None:
-        """Initialize the application with injected dependencies."""
-        self.config_manager = config_manager
-        self.transformation_engine = transformation_engine
-        self.io_manager = io_manager
-        self.crypto_manager = crypto_manager
-
-    def apply_transformation(self, text: str, rules: str) -> str:
-        """Apply transformation rules to text with comprehensive validation.
-        
-        Args:
-            text: Input text to be transformed
-            rules: Transformation rules string
-            
-        Returns:
-            Transformed text
-            
-        Raises:
-            ValidationError: If input validation fails
-            TransformationError: If transformation processing fails
-        """
-        from typing import TYPE_CHECKING
-        
-        if TYPE_CHECKING:
-            pass
-        
-        result = self.transformation_engine.apply_transformations(text, rules)
-        
-        return result
-
-    def encrypt_text(self, text: str) -> str:
-        """Encrypt text using cryptographic manager."""
-        if not self.crypto_manager:
-            raise ValueError("Cryptography not available")
-        return self.crypto_manager.encrypt_text(text)
-
-    def decrypt_text(self, encrypted_text: str) -> str:
-        """Decrypt text using cryptographic manager."""
-        if not self.crypto_manager:
-            raise ValueError("Cryptography not available")
-        return self.crypto_manager.decrypt_text(encrypted_text)
-
-    def get_available_rules(self) -> dict[str, Any]:
-        """Get all available transformation rules."""
-        return self.transformation_engine.get_available_rules()
-
-    def get_status(self) -> dict[str, Any]:
-        """Get application status information."""
-        return {
-            "config": self.config_manager.get_config_status(),
-            "io": self.io_manager.get_io_status(),
-            "crypto": self.crypto_manager.get_key_info() if self.crypto_manager else {"available": False},
-            "transformation_rules": len(self.transformation_engine.get_available_rules()),
-        }
-
+error_handler = ErrorHandler(console)
 
 # Main Typer application
 app = typer.Typer(
     name="text-processing-toolkit",
     help="Modern text transformation toolkit with Polylith architecture",
-    epilog="Examples:\n  text-processing-toolkit transform '/t/l' # Trim and lowercase\n  text-processing-toolkit encrypt           # Encrypt clipboard text\n  text-processing-toolkit rules             # Show available rules",
+    epilog="Examples:\\n  text-processing-toolkit transform '/t/l' # Trim and lowercase\\n  text-processing-toolkit encrypt           # Encrypt clipboard text\\n  text-processing-toolkit rules             # Show available rules",
     rich_markup_mode="rich",
     no_args_is_help=True,
     add_completion=True,
 )
 
-# Global application instance
-_app_instance: ApplicationInterface | None = None
+# Global application instance (singleton pattern)
+_app_instance: ApplicationServiceInterface | None = None
 
 
-def get_app() -> ApplicationInterface:
+def get_app() -> ApplicationServiceInterface:
     """Get or create application instance using EAFP pattern."""
     global _app_instance
     if _app_instance is None:
@@ -142,54 +54,7 @@ def get_app() -> ApplicationInterface:
     return _app_instance
 
 
-def _handle_cli_error(error: Exception, operation: str) -> None:
-    """Centralized CLI error handling with Rich markup escaping."""
-    try:
-        safe_message = _safe_format_error(error, operation)
-        _robust_console_print(safe_message, "red")
-    except Exception:
-        # Ultimate fallback
-        print(f"CRITICAL ERROR in {operation}: {type(error).__name__}")
-    
-    raise typer.Exit(1)
-
-
-def _safe_format_error(error: Exception, operation: str) -> str:
-    """Safely format error message with Rich markup escaping.
-    
-    Follows EAFP (Easier to Ask for Forgiveness than Permission) principle.
-    """
-    from rich.markup import escape
-    import re
-    
-    try:
-        error_msg = str(error)
-        
-        # Handle Windows path issues in error messages
-        if re.search(r'[A-Za-z]:[\\/]', error_msg):
-            # Clean up Windows path artifacts in error messages
-            error_msg = re.sub(r'[A-Za-z]:[\\/][^"\']*', '[path]', error_msg)
-        
-        # Escape Rich markup characters to prevent interpretation
-        safe_error_msg = escape(error_msg)
-        
-        return f"Error in {operation}: {safe_error_msg}"
-        
-    except Exception:
-        # Fallback if even error formatting fails
-        return f"Error in {operation}: [Unable to format error message: {type(error).__name__}]"
-
-
-def _robust_console_print(message: str, style: str = "red") -> None:
-    """Robustly print messages to console with fallback handling."""
-    try:
-        console.print(f"[{style}]{message}[/{style}]")
-    except Exception:
-        # Fallback to plain print if Rich fails
-        print(f"ERROR: {message}")
-
-
-def _get_input_text(app_instance: ApplicationInterface, text: str | None = None) -> str:
+def get_input_text(app_instance: ApplicationServiceInterface, text: str | None = None) -> str:
     """Get input text from various sources."""
     if text is not None:
         return text
@@ -200,386 +65,79 @@ def _get_input_text(app_instance: ApplicationInterface, text: str | None = None)
         raise ValueError(f"No input text available: {e}") from e
 
 
-def _output_result(app_instance: ApplicationInterface, result: str, should_output: bool = True) -> None:
-    """Output transformation result."""
-    if should_output:
-        try:
-            app_instance.io_manager.set_output_text(result)
-            console.print("[green]Success: Result copied to clipboard and printed[/green]")
-        except Exception:
-            console.print("[yellow]Warning: Result printed (clipboard unavailable)[/yellow]")
-
-    # Show preview
-    preview = result[:100] + "..." if len(result) > 100 else result
-    console.print(f"[cyan]Result:[/cyan] '{preview}'")
-
-def _output_result_enhanced(app_instance: ApplicationInterface, result: str, output_folder: str | None = None, clipboard: bool = True) -> None:
-    """Enhanced output handling with file output and clipboard control.
-    
-    Handles both file paths and directory paths for output:
-    - If output_folder is a file path (ends with .txt, .csv, etc.), saves directly to that file
-    - If output_folder is a directory, creates timestamped file
-    - Prompts for overwrite confirmation if file exists
-    - Preserves original text encoding and line endings from clipboard
-    
-    Follows EAFP principle and modern pathlib best practices.
-    """
-    from pathlib import Path
-    import datetime
-    
-    outputs_performed = []
-    
-    # Handle clipboard output
-    if clipboard:
-        try:
-            app_instance.io_manager.set_output_text(result)
-            outputs_performed.append("clipboard")
-        except Exception:
-            console.print("[yellow]Warning: Failed to copy to clipboard[/yellow]")
-    
-    # Handle file output
-    if output_folder:
-        try:
-            # Use pathlib for cross-platform path handling
-            output_path = Path(output_folder)
-            
-            # Determine if it's a file path or directory path
-            if output_path.suffix:
-                # It's a file path (has extension)
-                file_path = output_path
-                
-                # Ensure parent directory exists
-                file_path.parent.mkdir(parents=True, exist_ok=True)
-                
-                # Check if file exists and prompt for overwrite
-                if file_path.exists():
-                    import typer
-                    overwrite = typer.confirm(f"File '{file_path}' already exists. Overwrite?")
-                    if not overwrite:
-                        console.print("[yellow]Operation cancelled.[/yellow]")
-                        return
-            else:
-                # It's a directory path
-                output_path.mkdir(parents=True, exist_ok=True)
-                
-                # Generate filename with timestamp
-                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                filename = f"transformed_text_{timestamp}.txt"
-                file_path = output_path / filename
-            
-            # Write result to file preserving encoding
-            # Use UTF-8 as default but preserve line endings from original text
-            file_path.write_text(result, encoding='utf-8', newline='')
-            
-            outputs_performed.append(f"file: {file_path}")
-            
-        except Exception as file_error:
-            _robust_console_print(f"Failed to write to file: {_safe_format_error(file_error, 'file output')}", "yellow")
-    
-    # Show success message
-    if outputs_performed:
-        output_list = " and ".join(outputs_performed)
-        console.print(f"[green]Success: Result saved to {output_list}[/green]")
-    else:
-        console.print("[cyan]Result processed (no output destinations specified)[/cyan]")
-    
-    # Show preview regardless of output destinations
-    preview = result[:100] + "..." if len(result) > 100 else result
-    console.print(f"[cyan]Result:[/cyan] '{preview}'")
-
-
-def _normalize_rule_argument(rules: str | None) -> str | None:
+def normalize_rule_argument(rules: str | None) -> str | None:
     """Normalize rule argument to handle Windows path expansion issues.
-    
+
+    Deprecated: Use RuleParser.normalize() instead.
+    This function is kept for backward compatibility.
+
     On Windows, arguments like '/l' can be expanded to 'L:/' by the shell.
     Git Bash on Windows can expand '/to-utf8' to 'D:/Applications/Git/to-utf8'.
     This function detects and corrects such cases.
     """
-    import re
-    
-    if not rules:
-        return rules
-        
-    # Handle Windows drive path expansion for single character rules
-    if re.match(r'^[A-Za-z]:[\\\\/]$', rules):
-        # This looks like 'C:/' or 'L:/' - extract the drive letter as rule
-        drive_letter = rules[0].lower()
-        return f'/{drive_letter}'
-    
-    # Handle Git Bash Windows path expansion
-    # Pattern: D:/Applications/Git/to-utf8 -> /to-utf8
-    git_path_match = re.match(r'^[A-Za-z]:[\\\\/][^/\\]*[\\\\/]Git[\\\\/](.+)', rules)
-    if git_path_match:
-        rule_part = git_path_match.group(1)
-        # Ensure it starts with /
-        if not rule_part.startswith('/'):
-            rule_part = '/' + rule_part
-        return rule_part
-    
-    # Handle other Windows path patterns that might contain rules
-    if re.match(r'^[A-Za-z]:[\\\\/]', rules):
-        # Try to extract rule pattern from path
-        rule_match = re.search(r'([/-][a-zA-Z0-9_+-]+(?:[/-][a-zA-Z0-9_+-]+)*)', rules)
-        if rule_match:
-            return rule_match.group(1)
-    
-    # Handle Windows path patterns that might contain rules
-    # Look for patterns like "Applications" that might be expanded from "/to-utf8"
-    if len(rules) > 2 and not rules.startswith('/') and not rules.startswith('-'):
-        # This might be a Windows path expansion artifact
-        # Check if this looks like a mangled rule name
-        common_expansions = {
-            'Applications': '/to-utf8',  # Common Windows expansion
-            'Users': '/u',
-            'Program Files': '/p',
-            'Windows': '/w',
-            'System32': '/s',
-        }
-        
-        if rules in common_expansions:
-            return common_expansions[rules]
-    
-    return rules
+    from components.rule_parser import RuleParser
 
-@app.command("transform")
-def transform_text(
-    rules: Annotated[str, typer.Argument(help="Transformation rules (e.g., '/t/l' for trim+lowercase)")] = None,
-    text: Annotated[str | None, typer.Option("--text", "-t", help="Input text (uses clipboard if not provided)")] = None,
-    output: Annotated[str | None, typer.Option("--output", "-o", help="Output folder path (if not specified, no file output)")] = None,
-    clipboard: Annotated[bool, typer.Option("--clipboard/--no-clipboard", help="Copy result to clipboard")] = True,
-    show_rules: Annotated[bool, typer.Option("--show-rules", help="Show available rules and exit")] = False,
-) -> None:
-    """Apply **transformation rules** to input text.
-    
-    **Quick Rule Reference:**
-    - /t - Trim whitespace
-    - /l - Convert to lowercase
-    - /u - Convert to uppercase
-    - /p - Convert to PascalCase
-    - /c - Convert to camelCase
-    - /s - Convert to snake_case
-    - /k - Convert to kebab-case
-    - /R - Reverse text
-    - /r - Remove spaces
-    - /n - Normalize Unicode
-    - /e - URL encode / /d - URL decode
-    - /b - Base64 encode / /B - Base64 decode
-    - /h - Full-width (Zenkaku) / /H - Half-width (Hankaku)
-    - /j - Hiragana to Katakana / /J - Katakana to Hiragana
-    
-    **Character Encoding (iconv-like):**
-    - /iconv -f <from> -t <to> - Convert character encoding (Unix iconv style)
-    - /to-utf8 - Auto-detect and convert to UTF-8
-    - /from-utf8 <encoding> - Convert UTF-8 to target encoding
-    - /detect-encoding - Detect character encoding
-    
-    **Usage Examples:**
-    
-    ```bash
-    # Basic transformations
-    text-processing-toolkit transform '/t/l' --text "  Hello World  "
-    
-    # Multiple rules (applied in sequence)
-    text-processing-toolkit transform '/t/u/R' --text "hello"
-    
-    # From clipboard (default)
-    text-processing-toolkit transform '/p'
-    
-    # Character encoding conversions (iconv-like)
-    text-processing-toolkit transform '/iconv -f shift_jis -t utf-8' --text "日本語"
-    text-processing-toolkit transform '/iconv -f euc-jp -t utf-8' --text "日本語"
-    text-processing-toolkit transform '/to-utf8' --text "auto-detect encoding"
-    text-processing-toolkit transform '/detect-encoding' --text "analyze text"
-    
-    # Output to file
-    text-processing-toolkit transform '/l' --text "HELLO" --output ./output
-    
-    # Disable clipboard
-    text-processing-toolkit transform '/u' --text "hello" --no-clipboard
-    
-    # Japanese text transformations
-    text-processing-toolkit transform '/j' --text "ひらがな"
-    text-processing-toolkit transform '/h' --text "ABC123"
-    ```
-    
-    **Tips:**
-    - Use `--show-rules` to see all available rules with detailed descriptions
-    - Use `text-processing-toolkit rules` for the complete rules table
-    - Use `--output` to save result to a file in specified folder
-    - Use `--no-clipboard` to disable clipboard copying
-    - For encoding: Use Unix iconv syntax with -f (from) and -t (to) flags
-    """
-    if show_rules:
-        # Dynamically show available rules
-        try:
-            app_instance = get_app()
-            rules_data = app_instance.get_available_rules()
-            
-            console.print("\n[bold blue]Available Transformation Rules[/bold blue]")
-            console.print("=" * 60)
-            
-            for rule_key, rule_info in rules_data.items():
-                console.print(f"[cyan]/{rule_key}[/cyan] - {rule_info.name}")
-                console.print(f"    {rule_info.description}")
-                example = getattr(rule_info, "example", "N/A")
-                if example != "N/A":
-                    console.print(f"    [dim]Example: {example}[/dim]")
-                console.print()
-            
-            console.print("[dim]Tip: Combine rules like '/t/l/p' to apply multiple transformations[/dim]")
-        except Exception as e:
-            console.print(f"[red]Error loading rules: {e}[/red]")
-        return
-
-    if rules is None:
-        console.print("[red]Error: RULES argument is required when not using --show-rules[/red]")
-        raise typer.Exit(1)
-
-    # Normalize rule argument to handle Windows path expansion
-    normalized_rules = _normalize_rule_argument(rules)
-    
-    try:
-        app_instance = get_app()
-        input_text = _get_input_text(app_instance, text)
-        result = app_instance.apply_transformation(input_text, normalized_rules)
-        _output_result_enhanced(app_instance, result, output_folder=output, clipboard=clipboard)
-    except Exception as e:
-        _handle_cli_error(e, "text transformation")
+    parser = RuleParser()
+    return parser.normalize(rules)
 
 
-@app.command("encrypt", help="Encrypt text using RSA+AES hybrid encryption")
-def encrypt_text(
-    text: Annotated[str | None, typer.Option("--text", "-t", help="Text to encrypt")] = None,
-    output: Annotated[bool, typer.Option("--output", "-o", help="Copy to clipboard")] = True,
-) -> None:
-    """Encrypt text using hybrid cryptography."""
-    try:
-        app_instance = get_app()
-        input_text = _get_input_text(app_instance, text)
-        result = app_instance.encrypt_text(input_text)
-        _output_result(app_instance, result, output)
-        console.print(f"[cyan]Encrypted length:[/cyan] {len(result)} characters")
-    except Exception as e:
-        _handle_cli_error(e, "text encryption")
+def _register_all_commands() -> None:
+    """Register all CLI commands with dependency injection."""
 
+    # Register transform command
+    transform_text(
+        app=app,
+        get_app_func=get_app,
+        normalize_rule_func=normalize_rule_argument,
+        get_input_text_func=get_input_text,
+        handle_cli_error_func=error_handler.handle_cli_error,
+    )
 
-@app.command("decrypt", help="Decrypt text using RSA+AES hybrid decryption")
-def decrypt_text(
-    text: Annotated[str | None, typer.Option("--text", "-t", help="Text to decrypt")] = None,
-    output: Annotated[bool, typer.Option("--output", "-o", help="Copy to clipboard")] = True,
-) -> None:
-    """Decrypt text using hybrid cryptography."""
-    try:
-        app_instance = get_app()
-        input_text = _get_input_text(app_instance, text)
-        result = app_instance.decrypt_text(input_text)
-        _output_result(app_instance, result, output)
-    except Exception as e:
-        _handle_cli_error(e, "text decryption")
+    # Register crypto commands
+    register_crypto_commands(
+        app=app,
+        get_app_func=get_app,
+        get_input_text_func=get_input_text,
+        output_result_func=output_result_simple,
+        handle_cli_error_func=error_handler.handle_cli_error,
+    )
 
+    # Register rules command
+    register_rules_command(
+        app=app,
+        get_app_func=get_app,
+        handle_cli_error_func=error_handler.handle_cli_error,
+    )
 
-@app.command("rules", help="Display available transformation rules")
-def show_rules(
-    search: Annotated[str | None, typer.Option("--search", "-s", help="Search keyword")] = None,
-) -> None:
-    """Display available transformation rules with examples."""
-    try:
-        app_instance = get_app()
-        rules = app_instance.get_available_rules()
+    # Register status commands
+    register_status_commands(
+        app=app,
+        get_app_func=get_app,
+        handle_cli_error_func=error_handler.handle_cli_error,
+    )
 
-        table = Table(title="Available Transformation Rules", show_header=True)
-        table.add_column("Rule", style="cyan", width=8)
-        table.add_column("Name", style="green", width=20)
-        table.add_column("Description", style="white", width=40)
-        table.add_column("Example", style="yellow", width=15)
-
-        for rule_key, rule_info in rules.items():
-            # Apply search filter
-            if search and search.lower() not in rule_info.name.lower() and search.lower() not in rule_info.description.lower():
-                continue
-
-            table.add_row(
-                f"/{rule_key}",
-                rule_info.name,
-                rule_info.description,
-                getattr(rule_info, "example", "N/A"),
-            )
-
-        console.print(table)
-
-        # Show usage examples
-        console.print("\n[bold]Usage Examples:[/bold]")
-        console.print("  [cyan]text-processing-toolkit transform '/t/l'[/cyan] - Trim and lowercase")
-        console.print("  [cyan]text-processing-toolkit transform '/u/R'[/cyan] - Uppercase and reverse")
-        console.print("  [cyan]echo 'text' | text-processing-toolkit transform '/p'[/cyan] - PascalCase from pipe")
-
-    except Exception as e:
-        _handle_cli_error(e, "rules display")
-
-
-@app.command("status", help="Show application status and configuration")
-def show_status() -> None:
-    """Display application status and configuration."""
-    try:
-        app_instance = get_app()
-        status = app_instance.get_status()
-
-        # Create status panels
-        config_panel = Panel(
-            f"Config Dir: {status['config']['config_dir']}\n"
-            f"Files: {status['config']['files']}\n"
-            f"Cache: {status['config']['cache_status']}",
-            title="Configuration",
-            border_style="blue"
-        )
-
-        io_panel = Panel(
-            f"Clipboard: {'OK' if status['io']['clipboard_available'] else 'NO'}\n"
-            f"Pipe: {'OK' if status['io']['pipe_available'] else 'NO'}\n"
-            f"TTY: {'OK' if status['io']['stdin_isatty'] else 'NO'}",
-            title="I/O Status",
-            border_style="green"
-        )
-
-        crypto_panel = Panel(
-            f"Available: {'OK' if status['crypto']['available'] else 'NO'}\n"
-            f"Keys: {'OK' if status['crypto'].get('private_key_exists') else 'NO'}\n"
-            f"Key Size: {status['crypto'].get('key_size', 'N/A')}",
-            title="Cryptography",
-            border_style="yellow"
-        )
-
-        console.print(config_panel)
-        console.print(io_panel)
-        console.print(crypto_panel)
-
-        console.print(f"\n[bold]Transformation Rules:[/bold] {status['transformation_rules']} available")
-
-    except Exception as e:
-        _handle_cli_error(e, "status display")
-
-
-@app.command("version", help="Show version information")
-def show_version() -> None:
-    """Display version and system information."""
-    console.print(
-        Panel.fit(
-            "[bold cyan]Text Processing Toolkit[/bold cyan]\n"
-            "[green]Version:[/green] 1.0.0 (Polylith Edition)\n"
-            f"[green]Python:[/green] {sys.version.split()[0]}\n"
-            f"[green]Platform:[/green] {sys.platform}\n"
-            "[green]Architecture:[/green] Polylith Workspace",
-            title="Version Info",
-            border_style="blue",
-        )
+    # Register iconv command
+    register_iconv_command(
+        app=app,
+        get_app_func=get_app,
+        get_input_text_func=get_input_text,
+        output_result_enhanced_func=output_result_enhanced,
+        handle_cli_error_func=error_handler.handle_cli_error,
     )
 
 
-
 def run_cli() -> None:
-    """Main CLI entry point."""
-    app()
+    """Main CLI entry point with enhanced error handling."""
+    try:
+        # Register all commands
+        _register_all_commands()
+
+        # Run the application
+        app()
+
+    except Exception as e:
+        error_handler.handle_cli_error(e, "CLI initialization")
 
 
-if __name__ == "__main__":
-    run_cli()
+# Initialize commands when module is imported
+_register_all_commands()

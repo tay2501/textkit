@@ -118,7 +118,7 @@ uv run python main.py transform --[TAB][TAB]
 # Shows: --help, --name, -r
 
 # Tab complete with context-aware suggestions
-uv run python main.py transform -r [TAB][TAB]
+uv run python main.py transform [TAB][TAB]
 # Shows available transformation rules
 ```
 
@@ -139,27 +139,38 @@ uv run python main.py --help
 uv run python main.py transform --help
 
 # Line ending conversions (tr-like)
-uv run python main.py transform unix-to-windows
-uv run python main.py transform tr '\n' '\r\n'
+uv run python main.py transform "unix-to-windows"
+uv run python main.py transform "tr \n \r\n"
 
-# Character encoding conversions (iconv-like)
-uv run python main.py transform iconv -f shift_jis -t utf-8
-uv run python main.py transform to-utf8  # Auto-detect encoding
+# Character encoding conversions (iconv subcommand - recommended)
+uv run python main.py iconv -f shift_jis -t utf-8 --text "日本語"
+uv run python main.py iconv -f auto -t utf-8  # Auto-detect encoding
+
+# Character encoding conversions (transform rules - alternative)
+uv run python main.py transform "iconv -f shift_jis -t utf-8"
+uv run python main.py transform "to-utf8"  # Auto-detect encoding
 
 # Encrypt/decrypt text
 uv run python main.py encrypt --help
 uv run python main.py decrypt --help
 
 # Japanese character width conversion
-uv run python main.py transform fh "ｈｅｌｌｏ１２３"  # Full-width to half-width
-uv run python main.py transform hf "hello123"        # Half-width to full-width
+uv run python main.py transform "fh" --text "ｈｅｌｌｏ１２３"  # Full-width to half-width
+uv run python main.py transform "hf" --text "hello123"        # Half-width to full-width
 ```
 
 ### Windows Usage Notes
 
-On Windows, some shells (like Git Bash) may expand paths starting with `/` (e.g., `/to-utf8` becomes `D:/Applications/Git/to-utf8`). To avoid this:
+**Best Option: Use iconv subcommand (No path expansion issues)**
+```bash
+# iconv subcommand works perfectly in all Windows shells
+uv run python main.py iconv -f shift_jis -t utf-8 --text "日本語"
+uv run python main.py iconv -f auto -t utf-8 --text "Hello"
+```
 
-**Option 1: Use PowerShell (Recommended)**
+On Windows, some shells (like Git Bash) may expand paths starting with `/` when using transform rules (e.g., `/to-utf8` becomes `D:/Applications/Git/to-utf8`). To avoid this with transform commands:
+
+**Option 1: Use PowerShell**
 ```powershell
 # PowerShell handles rules correctly
 $env:PYTHONPATH = "."; uv run python main.py transform "/to-utf8" --text "Hello"
@@ -277,16 +288,16 @@ Transform line endings between Unix, Windows, and Mac Classic formats:
 
 ```bash
 # Convert Unix (LF) to Windows (CRLF)
-uv run python main.py transform -r unix-to-windows
+uv run python main.py transform "unix-to-windows" --text "Hello\nWorld!"
 
 # tr-style character translation
-uv run python main.py transform -r tr '\n' '\r\n'
+uv run python main.py transform "tr \n \r\n" --text "Hello\nWorld!"
 
 # Normalize mixed line endings to Unix format
-uv run python main.py transform -r normalize
+uv run python main.py transform "normalize" --text "Hello\r\nWorld!"
 
 # Remove all line breaks
-uv run python main.py transform /rlb --text "Line1\r\nLine2\nLine3"
+uv run python main.py transform "rlb" --text "Line1\r\nLine2\nLine3"
 # Result: "Line1Line2Line3"
 ```
 
@@ -302,15 +313,15 @@ Convert between full-width and half-width characters using transform rules:
 
 ```bash
 # Convert full-width to half-width
-uv run python main.py transform -r fh "ｈｅｌｌｏ１２３"
+uv run python main.py transform "fh" --text "ｈｅｌｌｏ１２３"
 # Result: "hello123"
 
 # Convert half-width to full-width
-uv run python main.py transform -r hf "hello123"
+uv run python main.py transform "hf" --text "hello123"
 # Result: "ｈｅｌｌｏ１２３"
 
 # Process from clipboard
-echo "ｈｅｌｌｏ１２３" | uv run python main.py transform -r fh
+uv run python main.py transform "fh"  # Uses clipboard by default
 ```
 
 **Available rules:**
@@ -327,14 +338,14 @@ Ultra-fast string processing with SIMD acceleration for maximum performance:
 
 ```bash
 # High-performance text replacement (SIMD-optimized)
-uv run python main.py transform -r rsz old_text new_text
+uv run python main.py transform "rsz old_text new_text" --text "Replace old_text here"
 
 # Optimized SQL IN list generation from line-separated data
-uv run python main.py transform -r i < data.txt
+uv run python main.py transform "i" --text "line1\nline2\nline3"
 # Result: ('line1','line2','line3')
 
 # Standard replacement with StringZilla fallback
-uv run python main.py transform -r r old_text new_text
+uv run python main.py transform "r old_text new_text" --text "Replace old_text here"
 ```
 
 **StringZilla-Optimized Rules:**
@@ -356,22 +367,38 @@ uv run python main.py transform -r r old_text new_text
 ### 🌐 Character Encoding Conversion (iconv-like)
 Convert between different character encodings with auto-detection:
 
+#### **Dedicated iconv subcommand (Recommended - Unix compatible syntax)**
 ```bash
-# iconv-style conversion (Unix-compatible syntax)
-uv run python main.py transform -r iconv -f shift_jis -t utf-8
-uv run python main.py transform -r iconv -f euc-jp -t utf-8
+# Convert from Shift_JIS to UTF-8 (Unix iconv-compatible)
+uv run python main.py iconv -f shift_jis -t utf-8 --text "日本語"
+
+# Auto-detect source encoding and convert to UTF-8
+uv run python main.py iconv -f auto -t utf-8 --text "日本語"
+
+# Convert from clipboard (default input)
+uv run python main.py iconv -f shift_jis -t utf-8
+
+# Convert with error handling
+uv run python main.py iconv -f utf-8 -t ascii --error replace --text "Hello, 世界"
+
+# Save result to file
+uv run python main.py iconv -f shift_jis -t utf-8 --output ./converted
+```
+
+#### **Transform command with iconv rules (Alternative)**
+```bash
+# iconv-style conversion (requires quotes)
+uv run python main.py transform "iconv -f shift_jis -t utf-8"
+uv run python main.py transform "iconv -f euc-jp -t utf-8"
 
 # Auto-detect and convert to UTF-8
-uv run python main.py transform -r to-utf8
+uv run python main.py transform "to-utf8"
 
 # Convert from UTF-8 to specific encoding
-uv run python main.py transform -r from-utf8 shift_jis
-
-# With error handling
-uv run python main.py transform -r iconv -f utf-8 -t ascii --error replace
+uv run python main.py transform "from-utf8 shift_jis"
 
 # Detect character encoding
-uv run python main.py transform -r detect-encoding
+uv run python main.py transform "detect-encoding"
 ```
 
 **Supported encodings:**

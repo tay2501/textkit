@@ -123,7 +123,7 @@ class TestMainIntegration:
         # This test ensures all imports work correctly
         from main import main
         from bases.text_processing.cli_interface import run_cli
-        from components.text_processing.config_manager.settings import configure_logging
+        from components.config_manager.settings import configure_logging
 
         # If we get here, imports are successful
         assert callable(main)
