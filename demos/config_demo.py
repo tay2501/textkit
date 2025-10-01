@@ -13,7 +13,7 @@ from components.config_manager.settings import (
     is_debug_mode,
     get_max_text_length
 )
-from components.dependency_injection.container import Container
+from components.dependency_injection import Container
 
 
 def demonstrate_basic_configuration():
@@ -91,11 +91,14 @@ def demonstrate_nested_configuration():
 
 
 def demonstrate_dependency_injection():
-    """Demonstrate dependency injection container."""
-    print("=== Dependency Injection Demo ===")
+    """Demonstrate dependency injection container using lagom."""
+    print("=== Dependency Injection Demo (lagom) ===")
 
-    # Get the global container
+    # Create lagom container
     container = Container()
+
+    # Register ApplicationSettings
+    container[ApplicationSettings] = get_settings()
 
     # Register a custom service
     class DemoService:
@@ -105,16 +108,13 @@ def demonstrate_dependency_injection():
         def get_info(self) -> str:
             return f"Demo service running with app: {self.settings.app_name}"
 
-    container.register_transient(DemoService, DemoService)
+    # Lagom automatically resolves dependencies based on type hints
+    container[DemoService] = DemoService
 
     # Get the service (dependencies automatically injected)
-    demo_service = container.get(DemoService)
+    demo_service = container[DemoService]
     print(f"Service Info: {demo_service.get_info()}")
-
-    # Show container info
-    info = container.get_service_info()
-    print(f"Container Services: {info['total_services']}")
-    print(f"Registered Types: {', '.join(info['instances'] + info['factories'])}")
+    print(f"Lagom automatically resolved ApplicationSettings dependency")
 
     print()
 
@@ -189,8 +189,8 @@ def main():
     print("- Dependency injection container")
     print("- .env file loading")
     print("\nFor more information, see:")
-    print("- components/text_processing/config_manager/settings.py")
-    print("- components/text_processing/container.py")
+    print("- components/textkit/config_manager/settings.py")
+    print("- components/textkit/container.py")
     print("- .env.example")
 
 

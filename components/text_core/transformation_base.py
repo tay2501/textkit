@@ -1,8 +1,9 @@
 """
-抽象基底クラスとチE��スト変換プロトコルの定義
+抽象基底クラスとテキスト変換プロトコルの定義
 
-こ�Eモジュールは、すべてのチE��スト変換クラスが継承すべき抽象基底クラスと
-型安�E性を保証するプロトコルを提供します、E"""
+このモジュールは、すべてのテキスト変換クラスが継承すべき抽象基底クラスと
+型安全性を保証するプロトコルを提供します。
+"""
 
 from __future__ import annotations
 
@@ -20,129 +21,150 @@ from .types import ConfigDict, ErrorContext
 
 
 class TransformationBase(ABC):
-    """すべてのチE��スト変換クラスの抽象基底クラス
+    """すべてのテキスト変換クラスの抽象基底クラス
 
-    こ�Eクラスは変換処琁E�E共通インターフェースを定義し、E    実裁E��ラスが忁E��メソチE��を持つことを保証します、E    """
+    このクラスは変換処理の共通インターフェースを定義し、
+    実装クラスが必須メソッドを持つことを保証します。
+    """
 
     def __init__(self, config: ConfigDict | None = None) -> None:
-        """抽象基底クラスの初期匁E
+        """抽象基底クラスの初期化
+
         Args:
-            config: 変換設定辞書�E�オプション�E�E        """
+            config: 変換設定辞書（オプション）
+        """
         self._config: ConfigDict = config or {}
         self._is_initialized: bool = False
         self._error_context: ErrorContext = {}
 
     @abstractmethod
     def transform(self, text: str) -> str:
-        """チE��スト変換を実行する抽象メソチE��
+        """テキスト変換を実行する抽象メソッド
 
         Args:
-            text: 変換対象のチE��スチE
+            text: 変換対象のテキスト
+
         Returns:
-            変換されたテキスチE
+            変換されたテキスト
+
         Raises:
-            TransformationError: 変換処琁E��失敗した場吁E        """
+            TransformationError: 変換処理に失敗した場合
+        """
         ...
 
     @abstractmethod
     def get_transformation_rule(self) -> str:
-        """適用される変換ルールを取得する抽象メソチE��
+        """適用される変換ルールを取得する抽象メソッド
 
         Returns:
-            変換ルール斁E���E�E�侁E '/t', '/l', '/u'など�E�E        """
+            変換ルール文字列（例: '/t', '/l', '/u'など）
+        """
         ...
 
     @abstractmethod
     def get_input_text(self) -> str:
-        """変換前�E斁E���Eを取得する抽象メソチE��
+        """変換前の文字列を取得する抽象メソッド
 
         Returns:
-            変換前�E斁E���E
+            変換前の文字列
         """
         ...
 
     @abstractmethod
     def get_output_text(self) -> str:
-        """変換後�E斁E���Eを取得する抽象メソチE��
+        """変換後の文字列を取得する抽象メソッド
 
         Returns:
-            変換後�E斁E���E
+            変換後の文字列
         """
         ...
 
     def validate_input(self, text: str) -> bool:
-        """入力テキスト�E妥当性を検証
+        """入力テキストの妥当性を検証
 
         Args:
-            text: 検証対象のチE��スチE
+            text: 検証対象のテキスト
+
         Returns:
-            入力が妥当な場吁Erue
+            入力が妥当な場合True
         """
         try:
             return isinstance(text, str)
         except Exception:
-            # EAFPスタイル: 例外が発生した場合�E無効とみなぁE            return False
+            # EAFPスタイル: 例外が発生した場合は無効とみなす
+            return False
 
     def get_config_value(self, key: str, default: Any = None) -> Any:
-        """設定値を取征E
+        """設定値を取得
+
         Args:
             key: 設定キー
-            default: チE��ォルト値
+            default: デフォルト値
 
         Returns:
-            設定値また�EチE��ォルト値
+            設定値またはデフォルト値
         """
         try:
             return self._config[key]
         except KeyError:
-            # EAFPスタイル: キーが存在しなぁE��合�EチE��ォルトを返す
+            # EAFPスタイル: キーが存在しない場合はデフォルトを返す
             return default
 
     def set_error_context(self, context: ErrorContext) -> None:
-        """エラーコンチE��ストを設宁E
+        """エラーコンテキストを設定
+
         Args:
-            context: エラー惁E��を含む辞書
+            context: エラー情報を含む辞書
         """
         import contextlib
 
         with contextlib.suppress(Exception):
-            # EAFPスタイル: 更新に失敗した場合�E無要E            self._error_context.update(context)
+            # EAFPスタイル: 更新に失敗した場合は無視
+            self._error_context.update(context)
 
     def get_error_context(self) -> ErrorContext:
-        """現在のエラーコンチE��ストを取征E
+        """現在のエラーコンテキストを取得
+
         Returns:
-            エラーコンチE��スト辞書
+            エラーコンテキスト辞書
         """
         try:
             return self._error_context.copy()
         except Exception:
-            # EAFPスタイル: コピ�Eに失敗した場合�E空辞書を返す
+            # EAFPスタイル: コピーに失敗した場合は空辞書を返す
             return {}
 
     def set_arguments(self, args: list[str]) -> None:
-        """変換処琁E�E引数を設定（オプションメソチE���E�E
+        """変換処理の引数を設定（オプションメソッド）
+
         Args:
-            args: 変換処琁E��渡す引数のリスチE
+            args: 変換処理に渡す引数のリスト
+
         Note:
-            こ�EメソチE��は引数を忁E��とする変換クラスでオーバ�Eライドされる
-            基本実裁E��は何も行わなぁE���E示皁E��no-op�E�E        """
+            このメソッドは引数を必要とする変換クラスでオーバーライドされる
+            基本実装では何も行わない（明示的なno-op）
+        """
         # Explicit no-op: This is an optional hook method
         # Subclasses that need arguments will override this method
 
     def _safe_transform(self, text: str) -> str:
-        """安�Eな変換実行�Eヘルパ�EメソチE��
+        """安全な変換実行のヘルパーメソッド
 
         Args:
-            text: 変換対象のチE��スチE
+            text: 変換対象のテキスト
+
         Returns:
-            変換されたテキスチE
+            変換されたテキスト
+
         Raises:
-            ValidationError: 入力検証に失敗した場吁E            TransformationError: 変換処琁E��失敗した場吁E        """
+            ValidationError: 入力検証に失敗した場合
+            TransformationError: 変換処理に失敗した場合
+        """
         # EAFPスタイル: まず変換を試行し、失敗時に詳細検証
         try:
             if not self.validate_input(text):
                 raise ValidationError(
-                    f"入力検証に失敁E {type(text).__name__}",
+                    f"入力検証に失敗: {type(text).__name__}",
                     {"input_type": type(text).__name__, "input_value": str(text)[:100]},
                 )
 
@@ -151,111 +173,130 @@ class TransformationBase(ABC):
         except ValidationError:
             raise
         except Exception as e:
-            # 変換失敗時のエラーコンチE��ストを設宁E            self.set_error_context(
+            # 変換失敗時のエラーコンテキストを設定
+            self.set_error_context(
                 {
                     "transform_error": str(e),
                     "error_type": type(e).__name__,
                     "input_length": len(text) if isinstance(text, str) else 0,
                 }
             )
-            raise TransformationError(f"変換処琁E��失敁E {e}", self.get_error_context()) from e
+            raise TransformationError(f"変換処理に失敗: {e}", self.get_error_context()) from e
 
 
 @runtime_checkable
 class TextTransformerProtocol(Protocol):
-    """チE��スト変換処琁E�Eプロトコル定義
+    """テキスト変換処理のプロトコル定義
 
-    こ�Eプロトコルは変換クラスが実裁E��べきメソチE��を定義し、E    型安�E性を保証します、E    """
+    このプロトコルは変換クラスが実装すべきメソッドを定義し、
+    型安全性を保証します。
+    """
 
     def transform(self, text: str) -> str:
-        """チE��スト変換を実衁E
+        """テキスト変換を実行
+
         Args:
-            text: 変換対象のチE��スチE
+            text: 変換対象のテキスト
+
         Returns:
-            変換されたテキスチE        """
+            変換されたテキスト
+        """
         ...
 
     def validate_input(self, text: str) -> bool:
-        """入力テキスト�E妥当性を検証
+        """入力テキストの妥当性を検証
 
         Args:
-            text: 検証対象のチE��スチE
+            text: 検証対象のテキスト
+
         Returns:
-            入力が妥当な場吁Erue
+            入力が妥当な場合True
         """
         ...
 
     def get_transformation_rule(self) -> str:
-        """適用される変換ルールを取征E
+        """適用される変換ルールを取得
+
         Returns:
-            変換ルール斁E���E�E�侁E '/t', '/l', '/u'など�E�E        """
+            変換ルール文字列（例: '/t', '/l', '/u'など）
+        """
         ...
 
     def get_input_text(self) -> str:
-        """変換前�E斁E���Eを取征E
+        """変換前の文字列を取得
+
         Returns:
-            変換前�E斁E���E
+            変換前の文字列
         """
         ...
 
     def get_output_text(self) -> str:
-        """変換後�E斁E���Eを取征E
+        """変換後の文字列を取得
+
         Returns:
-            変換後�E斁E���E
+            変換後の文字列
         """
         ...
 
 
 @runtime_checkable
 class ConfigurableTransformerProtocol(TextTransformerProtocol, Protocol):
-    """設定可能な変換処琁E�Eプロトコル定義
+    """設定可能な変換処理のプロトコル定義
 
-    こ�Eプロトコルは設定を持つ変換クラスが実裁E��べぁE    メソチE��を定義します、E    """
+    このプロトコルは設定を持つ変換クラスが実装すべき
+    メソッドを定義します。
+    """
 
     def get_config_value(self, key: str, default: Any = None) -> Any:
-        """設定値を取征E
+        """設定値を取得
+
         Args:
             key: 設定キー
-            default: チE��ォルト値
+            default: デフォルト値
 
         Returns:
-            設定値また�EチE��ォルト値
+            設定値またはデフォルト値
         """
         ...
 
     def set_error_context(self, context: ErrorContext) -> None:
-        """エラーコンチE��ストを設宁E
+        """エラーコンテキストを設定
+
         Args:
-            context: エラー惁E��を含む辞書
+            context: エラー情報を含む辞書
         """
         ...
 
 
 class ChainableTransformationBase(TransformationBase):
-    """チェイン可能な変換処琁E�E抽象基底クラス
+    """チェイン可能な変換処理の抽象基底クラス
 
-    褁E��の変換を連鎖して実行できる機�Eを提供します、E    """
+    複数の変換を連鎖して実行できる機能を提供します。
+    """
 
     def __init__(self, config: ConfigDict | None = None) -> None:
-        """チェイン可能変換クラスの初期匁E
+        """チェイン可能変換クラスの初期化
+
         Args:
-            config: 変換設定辞書�E�オプション�E�E        """
+            config: 変換設定辞書（オプション）
+        """
         super().__init__(config)
         self._chain: list[TransformationBase] = []
 
     def add_transformer(self, transformer: TransformationBase) -> None:
-        """変換処琁E��チェインに追加
+        """変換処理をチェインに追加
 
         Args:
-            transformer: 追加する変換処琁E        """
+            transformer: 追加する変換処理
+        """
         try:
             if not isinstance(transformer, TransformationBase):
                 raise ValidationError(
-                    f"変換処琁E�E TransformationBase を継承する忁E��がありまぁE {type(transformer).__name__}"
+                    f"変換処理は TransformationBase を継承する必要があります: {type(transformer).__name__}"
                 )
             self._chain.append(transformer)
         except Exception as e:
-            # EAFPスタイル: 追加に失敗した場合�Eエラーを記録
+            # EAFPスタイル: 追加に失敗した場合はエラーを記録
             self.set_error_context(
                 {
                     "chain_add_error": str(e),
@@ -265,13 +306,17 @@ class ChainableTransformationBase(TransformationBase):
             raise
 
     def chain_transform(self, text: str) -> str:
-        """チェインされた変換を頁E��実衁E
+        """チェインされた変換を順次実行
+
         Args:
-            text: 変換対象のチE��スチE
+            text: 変換対象のテキスト
+
         Returns:
-            チェイン変換されたテキスチE
+            チェイン変換されたテキスト
+
         Raises:
-            TransformationError: チェイン変換に失敗した場吁E        """
+            TransformationError: チェイン変換に失敗した場合
+        """
         try:
             result: str = text
 
@@ -279,7 +324,8 @@ class ChainableTransformationBase(TransformationBase):
                 try:
                     result = transformer._safe_transform(result)
                 except Exception as e:
-                    # チェイン冁E�E変換失敗時のコンチE��スチE                    self.set_error_context(
+                    # チェイン内の変換失敗時のコンテキスト
+                    self.set_error_context(
                         {
                             "chain_position": i,
                             "transformer_type": type(transformer).__name__,
@@ -287,7 +333,7 @@ class ChainableTransformationBase(TransformationBase):
                         }
                     )
                     raise TransformationError(
-                        f"チェイン変換の第{i+1}段階で失敁E {e}",
+                        f"チェイン変換の第{i+1}段階で失敗: {e}",
                         self.get_error_context(),
                     ) from e
 
@@ -297,7 +343,7 @@ class ChainableTransformationBase(TransformationBase):
             raise
         except Exception as e:
             raise TransformationError(
-                f"チェイン変換処琁E��失敁E {e}", self.get_error_context()
+                f"チェイン変換処理に失敗: {e}", self.get_error_context()
             ) from e
 
     def clear_chain(self) -> None:
@@ -305,76 +351,83 @@ class ChainableTransformationBase(TransformationBase):
         import contextlib
 
         with contextlib.suppress(Exception):
-            # EAFPスタイル: クリアに失敗した場合�E無要E            self._chain.clear()
+            # EAFPスタイル: クリアに失敗した場合は無視
+            self._chain.clear()
 
     def get_chain_length(self) -> int:
-        """チェインの長さを取征E
+        """チェインの長さを取得
+
         Returns:
-            チェインに含まれる変換処琁E�E数
+            チェインに含まれる変換処理の数
         """
         try:
             return len(self._chain)
         except Exception:
-            # EAFPスタイル: 長さ取得に失敗した場合�E0を返す
+            # EAFPスタイル: 長さ取得に失敗した場合は0を返す
             return 0
 
 
 def is_text_transformer(obj: Any) -> bool:
-    """オブジェクトが TextTransformerProtocol を実裁E��てぁE��か検証
+    """オブジェクトが TextTransformerProtocol を実装しているか検証
 
     Args:
-        obj: 検証対象のオブジェクチE
+        obj: 検証対象のオブジェクト
+
     Returns:
-        プロトコルを実裁E��てぁE��場吁Erue
+        プロトコルを実装している場合True
     """
     try:
         return isinstance(obj, TextTransformerProtocol)
     except Exception:
-        # EAFPスタイル: 検証に失敗した場合�EFalseを返す
+        # EAFPスタイル: 検証に失敗した場合はFalseを返す
         return False
 
 
 def is_configurable_transformer(obj: Any) -> bool:
-    """オブジェクトが ConfigurableTransformerProtocol を実裁E��てぁE��か検証
+    """オブジェクトが ConfigurableTransformerProtocol を実装しているか検証
 
     Args:
-        obj: 検証対象のオブジェクチE
+        obj: 検証対象のオブジェクト
+
     Returns:
-        プロトコルを実裁E��てぁE��場吁Erue
+        プロトコルを実装している場合True
     """
     try:
         return isinstance(obj, ConfigurableTransformerProtocol)
     except Exception:
-        # EAFPスタイル: 検証に失敗した場合�EFalseを返す
+        # EAFPスタイル: 検証に失敗した場合はFalseを返す
         return False
 
 
 def create_safe_transformer(
     transformer_class: type[TransformationBase], config: ConfigDict | None = None
 ) -> TransformationBase:
-    """安�Eな変換クラスのファクトリ関数
+    """安全な変換クラスのファクトリ関数
 
     Args:
-        transformer_class: 生�Eする変換クラス
+        transformer_class: 生成する変換クラス
         config: 変換設定辞書
 
     Returns:
-        生�Eされた変換クラスのインスタンス
+        生成された変換クラスのインスタンス
 
     Raises:
-        ValidationError: 無効なクラスまた�E設定�E場吁E        TransformationError: インスタンス生�Eに失敗した場吁E    """
+        ValidationError: 無効なクラスまたは設定の場合
+        TransformationError: インスタンス生成に失敗した場合
+    """
     try:
-        # EAFPスタイル: まずインスタンス生�Eを試衁E        if not issubclass(transformer_class, TransformationBase):
+        # EAFPスタイル: まずインスタンス生成を試行
+        if not issubclass(transformer_class, TransformationBase):
             raise ValidationError(
-                f"変換クラスは TransformationBase を継承する忁E��がありまぁE {transformer_class.__name__}"
+                f"変換クラスは TransformationBase を継承する必要があります: {transformer_class.__name__}"
             )
 
         instance = transformer_class(config)
 
-        # 生�Eされたインスタンスの検証
+        # 生成されたインスタンスの検証
         if not is_text_transformer(instance):
             raise ValidationError(
-                f"生�Eされたインスタンスが�Eロトコルを実裁E��てぁE��せん: {type(instance).__name__}"
+                f"生成されたインスタンスがプロトコルを実装していません: {type(instance).__name__}"
             )
 
         return instance
@@ -383,7 +436,7 @@ def create_safe_transformer(
         raise
     except Exception as e:
         raise TransformationError(
-            f"変換クラスのインスタンス生�Eに失敁E {e}",
+            f"変換クラスのインスタンス生成に失敗: {e}",
             {
                 "class_name": transformer_class.__name__,
                 "config": str(config),

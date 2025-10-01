@@ -122,7 +122,7 @@ class TestMainIntegration:
         """Test that main can import all required dependencies."""
         # This test ensures all imports work correctly
         from main import main
-        from bases.text_processing.cli_interface import run_cli
+        from bases.textkit.cli_interface import run_cli
         from components.config_manager.settings import configure_logging
 
         # If we get here, imports are successful
@@ -130,7 +130,7 @@ class TestMainIntegration:
         assert callable(run_cli)
         assert callable(configure_logging)
 
-    @patch('bases.text_processing.cli_interface.run_cli')
+    @patch('bases.textkit.cli_interface.run_cli')
     def test_main_real_logging_setup(self, mock_run_cli):
         """Test main with real logging setup (no mocking)."""
         # Reset structlog to ensure clean state

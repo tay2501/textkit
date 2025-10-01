@@ -22,7 +22,7 @@ from components.config_manager.settings import (
     is_debug_mode,
     get_max_text_length
 )
-from components.dependency_injection.container import Container, inject
+from components.dependency_injection import Container, injectable
 
 
 def test_application_settings_defaults():
@@ -148,24 +148,26 @@ TEXTKIT_SECURITY__RSA_KEY_SIZE=2048
 
 
 def test_dependency_injection_container():
-    """Test dependency injection container functionality."""
+    """Test lagom dependency injection container functionality."""
     container = Container()
 
     # Test instance registration
     settings = ApplicationSettings(app_name="TestContainer")
-    container.register_instance(ApplicationSettings, settings)
+    container[ApplicationSettings] = settings
 
-    retrieved_settings = container.get(ApplicationSettings)
+    retrieved_settings = container[ApplicationSettings]
     assert retrieved_settings.app_name == "TestContainer"
     assert retrieved_settings is settings  # Same instance
 
-    # Test factory registration
-    def create_test_service() -> str:
-        return "test_service_instance"
+    # Test factory registration with custom class
+    class TestService:
+        def get_value(self) -> str:
+            return "test_service_instance"
 
-    container.register_factory(str, create_test_service)
-    service = container.get(str)
-    assert service == "test_service_instance"
+    container[TestService] = lambda: TestService()
+
+    service = container[TestService]
+    assert service.get_value() == "test_service_instance"
 
 
 def test_global_settings_functions():
@@ -188,10 +190,16 @@ def test_global_settings_functions():
 
 
 def test_dependency_injection_decorator():
-    """Test dependency injection decorator."""
-    # Create a service that depends on settings
-    @inject
-    def service_function(settings: ApplicationSettings) -> str:
+    """Test lagom dependency injection with injectable marker."""
+    from lagom import bind_to_container
+
+    # Create container and register settings
+    container = Container()
+    container[ApplicationSettings] = ApplicationSettings()
+
+    # Create a service that depends on settings using lagom's bind_to_container
+    @bind_to_container(container)
+    def service_function(settings: ApplicationSettings = injectable) -> str:
         return f"Service with app: {settings.app_name}"
 
     # Call function - settings should be injected automatically
@@ -200,15 +208,14 @@ def test_dependency_injection_decorator():
 
 
 def test_container_service_info():
-    """Test container service information."""
+    """Test lagom container basic functionality."""
     container = Container()
-    container.register_instance(ApplicationSettings, ApplicationSettings())
+    container[ApplicationSettings] = ApplicationSettings()
 
-    info = container.get_service_info()
-    assert "instances" in info
-    assert "factories" in info
-    assert "total_services" in info
-    assert info["total_services"] >= 1
+    # Test that we can retrieve the service
+    settings = container[ApplicationSettings]
+    assert isinstance(settings, ApplicationSettings)
+    assert settings.app_name == "TextKit"
 
 
 def test_computed_fields_validation():
