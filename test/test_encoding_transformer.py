@@ -8,7 +8,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from components.text_core.transformers.encoding_transformer import EncodingTransformer  # noqa: E402
+from textkit.text_core.transformers.encoding_transformer import EncodingTransformer  # noqa: E402
 
 class TestEncodingTransformer:
     """Test cases for EncodingTransformer."""

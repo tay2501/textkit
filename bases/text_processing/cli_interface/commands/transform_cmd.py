@@ -35,6 +35,20 @@ def transform_text(
     ) -> None:
         """Apply **transformation rules** to input text.
 
+        [yellow]⚠️  DEPRECATED: Use 'textkit text transform' instead[/yellow]
+        
+        This command is maintained for backward compatibility.
+        Please migrate to the new hierarchical command structure:
+        
+        ```bash
+        # Old (deprecated)
+        textkit transform '/t/l' -i "text"
+        
+        # New (recommended)
+        textkit text transform '/t/l' -i "text"
+        textkit text t '/t/l' -i "text"  # Short alias
+        ```
+
         **Quick Rule Reference:**
         - /t - Trim whitespace
         - /l - Convert to lowercase
@@ -57,42 +71,16 @@ def transform_text(
         - /from-utf8 <encoding> - Convert UTF-8 to target encoding
         - /detect-encoding - Detect character encoding
 
-        **Usage Examples:**
-
-        ```bash
-        # Basic transformations
-        text-processing-toolkit transform '/t/l' --text "  Hello World  "
-
-        # Multiple rules (applied in sequence)
-        text-processing-toolkit transform '/t/u/R' --text "hello"
-
-        # From clipboard (default)
-        text-processing-toolkit transform '/p'
-
-        # Character encoding conversions (iconv-like)
-        text-processing-toolkit transform '/iconv -f shift_jis -t utf-8' --text "日本誁E
-        text-processing-toolkit transform '/iconv -f euc-jp -t utf-8' --text "日本誁E
-        text-processing-toolkit transform '/to-utf8' --text "auto-detect encoding"
-        text-processing-toolkit transform '/detect-encoding' --text "analyze text"
-
-        # Output to file
-        text-processing-toolkit transform '/l' --text "HELLO" --output ./output
-
-        # Disable clipboard
-        text-processing-toolkit transform '/u' --text "hello" --no-clipboard
-
-        # Japanese text transformations
-        text-processing-toolkit transform '/j' --text "ひらがな"
-        text-processing-toolkit transform '/h' --text "ABC123"
-        ```
-
         **Tips:**
         - Use `--show-rules` to see all available rules with detailed descriptions
-        - Use `text-processing-toolkit rules` for the complete rules table
+        - Use `textkit rules` for the complete rules table
         - Use `--output` to save result to a file in specified folder
         - Use `--no-clipboard` to disable clipboard copying
         - For encoding: Use Unix iconv syntax with -f (from) and -t (to) flags
         """
+        # Display deprecation warning (without emoji for Windows terminal compatibility)
+        console.print("[yellow]Warning: 'textkit transform' is deprecated. Use 'textkit text transform' instead.[/yellow]")
+        
         if show_rules:
             _show_available_rules(get_app_func)
             return

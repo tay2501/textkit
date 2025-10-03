@@ -9,9 +9,9 @@ import time
 import functools
 from typing import Any, Callable, Dict, Optional, TypeVar
 
-from components.common_utils import (
+from textkit.common_utils import (
     get_structured_logger,
-    performance_monitor,
+    log_performance,
     create_log_context
 )
 

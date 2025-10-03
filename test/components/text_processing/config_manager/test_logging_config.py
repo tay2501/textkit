@@ -7,7 +7,7 @@ and configuration options.
 from unittest.mock import patch, MagicMock
 import structlog
 
-from components.config_manager.settings import configure_logging, _get_exception_formatter
+from textkit.config_manager.settings import configure_logging, _get_exception_formatter
 
 
 class TestLoggingConfiguration:
@@ -35,7 +35,7 @@ class TestLoggingConfiguration:
             config = structlog.get_config()
 
             # Verify development configuration
-            assert config['context_class'] == dict
+            assert config['context_class'] is dict
             assert config['cache_logger_on_first_use'] is True
 
             # Test logging works
@@ -54,7 +54,7 @@ class TestLoggingConfiguration:
             config = structlog.get_config()
 
             # Verify production configuration
-            assert config['context_class'] == dict
+            assert config['context_class'] is dict
             assert config['cache_logger_on_first_use'] is True
 
             # Test logging works
@@ -133,7 +133,7 @@ class TestLoggingConfiguration:
             logger.info("development_test", user_id=123)
 
             # In development mode, output should be human-readable
-            captured = capfd.readouterr()
+            _ = capfd.readouterr()
             # Note: Output goes to stderr in development mode
 
     def test_logging_context_preservation(self):

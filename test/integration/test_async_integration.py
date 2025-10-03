@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 
 
-from components.async_core import (
+from textkit.async_core import (
     AsyncTextTransformationEngine,
     AsyncTextStreamer,
     ChunkedProcessor,
@@ -18,7 +18,7 @@ from components.async_core import (
     AsyncBenchmark,
     AsyncIOManager
 )
-from components.config_manager.settings import ApplicationSettings
+from textkit.config_manager.settings import ApplicationSettings
 
 
 async def test_async_engine_basic_transformation():

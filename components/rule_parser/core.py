@@ -9,7 +9,7 @@ import re
 import structlog
 from typing import List, Tuple
 
-from components.exceptions import ValidationError
+from textkit.exceptions import ValidationError
 
 logger = structlog.get_logger(__name__)
 

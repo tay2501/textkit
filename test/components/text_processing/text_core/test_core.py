@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock
-from components.text_core.core import TextTransformationEngine
-from components.text_core.exceptions import TransformationError, ValidationError
+from textkit.text_core.core import TextTransformationEngine
+from textkit.text_core.exceptions import TransformationError, ValidationError
 
 
 class TestTextTransformationEngine:

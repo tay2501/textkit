@@ -7,8 +7,8 @@ into transformer classes for consistent input validation.
 
 from typing import Any, List, Optional, Dict, Union
 
-from components.exceptions import ParameterValidationError, ValidationError
-from components.common_utils import (
+from textkit.exceptions import ParameterValidationError, ValidationError
+from textkit.common_utils import (
     validate_text_input,
     validate_parameters,
     type_guard

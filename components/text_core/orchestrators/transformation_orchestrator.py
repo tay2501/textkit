@@ -8,12 +8,12 @@ with enhanced error handling, performance monitoring, and recovery capabilities.
 import time
 from typing import List, Optional, Dict, Any, Tuple
 
-from components.exceptions import (
+from textkit.exceptions import (
     TransformationError,
     TransformationTimeoutError,
     ValidationError
 )
-from components.common_utils import (
+from textkit.common_utils import (
     get_structured_logger,
     safe_execute,
     with_error_context,

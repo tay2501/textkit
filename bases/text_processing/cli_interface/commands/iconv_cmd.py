@@ -67,7 +67,7 @@ def register_iconv_command(
         - replace: Replace problematic characters with placeholders
         """
         try:
-            from components.text_core.transformers.encoding_transformer import EncodingTransformer
+            from textkit.text_core.transformers.encoding_transformer import EncodingTransformer
 
             app_instance = get_app_func()
             input_text = get_input_text_func(app_instance, text)
@@ -103,16 +103,34 @@ def iconv_command_func(
         clipboard: bool = True,
         output: str | None = None,
     ) -> None:
-        """Convert text between character encodings (Unix iconv-compatible)."""
+        """Convert text between character encodings (Unix iconv-compatible).
+        
+        [yellow]⚠️  DEPRECATED: Use 'textkit text encode' instead[/yellow]
+        
+        This command is maintained for backward compatibility.
+        Please migrate to the new hierarchical command structure:
+        
+        ```bash
+        # Old (deprecated)
+        textkit iconv -f shift_jis -t utf-8 -i "text"
+        
+        # New (recommended)
+        textkit text encode -f shift_jis -t utf-8 -i "text"
+        textkit text enc -f shift_jis -t utf-8 -i "text"  # Short alias
+        ```
+        """
+        # Display deprecation warning (without emoji for Windows terminal compatibility)
+        console.print("[yellow]Warning: 'textkit iconv' is deprecated. Use 'textkit text encode' instead.[/yellow]")
+        
         try:
-            from components.text_core.transformers.encoding_transformer import EncodingTransformer
+            from textkit.text_core.transformers.encoding_transformer import EncodingTransformer
 
             app_instance = get_app_func()
             input_text = get_input_text_func(app_instance, text)
 
-            # Use EncodingTransformer directly for simpler implementation
+            # Use EncodingTransformer public API (fixed)
             encoding_transformer = EncodingTransformer()
-            result = encoding_transformer._convert_encoding(
+            result = encoding_transformer.convert(
                 input_text,
                 from_encoding,
                 to_encoding,

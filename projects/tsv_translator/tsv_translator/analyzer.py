@@ -43,7 +43,7 @@ class TSVAnalyzer:
                 self._headers = [f"col_{i+1}" for i in range(len(self._data[0]) if self._data else 0)]
 
         except Exception as e:
-            raise RuntimeError(f"Failed to load TSV file: {e}")
+            raise RuntimeError(f"Failed to load TSV file: {e}") from e
 
     def get_basic_info(self) -> dict[str, Any]:
         """Get basic file information."""
@@ -136,7 +136,7 @@ class TSVAnalyzer:
             # Analyze column
             non_empty_count = sum(1 for v in col_values if v.strip())
             empty_count = len(col_values) - non_empty_count
-            unique_values = set(v.strip() for v in col_values if v.strip())
+            unique_values = {v.strip() for v in col_values if v.strip()}
 
             # Get sample values (first few non-empty)
             samples = [v.strip() for v in col_values if v.strip()][:5]

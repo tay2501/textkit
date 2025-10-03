@@ -7,8 +7,8 @@ with enhanced error handling and validation.
 
 import re
 from typing import List, Tuple, NamedTuple
-from components.exceptions import ValidationError
-from components.common_utils import (
+from textkit.exceptions import ValidationError
+from textkit.common_utils import (
     get_structured_logger,
     validate_text_input,
     with_error_context

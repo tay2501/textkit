@@ -20,6 +20,7 @@ from .commands.crypto_cmd import register_crypto_commands
 from .commands.rules_cmd import register_rules_command
 from .commands.status_cmd import register_status_commands
 from .commands.iconv_cmd import register_iconv_command
+from .commands.clipboard_cmd import register_clipboard_commands
 
 # Import middleware
 from .middleware.output_manager import output_result_enhanced, output_result_simple
@@ -75,7 +76,7 @@ def normalize_rule_argument(rules: str | None) -> str | None:
     Git Bash on Windows can expand '/to-utf8' to 'D:/Applications/Git/to-utf8'.
     This function detects and corrects such cases.
     """
-    from components.rule_parser import RuleParser
+    from textkit.rule_parser import RuleParser
 
     parser = RuleParser()
     return parser.normalize(rules)
@@ -84,7 +85,26 @@ def normalize_rule_argument(rules: str | None) -> str | None:
 def _register_all_commands() -> None:
     """Register all CLI commands with dependency injection."""
 
-    # Register transform command
+    # ========================================================================
+    # New Subcommand Structure (Industry Standard)
+    # ========================================================================
+    
+    # Register text subcommand group (new hierarchical structure)
+    from .commands.text_cmd import create_text_subcommand
+    
+    text_subcommand = create_text_subcommand(
+        get_app_func=get_app,
+        normalize_rule_func=normalize_rule_argument,
+        get_input_text_func=get_input_text,
+        handle_cli_error_func=error_handler.handle_cli_error,
+    )
+    app.add_typer(text_subcommand, name="text")
+
+    # ========================================================================
+    # Backward Compatibility Aliases (Deprecated but functional)
+    # ========================================================================
+    
+    # Legacy transform command (deprecated, use: textkit text transform)
     transform_text(
         app=app,
         get_app_func=get_app,
@@ -92,6 +112,19 @@ def _register_all_commands() -> None:
         get_input_text_func=get_input_text,
         handle_cli_error_func=error_handler.handle_cli_error,
     )
+
+    # Legacy iconv command (deprecated, use: textkit text encode)
+    register_iconv_command(
+        app=app,
+        get_app_func=get_app,
+        get_input_text_func=get_input_text,
+        output_result_enhanced_func=output_result_enhanced,
+        handle_cli_error_func=error_handler.handle_cli_error,
+    )
+
+    # ========================================================================
+    # Other Commands (Unchanged)
+    # ========================================================================
 
     # Register crypto commands
     register_crypto_commands(
@@ -116,26 +149,44 @@ def _register_all_commands() -> None:
         handle_cli_error_func=error_handler.handle_cli_error,
     )
 
-    # Register iconv command
-    register_iconv_command(
+    # Register clipboard commands (already uses subcommand structure)
+    register_clipboard_commands(
         app=app,
         get_app_func=get_app,
-        get_input_text_func=get_input_text,
-        output_result_enhanced_func=output_result_enhanced,
         handle_cli_error_func=error_handler.handle_cli_error,
     )
 
 
 def run_cli() -> None:
-    """Main CLI entry point with enhanced error handling."""
+    """Main CLI entry point with enhanced error handling and logging setup."""
     try:
+        # Initialize structured logging first
+        from textkit.config_manager.settings import configure_logging
+        import structlog
+
+        configure_logging()
+        logger = structlog.get_logger(__name__)
+        logger.info("application_starting", version="0.1.0")
+
         # Register all commands
         _register_all_commands()
 
         # Run the application
         app()
 
+        logger.info("application_completed")
+
+    except KeyboardInterrupt:
+        logger = structlog.get_logger(__name__)
+        logger.info("application_interrupted_by_user")
+        raise
     except Exception as e:
+        logger = structlog.get_logger(__name__)
+        logger.exception(
+            "application_failed_unexpectedly",
+            error_type=type(e).__name__,
+            error=str(e)
+        )
         error_handler.handle_cli_error(e, "CLI initialization")
 
 

@@ -7,9 +7,8 @@ following industry-standard patterns and best practices.
 # Re-export lagom's Container and utilities
 from lagom import Container, Singleton, injectable
 
-# Re-export custom exceptions for compatibility
+# Re-export DI-specific exceptions
 from .exceptions import (
-    ConfigurationError,
     ServiceNotFoundError,
     CircularDependencyError,
     DependencyResolutionError,
@@ -50,7 +49,6 @@ __all__ = [
     "injectable",
     "get_container",
     "get_service",
-    "ConfigurationError",
     "ServiceNotFoundError",
     "CircularDependencyError",
     "DependencyResolutionError",

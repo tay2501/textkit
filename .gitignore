@@ -87,6 +87,13 @@ ipython_config.py
 #   intended to run in multiple environments; otherwise, check them in:
 # .python-version
 
+# uv (Astral's fast Python package manager)
+# https://docs.astral.sh/uv/
+# For applications: commit uv.lock to ensure reproducible builds
+# For libraries: you may choose to ignore uv.lock
+# uv.lock
+.python-version  # Personal Python version preference
+
 # pipenv
 #   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
 #   However, in case of collaboration, if having platform-specific dependencies or dependencies
@@ -111,6 +118,9 @@ ipython_config.py
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
+
+# Rye (Another Python package manager)
+.rye/
 
 # Celery stuff
 celerybeat-schedule
@@ -209,7 +219,6 @@ cython_debug/
 *~
 
 # Emacs
-*~
 \#*\#
 /.emacs.desktop
 /.emacs.desktop.lock

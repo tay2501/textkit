@@ -123,7 +123,7 @@ class TestMainIntegration:
         # This test ensures all imports work correctly
         from main import main
         from bases.textkit.cli_interface import run_cli
-        from components.config_manager.settings import configure_logging
+        from textkit.config_manager.settings import configure_logging
 
         # If we get here, imports are successful
         assert callable(main)

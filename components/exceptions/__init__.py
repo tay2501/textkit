@@ -35,6 +35,10 @@ from .io_exceptions import (
     FileAccessError,
 )
 
+# Backward compatibility aliases
+CryptographyError = CryptoTransformationError
+FileOperationError = FileAccessError
+
 __all__ = [
     # Base exceptions
     "BaseTextProcessingError",
@@ -52,6 +56,7 @@ __all__ = [
     "TransformationRuleError",
     "EncodingTransformationError",
     "CryptoTransformationError",
+    "CryptographyError",  # Backward compatibility alias
 
     # Configuration exceptions
     "ConfigurationError",
@@ -63,4 +68,5 @@ __all__ = [
     "IOError",
     "ClipboardError",
     "FileAccessError",
+    "FileOperationError",  # Backward compatibility alias
 ]

@@ -7,8 +7,8 @@ Delegates parsing to RuleParser and execution to TransformationOrchestrator.
 
 from typing import Optional, Dict, Any, Tuple
 
-from components.exceptions import ValidationError, TransformationError
-from components.common_utils import (
+from textkit.exceptions import ValidationError, TransformationError
+from textkit.common_utils import (
     get_structured_logger,
     validate_text_input,
     handle_validation_error,

@@ -22,7 +22,7 @@ body:
         What happened and what did you expect to happen?
 
         Example:
-        When I run `textkit transform --method uppercase myfile.txt`, I expect the text to be converted to uppercase, but instead I get an error message.
+        When I run `textkit text transform '/u' -i "hello"`, I expect the text to be converted to uppercase, but instead I get an error message.
     validations:
       required: true
 
@@ -57,12 +57,14 @@ body:
       label: Component
       description: Which component is affected?
       options:
-        - CLI Interface
-        - Text Transformation
-        - Crypto/Encryption
-        - File I/O
-        - Configuration
+        - CLI Interface (text, clipboard commands)
+        - Text Transformation (text_core)
+        - Character Encoding (encoding_transformer)
+        - Crypto/Encryption (crypto_engine)
+        - File I/O (io_handler)
+        - Configuration (config_manager)
         - Interactive Session
+        - Legacy Commands (deprecated transform/iconv)
         - Unknown/Not Sure
     validations:
       required: true
@@ -88,7 +90,6 @@ body:
       options:
         - "3.13"
         - "3.12"
-        - "3.11"
         - Other (specify in additional context)
     validations:
       required: true

@@ -129,7 +129,7 @@ class Configuration:
                 if isinstance(field_info, tuple):
                     field_name, field_type = field_info
                     try:
-                        if field_type == bool:
+                        if field_type is bool:
                             config_dict[field_name] = value.lower() in ('true', '1', 'yes', 'on')
                         else:
                             config_dict[field_name] = field_type(value)

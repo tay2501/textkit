@@ -44,14 +44,14 @@ text-processing-toolkit/
 
 ### Prerequisites
 
-- **Python**: 3.13
+- **Python**: 3.12 or later
 - **Package Manager**: [uv](https://docs.astral.sh/uv/) (recommended)
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/tay2501/textkit.git
    cd text-processing-toolkit
    ```
 
@@ -102,31 +102,109 @@ uv run python main.py --install-completion powershell
 
 Once enabled, you can use tab completion for:
 
-- **Commands**: `transform`, `encrypt`, `decrypt`, `rules`, `status`, `version`
-- **Options**: `--help`, `--name`, `-r` (rules)
+- **Main Commands**: `text`, `clipboard`, `encrypt`, `decrypt`, `rules`, `status`, `version`
+- **Text Subcommands**: `transform`, `encode` (under `text` group)
+- **Legacy Commands**: `transform`, `iconv` (deprecated but functional)
+- **Options**: `--help`, `--input`, `-i`, `--output`, `-o`, `--clipboard`, `-f`, `-t`
 - **Help text**: Displays descriptions alongside suggestions (shell-dependent)
 
 ### Usage Examples
 
 ```bash
-# Tab complete commands
+# Tab complete main commands
 uv run python main.py [TAB][TAB]
-# Shows: transform, encrypt, decrypt, rules, status, version
+# Shows: text, clipboard, encrypt, decrypt, rules, status, version
+
+# Tab complete text subcommands
+uv run python main.py text [TAB][TAB]
+# Shows: transform, encode
 
 # Tab complete options
-uv run python main.py transform --[TAB][TAB]
-# Shows: --help, --name, -r
+uv run python main.py text encode --[TAB][TAB]
+# Shows: --help, --input, -i, --output, -o, -f, -t, --error
 
 # Tab complete with context-aware suggestions
-uv run python main.py transform [TAB][TAB]
+uv run python main.py text transform [TAB][TAB]
 # Shows available transformation rules
+
+# Tab complete clipboard subcommands
+uv run python main.py clipboard [TAB][TAB]
+# Shows: clear, get, set, status
 ```
 
 **Supported Shells**: Bash, Zsh, Fish, PowerShell
 
 ## 🎯 Usage
 
-### Main Application
+### 🆕 New Hierarchical Command Structure (Recommended)
+
+Following industry-standard CLI patterns (similar to Docker, GitHub CLI, kubectl):
+
+```bash
+# Text transformation with rules
+uv run python main.py text transform '/t/l' --input "  HELLO WORLD  "
+uv run python main.py text transform '/t/u/R' -i "hello"
+
+# Character encoding conversion (iconv-compatible)
+uv run python main.py text encode -f shift_jis -t utf-8 -i "日本語"
+uv run python main.py text encode -f auto -t utf-8  # Auto-detect encoding
+uv run python main.py text encode -f utf-8 -t ascii --error replace -i "Hello, 世界"
+
+# Show available transformation rules
+uv run python main.py text transform --show-rules
+
+# Output to file
+uv run python main.py text transform '/l' -i "HELLO" --output ./output
+uv run python main.py text encode -f auto -t utf-8 -i "text" -o ./output
+
+# Disable clipboard
+uv run python main.py text transform '/u' -i "hello" --no-clipboard
+```
+
+**Migration Guide:**
+```bash
+# Old (deprecated)                         → New (recommended)
+main.py transform '/t/l' --text "text"    → main.py text transform '/t/l' -i "text"
+main.py iconv -f shift_jis -t utf-8       → main.py text encode -f shift_jis -t utf-8
+```
+
+### 📋 Clipboard Operations
+
+Manage clipboard content with Unix-style commands (similar to `xsel` and `pbcopy`):
+
+```bash
+# Clear clipboard (like xsel -c)
+uv run python main.py clipboard clear
+
+# Get clipboard content
+uv run python main.py clipboard get
+
+# Set clipboard content
+uv run python main.py clipboard set "Hello, World!"
+
+# Check clipboard status
+uv run python main.py clipboard status
+```
+
+**Features:**
+- **Unix-style operations**: Follows conventions from `xsel` (Linux) and `pbcopy` (macOS)
+- **Error handling**: Graceful fallback when clipboard is unavailable
+- **Structured logging**: All operations logged with structlog
+- **Cross-platform**: Works on Windows, macOS, and Linux
+
+### 📜 Legacy Commands (Deprecated)
+
+The following commands are maintained for backward compatibility but show deprecation warnings:
+
+```bash
+# Legacy transform command (use 'text transform' instead)
+uv run python main.py transform '/t/l' --text "text"
+
+# Legacy iconv command (use 'text encode' instead)
+uv run python main.py iconv -f shift_jis -t utf-8 --text "日本語"
+```
+
+### Other Commands
 
 ```bash
 # Run the main CLI application
@@ -135,58 +213,42 @@ uv run python main.py
 # Show available commands
 uv run python main.py --help
 
-# Transform text
-uv run python main.py transform --help
-
-# Line ending conversions (tr-like)
-uv run python main.py transform "unix-to-windows"
-uv run python main.py transform "tr \n \r\n"
-
-# Character encoding conversions (iconv subcommand - recommended)
-uv run python main.py iconv -f shift_jis -t utf-8 --text "日本語"
-uv run python main.py iconv -f auto -t utf-8  # Auto-detect encoding
-
-# Character encoding conversions (transform rules - alternative)
-uv run python main.py transform "iconv -f shift_jis -t utf-8"
-uv run python main.py transform "to-utf8"  # Auto-detect encoding
-
 # Encrypt/decrypt text
 uv run python main.py encrypt --help
 uv run python main.py decrypt --help
-
-# Japanese character width conversion
-uv run python main.py transform "fh" --text "ｈｅｌｌｏ１２３"  # Full-width to half-width
-uv run python main.py transform "hf" --text "hello123"        # Half-width to full-width
 ```
 
 ### Windows Usage Notes
 
-**Best Option: Use iconv subcommand (No path expansion issues)**
+**Recommended: Use new command structure (No path expansion issues)**
 ```bash
-# iconv subcommand works perfectly in all Windows shells
-uv run python main.py iconv -f shift_jis -t utf-8 --text "日本語"
-uv run python main.py iconv -f auto -t utf-8 --text "Hello"
+# New commands work perfectly in all Windows shells
+uv run python main.py text encode -f shift_jis -t utf-8 -i "日本語"
+uv run python main.py text transform '/t/l' -i "HELLO"
 ```
 
-On Windows, some shells (like Git Bash) may expand paths starting with `/` when using transform rules (e.g., `/to-utf8` becomes `D:/Applications/Git/to-utf8`). To avoid this with transform commands:
+On Windows, some shells (like Git Bash) may expand paths starting with `/` when using legacy transform rules (e.g., `/to-utf8` becomes `D:/Applications/Git/to-utf8`). The new command structure avoids these issues.
 
-**Option 1: Use PowerShell**
+**If using legacy commands:**
+
+**Option 1: Migrate to new commands (Recommended)**
+```bash
+# New structure avoids path expansion issues
+uv run python main.py text transform '/t/l' -i "text"
+uv run python main.py text encode -f auto -t utf-8 -i "text"
+```
+
+**Option 2: Use PowerShell**
 ```powershell
 # PowerShell handles rules correctly
 $env:PYTHONPATH = "."; uv run python main.py transform "/to-utf8" --text "Hello"
 ```
 
-**Option 2: Use rules without leading slash**
+**Option 3: Use rules without leading slash**
 ```bash
 # Works in all shells
 uv run python main.py transform "to-utf8" --text "Hello"
 uv run python main.py transform "iconv -f shift_jis -t utf-8" --text "日本語"
-```
-
-**Option 3: Use quoted expanded path**
-```bash
-# If your shell expands /to-utf8 to a full path, quote the full path
-uv run python main.py transform "D:/Applications/Git/to-utf8" --text "Hello"
 ```
 
 ### Individual Projects
@@ -287,18 +349,15 @@ uv run poly create project --name my_project
 Transform line endings between Unix, Windows, and Mac Classic formats:
 
 ```bash
-# Convert Unix (LF) to Windows (CRLF)
+# Using new command structure (recommended)
+uv run python main.py text transform '/unix-to-windows' -i "Hello\nWorld!"
+uv run python main.py text transform '/tr \n \r\n' -i "Hello\nWorld!"
+uv run python main.py text transform '/normalize' -i "Hello\r\nWorld!"
+uv run python main.py text transform '/rlb' -i "Line1\r\nLine2\nLine3"
+
+# Using legacy commands (deprecated)
 uv run python main.py transform "unix-to-windows" --text "Hello\nWorld!"
-
-# tr-style character translation
 uv run python main.py transform "tr \n \r\n" --text "Hello\nWorld!"
-
-# Normalize mixed line endings to Unix format
-uv run python main.py transform "normalize" --text "Hello\r\nWorld!"
-
-# Remove all line breaks
-uv run python main.py transform "rlb" --text "Line1\r\nLine2\nLine3"
-# Result: "Line1Line2Line3"
 ```
 
 **Available line ending rules:**
@@ -312,16 +371,19 @@ uv run python main.py transform "rlb" --text "Line1\r\nLine2\nLine3"
 Convert between full-width and half-width characters using transform rules:
 
 ```bash
-# Convert full-width to half-width
-uv run python main.py transform "fh" --text "ｈｅｌｌｏ１２３"
+# Using new command structure (recommended)
+uv run python main.py text transform '/fh' -i "ｈｅｌｌｏ１２３"
 # Result: "hello123"
 
-# Convert half-width to full-width
-uv run python main.py transform "hf" --text "hello123"
+uv run python main.py text transform '/hf' -i "hello123"
 # Result: "ｈｅｌｌｏ１２３"
 
-# Process from clipboard
-uv run python main.py transform "fh"  # Uses clipboard by default
+# Process from clipboard (uses clipboard by default)
+uv run python main.py text transform '/fh'
+
+# Using legacy commands (deprecated)
+uv run python main.py transform "fh" --text "ｈｅｌｌｏ１２３"
+uv run python main.py transform "hf" --text "hello123"
 ```
 
 **Available rules:**
@@ -337,15 +399,16 @@ uv run python main.py transform "fh"  # Uses clipboard by default
 Ultra-fast string processing with SIMD acceleration for maximum performance:
 
 ```bash
-# High-performance text replacement (SIMD-optimized)
-uv run python main.py transform "rsz old_text new_text" --text "Replace old_text here"
-
-# Optimized SQL IN list generation from line-separated data
-uv run python main.py transform "i" --text "line1\nline2\nline3"
+# Using new command structure (recommended)
+uv run python main.py text transform '/rsz old_text new_text' -i "Replace old_text here"
+uv run python main.py text transform '/i' -i "line1\nline2\nline3"
 # Result: ('line1','line2','line3')
 
-# Standard replacement with StringZilla fallback
-uv run python main.py transform "r old_text new_text" --text "Replace old_text here"
+uv run python main.py text transform '/r old_text new_text' -i "Replace old_text here"
+
+# Using legacy commands (deprecated)
+uv run python main.py transform "rsz old_text new_text" --text "Replace old_text here"
+uv run python main.py transform "i" --text "line1\nline2\nline3"
 ```
 
 **StringZilla-Optimized Rules:**
@@ -367,38 +430,33 @@ uv run python main.py transform "r old_text new_text" --text "Replace old_text h
 ### 🌐 Character Encoding Conversion (iconv-like)
 Convert between different character encodings with auto-detection:
 
-#### **Dedicated iconv subcommand (Recommended - Unix compatible syntax)**
+#### **New text encode command (Recommended - Industry standard)**
 ```bash
-# Convert from Shift_JIS to UTF-8 (Unix iconv-compatible)
-uv run python main.py iconv -f shift_jis -t utf-8 --text "日本語"
+# Convert from Shift_JIS to UTF-8 (iconv-compatible)
+uv run python main.py text encode -f shift_jis -t utf-8 -i "日本語"
 
 # Auto-detect source encoding and convert to UTF-8
-uv run python main.py iconv -f auto -t utf-8 --text "日本語"
+uv run python main.py text encode -f auto -t utf-8 -i "日本語"
 
 # Convert from clipboard (default input)
-uv run python main.py iconv -f shift_jis -t utf-8
+uv run python main.py text encode -f shift_jis -t utf-8
 
 # Convert with error handling
-uv run python main.py iconv -f utf-8 -t ascii --error replace --text "Hello, 世界"
+uv run python main.py text encode -f utf-8 -t ascii --error replace -i "Hello, 世界"
 
 # Save result to file
-uv run python main.py iconv -f shift_jis -t utf-8 --output ./converted
+uv run python main.py text encode -f shift_jis -t utf-8 -o ./converted
 ```
 
-#### **Transform command with iconv rules (Alternative)**
+#### **Legacy iconv command (Deprecated but functional)**
 ```bash
-# iconv-style conversion (requires quotes)
+# Works but shows deprecation warning
+uv run python main.py iconv -f shift_jis -t utf-8 --text "日本語"
+uv run python main.py iconv -f auto -t utf-8 --text "日本語"
+
+# Transform command with iconv rules (also deprecated)
 uv run python main.py transform "iconv -f shift_jis -t utf-8"
-uv run python main.py transform "iconv -f euc-jp -t utf-8"
-
-# Auto-detect and convert to UTF-8
 uv run python main.py transform "to-utf8"
-
-# Convert from UTF-8 to specific encoding
-uv run python main.py transform "from-utf8 shift_jis"
-
-# Detect character encoding
-uv run python main.py transform "detect-encoding"
 ```
 
 **Supported encodings:**
@@ -421,11 +479,12 @@ uv run python main.py transform "detect-encoding"
 
 ## 🔧 Tech Stack
 
-- **Language**: Python 3.13
+- **Language**: Python 3.12+
 - **Architecture**: Polylith
 - **CLI Framework**: Typer with Rich
 - **Build System**: Hatchling with hatch-polylith-bricks
 - **Package Management**: uv
+- **Dependency Injection**: lagom
 - **Code Quality**: Black, Ruff, MyPy
 - **Testing**: pytest with coverage
 - **Documentation**: Sphinx with RTD theme
@@ -437,7 +496,7 @@ uv run python main.py transform "detect-encoding"
   - Cryptographic operations
   - File I/O and clipboard management
   - High-performance text processing with hardware acceleration
-- **Dependencies**:
+- **Core Dependencies**:
   - `typer>=0.16.1` - Modern CLI framework
   - `rich>=14.1.0` - Rich text and beautiful formatting
   - `pyperclip>=1.9.0` - Clipboard operations
@@ -449,6 +508,9 @@ uv run python main.py transform "detect-encoding"
   - `stringzilla>=4.0.14` - SIMD-accelerated string operations
   - `charset-normalizer>=3.4.0` - Character encoding detection
   - `aiofiles>=24.1.0` - Asynchronous file operations
+  - `pydantic>=2.10.0` - Data validation and settings management
+  - `pydantic-settings>=2.6.0` - Settings management with Pydantic
+  - `lagom>=2.7.7` - Dependency injection container
 
 ## 📋 Development Guidelines
 

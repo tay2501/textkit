@@ -9,7 +9,7 @@ Available Components
 Text Core Component
 ~~~~~~~~~~~~~~~~~~~
 
-**Location**: ``components/text_processing/text_core/``
+**Location**: ``components/text_core/``
 
 The Text Core component provides fundamental text transformation capabilities including:
 
@@ -42,7 +42,7 @@ Key Features:
 Crypto Engine Component
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Location**: ``components/text_processing/crypto_engine/``
+**Location**: ``components/crypto_engine/``
 
 The Crypto Engine component provides cryptographic operations for secure text processing:
 
@@ -60,7 +60,7 @@ Key Features:
 I/O Handler Component
 ~~~~~~~~~~~~~~~~~~~~~
 
-**Location**: ``components/text_processing/io_handler/``
+**Location**: ``components/io_handler/``
 
 The I/O Handler component manages input/output operations and system interactions:
 
@@ -79,30 +79,50 @@ Key Features:
 Configuration Manager Component
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Location**: ``components/text_processing/config_manager/``
+**Location**: ``components/config_manager/``
 
 The Configuration Manager component provides centralized configuration and settings management:
 
 * **ConfigurationManager**: Main configuration management class
+* **Pydantic-based Settings**: Type-safe settings with validation
 * **JSON Configuration**: JSON-based configuration file support
 * **Configuration Caching**: Efficient configuration loading and caching
 * **Settings Validation**: Type-safe configuration validation
 * **Environment Integration**: Environment variable support
 
 Key Features:
+- Pydantic-based settings management
 - JSON configuration files
 - Configuration validation and type checking
 - Caching for performance
 - Environment variable integration
 
+Dependency Injection Component
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Location**: ``components/dependency_injection/``
+
+The Dependency Injection component provides dependency management using Lagom:
+
+* **Container Management**: Centralized dependency container
+* **Service Registration**: Register services and dependencies
+* **Lifecycle Management**: Proper initialization and cleanup
+* **Type-safe Injection**: Full type hint support
+
+Key Features:
+- Lagom-based dependency injection
+- Constructor injection pattern
+- Singleton and transient service lifetimes
+- Easy testing with mock dependencies
+
 Component Structure
 -------------------
 
-Each component follows a standardized structure within the Text Processing namespace:
+Each component follows a standardized structure:
 
 .. code-block:: text
 
-    components/text_processing/
+    components/
     └── component-name/
         ├── __init__.py          # Public API and exports
         ├── core.py              # Main component logic
@@ -114,7 +134,7 @@ Each component follows a standardized structure within the Text Processing names
 
 .. code-block:: text
 
-    components/text_processing/text_core/
+    components/text_core/
     ├── __init__.py              # Public API exports
     ├── core.py                  # TextTransformationEngine
     ├── types.py                 # Type definitions and protocols

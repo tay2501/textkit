@@ -6,14 +6,14 @@ system with environment variables and dependency injection.
 """
 
 import os
-from components.config_manager.settings import (
+from textkit.config_manager.settings import (
     ApplicationSettings,
     get_settings,
     reload_settings,
     is_debug_mode,
     get_max_text_length
 )
-from components.dependency_injection import Container
+from textkit.dependency_injection import Container
 
 
 def demonstrate_basic_configuration():

@@ -10,7 +10,7 @@ import codecs
 from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
 from pathlib import Path
 
-from components.exceptions import (
+from textkit.exceptions import (
     ValidationError,
     ParameterValidationError,
     DataValidationError,

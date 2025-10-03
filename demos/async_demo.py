@@ -10,7 +10,7 @@ import time
 from pathlib import Path
 import tempfile
 
-from components.async_core import (
+from textkit.async_core import (
     AsyncTextTransformationEngine,
     ChunkedProcessor,
     PerformanceMonitor,
@@ -75,11 +75,10 @@ async def demonstrate_streaming_processing():
             result_parts.append(chunk)
             chunks_processed += 1
 
-        final_result = ''.join(result_parts)
+        _ = ''.join(result_parts)
         print(f"Processed in {chunks_processed} chunks")
     else:
         # Direct processing (for smaller text)
-        final_result = stream_result
         print("Processed directly (text was small)")
 
     processing_time = time.perf_counter() - start_time
@@ -103,7 +102,7 @@ async def demonstrate_chunked_processing():
 
     for name, text in test_texts:
         start_time = time.perf_counter()
-        result = await processor.process_chunks(text, "/u")
+        _ = await processor.process_chunks(text, "/u")
         processing_time = time.perf_counter() - start_time
 
         print(f"{name}: {len(text)} chars -> {processing_time*1000:.2f}ms")

@@ -8,12 +8,12 @@ with the existing codebase.
 import pytest
 from pydantic import ValidationError as PydanticValidationError
 
-from components.text_core.models import (
+from textkit.text_core.models import (
     TextTransformationRequest,
     TextTransformationResponse,
     ConfigurationModel
 )
-from components.text_core.types import TransformationRule
+from textkit.text_core.types import TransformationRule
 
 
 def test_transformation_request_validation():

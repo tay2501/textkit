@@ -2,13 +2,12 @@
 
 import sys
 from pathlib import Path
+import pytest
+import structlog
 
 # Add project root to Python path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
-
-import pytest
-import structlog
 
 
 @pytest.fixture(autouse=True)
@@ -31,12 +30,12 @@ def mock_logger():
 @pytest.fixture
 def sample_validation_error():
     """Provide a sample ValidationError for testing."""
-    from components.text_core.exceptions import ValidationError
+    from textkit.text_core.exceptions import ValidationError
     return ValidationError("Test validation error", context={"field": "test"})
 
 
 @pytest.fixture
 def sample_transformation_error():
     """Provide a sample TransformationError for testing."""
-    from components.text_core.exceptions import TransformationError
+    from textkit.text_core.exceptions import TransformationError
     return TransformationError("Test transformation error", operation="test_op")

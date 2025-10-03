@@ -38,12 +38,15 @@ Use bullet points to list specific changes.
 -->
 
 ### Components Modified
-- [ ] `text_core` - Core text processing functionality
-- [ ] `crypto_engine` - Encryption/decryption functionality
-- [ ] `io_handler` - File input/output operations
-- [ ] `config_manager` - Configuration management
-- [ ] `cli_interface` - Command-line interface
-- [ ] `interactive_session` - Interactive mode functionality
+- [ ] `text_core` - Core text processing functionality (components/)
+- [ ] `crypto_engine` - Encryption/decryption functionality (components/)
+- [ ] `io_handler` - File input/output operations (components/)
+- [ ] `config_manager` - Configuration management (components/)
+- [ ] `async_core` - Asynchronous operations (components/)
+- [ ] `cli_interface` - Command-line interface (bases/)
+- [ ] `interactive_session` - Interactive mode functionality (bases/)
+- [ ] CLI commands (`text`, `clipboard`, etc.) - New hierarchical commands
+- [ ] Legacy commands (`transform`, `iconv`) - Deprecated commands
 - [ ] Other: _______________
 
 ### Specific Changes
@@ -72,9 +75,9 @@ List specific test scenarios you executed:
 3.
 
 ### Test Environment
-- **Python version(s):**
-- **Operating System:**
-- **uv version:**
+- **Python version(s):** (e.g., 3.12, 3.13)
+- **Operating System:** (e.g., Windows 11, Ubuntu 22.04, macOS 14)
+- **uv version:** (run `uv --version`)
 - **Dependencies updated:** Yes/No
 
 ## 📊 Performance Impact
@@ -131,11 +134,12 @@ Complete this checklist before requesting review.
 -->
 
 ### Code Quality
-- [ ] My code follows the project's style guidelines (ruff, black, mypy)
+- [ ] My code follows the project's style guidelines (Ruff, MyPy)
 - [ ] I have performed a self-review of my code
-- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have commented my code, particularly in hard-to-understand areas (in English)
 - [ ] I have removed any debugging code, console logs, or temporary changes
 - [ ] My code follows EAFP (Easier to Ask for Forgiveness than Permission) principles where applicable
+- [ ] My code is simple, loosely coupled, and highly cohesive
 
 ### Testing
 - [ ] I have added tests that prove my fix is effective or that my feature works
@@ -143,6 +147,7 @@ Complete this checklist before requesting review.
 - [ ] Linting passes locally (`uv run ruff check .`)
 - [ ] Type checking passes locally (`uv run mypy .`)
 - [ ] Code formatting is correct (`uv run ruff format --check .`)
+- [ ] Manual testing of CLI commands if applicable (e.g., `textkit text transform`, `textkit text encode`)
 
 ### Documentation
 - [ ] I have made corresponding changes to the documentation

@@ -16,8 +16,8 @@ from .types import (
     ConfigManagerProtocol,
     CryptoManagerProtocol,
 )
-from components.rule_parser.types import RuleParserProtocol
-from components.dependency_injection.exceptions import (
+from textkit.rule_parser.types import RuleParserProtocol
+from textkit.common_utils import (
     safe_execute,
     handle_validation_error,
 )
@@ -49,20 +49,23 @@ class TextTransformationEngine:
         """
         from .factories import TransformationFactory
 
-        self.config_manager = config_manager
-        if self.config_manager is None:
+        # EAFP-style initialization
+        try:
+            self.config_manager = config_manager or ConfigurationManager()
+        except NameError:
             try:
-                from components.config_manager.core import ConfigurationManager
+                from textkit.config_manager.core import ConfigurationManager
                 self.config_manager = ConfigurationManager()
             except ImportError:
-                # Fallback if ConfigurationManager is not available
                 self.config_manager = None
+
         self.crypto_manager = crypto_manager
-        
-        # Initialize rule parser
-        self._rule_parser = rule_parser
-        if self._rule_parser is None:
-            from components.rule_parser import RuleParser
+
+        # Initialize rule parser with EAFP style
+        try:
+            self._rule_parser = rule_parser or RuleParser()
+        except NameError:
+            from textkit.rule_parser import RuleParser
             self._rule_parser = RuleParser()
         
         # Use factory to create and manage transformers

@@ -1,9 +1,12 @@
 # Dependabot configuration for Text Processing Toolkit
 # Docs: https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+#
+# This project uses uv (https://docs.astral.sh/uv/) for dependency management.
+# Dependabot works with pip ecosystem which is compatible with uv's pyproject.toml format.
 
 version: 2
 updates:
-  # Python dependencies via pip ecosystem (compatible with uv)
+  # Python dependencies via pip ecosystem (fully compatible with uv)
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
@@ -19,7 +22,7 @@ updates:
     labels:
       - "dependencies"
       - "python"
-      - "uv"
+      - "uv-compatible"
     # Group related dependencies for cleaner PRs
     groups:
       testing:
@@ -43,6 +46,10 @@ updates:
           - "setuptools*"
           - "wheel*"
           - "build*"
+      settings-management:
+        patterns:
+          - "pydantic*"
+          - "lagom*"
     # Allow all update types but be selective about what we auto-merge
     ignore:
       # Skip major version updates for core dependencies to avoid breaking changes
@@ -51,6 +58,10 @@ updates:
       - dependency-name: "typer"
         update-types: ["version-update:semver-major"]
       - dependency-name: "rich"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "pydantic"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "lagom"
         update-types: ["version-update:semver-major"]
 
   # GitHub Actions updates

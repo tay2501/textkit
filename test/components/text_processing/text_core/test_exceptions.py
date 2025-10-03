@@ -3,7 +3,7 @@
 This module tests the text_core-specific exception classes.
 """
 
-from components.text_core.exceptions import ValidationError, TransformationError
+from textkit.text_core.exceptions import ValidationError, TransformationError
 
 
 class TestValidationError:

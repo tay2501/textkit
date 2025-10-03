@@ -10,7 +10,7 @@ import time
 from typing import Any, Callable, Dict, Optional, Tuple, TypeVar, Union
 from contextlib import contextmanager
 
-from components.exceptions import (
+from textkit.exceptions import (
     BaseTextProcessingError,
     ValidationError,
     TransformationError,

@@ -102,11 +102,22 @@ This architecture ensures that components remain loosely coupled and highly test
 Configuration Management
 -------------------------
 
-Configuration is managed through:
+Configuration is managed through multiple layers:
 
-* Environment-specific configuration files
-* Component-level configuration interfaces
-* Runtime configuration validation
-* Type-safe configuration objects
+* **Pydantic Settings**: Type-safe settings with validation
+* **Environment-specific Configuration**: Environment variables and config files
+* **Component-level Configuration**: Component-specific configuration interfaces
+* **Runtime Configuration Validation**: Automatic validation on application startup
+* **Type-safe Configuration Objects**: Full type hints for configuration
+
+Dependency Injection
+--------------------
+
+The toolkit uses **Lagom** for dependency injection:
+
+* **Explicit Dependencies**: Clear component dependencies through constructor injection
+* **Container-based Wiring**: Centralized dependency management
+* **Testability**: Easy mocking and testing with dependency injection
+* **Lifecycle Management**: Proper initialization and cleanup of dependencies
 
 For more details on development practices, see the :doc:`development` guide.

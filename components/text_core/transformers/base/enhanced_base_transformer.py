@@ -8,23 +8,23 @@ error handling, validation, logging, and performance monitoring.
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 
-from components.exceptions import TransformationError
+from textkit.exceptions import TransformationError
 from ..mixins import (
     ErrorHandlingMixin,
     ValidationMixin,
     LoggingMixin,
     PerformanceMixin
 )
-from ..base_transformer import TransformerProtocol
+from ..base_transformer import BaseTransformer
 from ...types import TransformationRule
 
 
 class EnhancedBaseTransformer(
+    BaseTransformer,
     ErrorHandlingMixin,
     ValidationMixin,
     LoggingMixin,
-    PerformanceMixin,
-    ABC
+    PerformanceMixin
 ):
     """Enhanced base class for all transformers with comprehensive functionality.
 
@@ -39,6 +39,11 @@ class EnhancedBaseTransformer(
     def __init__(self) -> None:
         """Initialize enhanced transformer with all capabilities."""
         super().__init__()
+
+        # Initialize logger for LoggingMixin
+        import structlog
+        self.logger = structlog.get_logger(self.__class__.__name__)
+
         self._rules: Dict[str, TransformationRule] = {}
         self._initialize_rules()
         self.log_rule_initialization(len(self._rules))

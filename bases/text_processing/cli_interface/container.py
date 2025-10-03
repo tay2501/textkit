@@ -29,26 +29,26 @@ def create_container() -> Container:
     # These imports are done here to avoid circular dependencies
 
     # Configuration management
-    from components.config_manager import ConfigurationManager
+    from textkit.config_manager import ConfigurationManager
     container[ConfigurationManagerInterface] = lambda: ConfigurationManager()
 
     # I/O management
-    from components.io_handler import InputOutputManager
+    from textkit.io_handler import InputOutputManager
     container[InputOutputManagerInterface] = InputOutputManager
 
     # Rule parser
-    from components.rule_parser import RuleParser
+    from textkit.rule_parser import RuleParser
     container[RuleParser] = RuleParser
 
     # Text transformation engine
-    from components.text_core import TextTransformationEngine
+    from textkit.text_core import TextTransformationEngine
     container[TextTransformationEngineInterface] = lambda c: TextTransformationEngine(
         config_manager=c[ConfigurationManagerInterface],
         rule_parser=c[RuleParser]
     )
 
     # Cryptography manager (optional dependency)
-    from components.crypto_engine import CryptographyManager
+    from textkit.crypto_engine import CryptographyManager
     container[CryptographyManagerInterface] = lambda c: CryptographyManager(c[ConfigurationManagerInterface])
 
     # Application service (facade) - lazy import to avoid circular dependency

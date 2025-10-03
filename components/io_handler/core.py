@@ -249,6 +249,52 @@ class InputOutputManager:
         except Exception:
             return False
 
+    def clear_clipboard(self) -> bool:
+        """Clear the clipboard by setting it to an empty string.
+
+        This method follows Unix conventions (xsel -c) by setting
+        the clipboard to empty content rather than trying to delete it.
+
+        Returns:
+            True if successful, False otherwise
+
+        Raises:
+            IOError: If clipboard is not available
+        """
+        if not self.clipboard_available:
+            raise IOError(
+                "Clipboard functionality not available - install pyperclip",
+                {"clipboard_available": False}
+            )
+
+        try:
+            # Set clipboard to empty string (following xsel -c convention)
+            pyperclip.copy("")
+            
+            # Log the operation
+            import structlog
+            logger = structlog.get_logger(__name__)
+            logger.info(
+                "clipboard_cleared",
+                operation="clear_clipboard",
+                clipboard_available=self.clipboard_available
+            )
+            
+            return True
+            
+        except Exception as e:
+            import structlog
+            logger = structlog.get_logger(__name__)
+            logger.error(
+                "clipboard_clear_failed",
+                error=str(e),
+                error_type=type(e).__name__
+            )
+            raise IOError(
+                f"Failed to clear clipboard: {e}",
+                {"error_type": type(e).__name__}
+            ) from e
+
     def emergency_output(self, text: str) -> None:
         """Emergency output method that tries all available channels.
 

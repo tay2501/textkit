@@ -8,8 +8,8 @@ into transformer classes for consistent error management.
 import functools
 from typing import Any, Callable, Optional, Dict, TypeVar
 
-from components.exceptions import TransformationError, ValidationError
-from components.common_utils import safe_execute, with_error_context
+from textkit.exceptions import TransformationError, ValidationError
+from textkit.common_utils import safe_execute, with_error_context
 
 T = TypeVar('T')
 

@@ -31,9 +31,21 @@ except ImportError:
             for key, value in kwargs.items():
                 setattr(self, key, value)
 
-    Field = lambda **kwargs: None
-    computed_field = lambda *args, **kwargs: lambda func: func
-    field_validator = lambda *args, **kwargs: lambda func: func
+    def Field(**kwargs):
+        """Stub for pydantic Field."""
+        return None
+
+    def computed_field(*args, **kwargs):
+        """Stub for pydantic computed_field."""
+        def decorator(func):
+            return func
+        return decorator
+
+    def field_validator(*args, **kwargs):
+        """Stub for pydantic field_validator."""
+        def decorator(func):
+            return func
+        return decorator
     ConfigDict = dict
     ValidationInfo = object
 

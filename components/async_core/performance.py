@@ -465,11 +465,9 @@ class AsyncBenchmark:
 
             for iteration in range(iterations):
                 start_time = time.perf_counter()
-                success = False
 
                 try:
                     await func(*args, **kwargs)
-                    success = True
                     successful_runs += 1
                 except Exception as e:
                     logger.debug(

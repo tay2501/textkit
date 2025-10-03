@@ -267,7 +267,7 @@ class TestConfigurationManager:
     def test_update(self):
         """Test updating configuration through manager."""
         manager = ConfigurationManager()
-        original_encoding = manager.config.default_encoding
+        _ = manager.config.default_encoding  # Get initial encoding
 
         manager.update(default_encoding='utf-16', max_file_size=5000)
 

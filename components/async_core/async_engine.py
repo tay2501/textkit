@@ -30,7 +30,7 @@ def get_cpu_executor() -> ThreadPoolExecutor:
     """Get or create the global CPU executor."""
     global _cpu_executor
     if _cpu_executor is None:
-        settings = get_settings()
+        _ = get_settings()  # Ensure settings are initialized
         max_workers = min(4, (asyncio.get_event_loop().get_debug() and 2) or 4)
         _cpu_executor = ThreadPoolExecutor(
             max_workers=max_workers,

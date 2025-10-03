@@ -1,13 +1,13 @@
 """Tests for TransformationFactory."""
 
 import pytest
-from components.text_core.factories import TransformationFactory
-from components.text_core.transformers import (
+from textkit.text_core.factories import TransformationFactory
+from textkit.text_core.transformers import (
     BaseTransformer,
     BasicTransformer,
     CaseTransformer,
 )
-from components.text_core.types import (
+from textkit.text_core.types import (
     TransformationRule,
     TransformationRuleType,
 )

@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError as PydanticValidationError
 
-from components.config_manager.settings import (
+from textkit.config_manager.settings import (
     ApplicationSettings,
     SecurityConfig,
     HotkeyConfig,
@@ -22,7 +22,7 @@ from components.config_manager.settings import (
     is_debug_mode,
     get_max_text_length
 )
-from components.dependency_injection import Container, injectable
+from textkit.dependency_injection import Container, injectable
 
 
 def test_application_settings_defaults():
@@ -178,7 +178,7 @@ def test_global_settings_functions():
 
     try:
         # Test global functions
-        settings = reload_settings()  # Force reload with new env vars
+        _ = reload_settings()  # Force reload with new env vars
 
         assert is_debug_mode() is True
         assert get_max_text_length() == 12345
