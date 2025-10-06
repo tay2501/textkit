@@ -83,7 +83,10 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             ) from e
 
     def encrypt_text(self, text: str) -> str:
-        """Encrypt text using hybrid AES+RSA encryption.
+        """Encrypt text using hybrid AES-GCM+RSA encryption.
+
+        Uses AES-GCM for authenticated encryption, providing both
+        confidentiality and integrity verification.
 
         Args:
             text: Text to encrypt
@@ -95,23 +98,23 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             CryptographyError: If encryption fails
         """
         try:
-            # Allow empty text encryption for completeness
-            # Empty string will be handled correctly by AES encryption
+            # Generate AES key and nonce for AES-GCM
+            aes_key = secrets.token_bytes(32)  # 256-bit key
+            nonce = secrets.token_bytes(12)  # 96-bit nonce for GCM
 
-            # Generate AES key and IV
-            aes_key = secrets.token_bytes(self.rsa_config["aes_key_size"])
-            aes_iv = secrets.token_bytes(self.rsa_config["aes_iv_size"])
-
-            # Encrypt data with AES
-            cipher = Cipher(algorithms.AES(aes_key), modes.CBC(aes_iv), backend=default_backend())
+            # Encrypt data with AES-GCM (no manual padding needed)
+            cipher = Cipher(
+                algorithms.AES(aes_key),
+                modes.GCM(nonce),
+                backend=default_backend()
+            )
             encryptor = cipher.encryptor()
-
-            # Pad text to AES block size
+            
             text_bytes = text.encode("utf-8")
-            padding_length = 16 - (len(text_bytes) % 16)
-            padded_text = text_bytes + bytes([padding_length] * padding_length)
-
-            encrypted_data = encryptor.update(padded_text) + encryptor.finalize()
+            encrypted_data = encryptor.update(text_bytes) + encryptor.finalize()
+            
+            # Get authentication tag
+            tag = encryptor.tag
 
             # Encrypt AES key with RSA
             _, public_key = self.ensure_key_pair()
@@ -124,8 +127,8 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
                 ),
             )
 
-            # Combine encrypted key, IV, and data
-            combined_data = encrypted_aes_key + aes_iv + encrypted_data
+            # Combine: encrypted_key + nonce + tag + encrypted_data
+            combined_data = encrypted_aes_key + nonce + tag + encrypted_data
             return base64.b64encode(combined_data).decode("ascii")
 
         except Exception as e:
@@ -135,7 +138,9 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             ) from e
 
     def decrypt_text(self, text: str) -> str:
-        """Decrypt text using hybrid AES+RSA decryption.
+        """Decrypt text using hybrid AES-GCM+RSA decryption.
+
+        Verifies authentication tag to ensure data integrity.
 
         Args:
             text: Base64 encoded encrypted data
@@ -144,7 +149,7 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             Decrypted text
 
         Raises:
-            CryptographyError: If decryption fails
+            CryptographyError: If decryption fails or authentication fails
         """
         try:
             if not text:
@@ -154,10 +159,11 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             combined_data = base64.b64decode(text.encode("ascii"))
 
             # Extract components
-            key_size = self.rsa_config["key_size"] // 8  # Convert bits to bytes
+            key_size = self.rsa_config["key_size"] // 8
             encrypted_aes_key = combined_data[:key_size]
-            aes_iv = combined_data[key_size : key_size + self.rsa_config["aes_iv_size"]]
-            encrypted_data = combined_data[key_size + self.rsa_config["aes_iv_size"] :]
+            nonce = combined_data[key_size : key_size + 12]  # 96-bit nonce
+            tag = combined_data[key_size + 12 : key_size + 12 + 16]  # 128-bit tag
+            encrypted_data = combined_data[key_size + 12 + 16 :]
 
             # Decrypt AES key with RSA
             private_key, _ = self.ensure_key_pair()
@@ -170,14 +176,14 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
                 ),
             )
 
-            # Decrypt data with AES
-            cipher = Cipher(algorithms.AES(aes_key), modes.CBC(aes_iv), backend=default_backend())
+            # Decrypt data with AES-GCM
+            cipher = Cipher(
+                algorithms.AES(aes_key),
+                modes.GCM(nonce, tag),
+                backend=default_backend()
+            )
             decryptor = cipher.decryptor()
-            padded_text = decryptor.update(encrypted_data) + decryptor.finalize()
-
-            # Remove padding
-            padding_length = padded_text[-1]
-            text_bytes = padded_text[:-padding_length]
+            text_bytes = decryptor.update(encrypted_data) + decryptor.finalize()
 
             return text_bytes.decode("utf-8")
 
@@ -352,7 +358,7 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             return False
 
     def encrypt(self, data: bytes) -> bytes:
-        """Encrypt bytes data using hybrid AES+RSA encryption.
+        """Encrypt bytes data using hybrid AES-GCM+RSA encryption.
 
         Args:
             data: Binary data to encrypt
@@ -364,19 +370,21 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             CryptographyError: If encryption fails
         """
         try:
-            # Generate AES key and IV
-            aes_key = secrets.token_bytes(self.rsa_config["aes_key_size"])
-            aes_iv = secrets.token_bytes(self.rsa_config["aes_iv_size"])
+            # Generate AES key and nonce for AES-GCM
+            aes_key = secrets.token_bytes(32)  # 256-bit key
+            nonce = secrets.token_bytes(12)  # 96-bit nonce for GCM
 
-            # Encrypt data with AES
-            cipher = Cipher(algorithms.AES(aes_key), modes.CBC(aes_iv), backend=default_backend())
+            # Encrypt data with AES-GCM (no manual padding needed)
+            cipher = Cipher(
+                algorithms.AES(aes_key),
+                modes.GCM(nonce),
+                backend=default_backend()
+            )
             encryptor = cipher.encryptor()
-
-            # Pad data to AES block size
-            padding_length = 16 - (len(data) % 16)
-            padded_data = data + bytes([padding_length] * padding_length)
-
-            encrypted_data = encryptor.update(padded_data) + encryptor.finalize()
+            encrypted_data = encryptor.update(data) + encryptor.finalize()
+            
+            # Get authentication tag
+            tag = encryptor.tag
 
             # Encrypt AES key with RSA
             _, public_key = self.ensure_key_pair()
@@ -389,8 +397,8 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
                 ),
             )
 
-            # Combine encrypted key, IV, and data
-            return encrypted_aes_key + aes_iv + encrypted_data
+            # Combine: encrypted_key + nonce + tag + encrypted_data
+            return encrypted_aes_key + nonce + tag + encrypted_data
 
         except Exception as e:
             raise CryptographyError(
@@ -399,7 +407,7 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             ) from e
 
     def decrypt(self, encrypted_data: bytes) -> bytes:
-        """Decrypt binary data using hybrid AES+RSA decryption.
+        """Decrypt binary data using hybrid AES-GCM+RSA decryption.
 
         Args:
             encrypted_data: Encrypted binary data
@@ -408,17 +416,18 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             Decrypted binary data
 
         Raises:
-            CryptographyError: If decryption fails
+            CryptographyError: If decryption fails or authentication fails
         """
         try:
             if not encrypted_data:
                 raise CryptographyError("Cannot decrypt empty data")
 
             # Extract components
-            key_size = self.rsa_config["key_size"] // 8  # Convert bits to bytes
+            key_size = self.rsa_config["key_size"] // 8
             encrypted_aes_key = encrypted_data[:key_size]
-            aes_iv = encrypted_data[key_size : key_size + self.rsa_config["aes_iv_size"]]
-            encrypted_payload = encrypted_data[key_size + self.rsa_config["aes_iv_size"] :]
+            nonce = encrypted_data[key_size : key_size + 12]  # 96-bit nonce
+            tag = encrypted_data[key_size + 12 : key_size + 12 + 16]  # 128-bit tag
+            encrypted_payload = encrypted_data[key_size + 12 + 16 :]
 
             # Decrypt AES key with RSA
             private_key, _ = self.ensure_key_pair()
@@ -431,14 +440,14 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
                 ),
             )
 
-            # Decrypt data with AES
-            cipher = Cipher(algorithms.AES(aes_key), modes.CBC(aes_iv), backend=default_backend())
+            # Decrypt data with AES-GCM
+            cipher = Cipher(
+                algorithms.AES(aes_key),
+                modes.GCM(nonce, tag),
+                backend=default_backend()
+            )
             decryptor = cipher.decryptor()
-            padded_data = decryptor.update(encrypted_payload) + decryptor.finalize()
-
-            # Remove padding
-            padding_length = padded_data[-1]
-            return padded_data[:-padding_length]
+            return decryptor.update(encrypted_payload) + decryptor.finalize()
 
         except Exception as e:
             raise CryptographyError(

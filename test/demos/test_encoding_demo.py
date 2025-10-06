@@ -16,7 +16,7 @@ def demo_encoding_transformations():
     print("=== Character Encoding Transformation Demo ===\n")
 
     # Test with Japanese text
-    japanese_text = "ŃüōŃéōŃü½ŃüĪŃü»õĖ¢ńĢīüEüE
+    japanese_text = "こんにちは世界"
     print(f"Original Japanese text: {japanese_text}")
 
     # Demonstrate various conversions
@@ -47,7 +47,7 @@ def demo_encoding_transformations():
         print(f"iconv 'auto' 'utf-8': {auto_result}")
 
         # With error handling
-        mixed_text = "Hello, õĖ¢ńĢī"
+        mixed_text = "Hello, 世界"
         ascii_result = transformer.transform(mixed_text, "iconv", ["utf-8", "ascii", "replace"])
         print(f"iconv with replace mode: {repr(ascii_result)}")
 

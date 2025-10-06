@@ -51,7 +51,7 @@ class EncodingTransformer(EnhancedBaseTransformer):
         """Initialize the encoding transformer with all mixins.
 
         Ensures proper initialization of parent class and all mixins
-        including LoggingMixin, ErrorHandlingMixin, etc.
+        including LoggingMixin, ErrorHandlingMixin, PerformanceMixin etc.
         """
         super().__init__()
 
@@ -59,6 +59,13 @@ class EncodingTransformer(EnhancedBaseTransformer):
         if not hasattr(self, 'logger'):
             import structlog
             self.logger = structlog.get_logger(self.__class__.__name__)
+
+        # Initialize PerformanceMixin stats if not already set
+        if not hasattr(self, '_performance_stats'):
+            from collections import defaultdict, deque
+            self._performance_stats = defaultdict(list)
+            self._recent_operations = deque(maxlen=100)
+            self._operation_count = defaultdict(int)
 
         # Initialize transformation rules
         self._initialize_rules()
@@ -296,22 +303,19 @@ class EncodingTransformer(EnhancedBaseTransformer):
         return self.ENCODING_ALIASES.get(normalized, normalized.replace('_', '-'))
 
     def _detect_encoding_advanced(self, data: bytes) -> str:
-        """Advanced encoding detection with fallback."""
-        if CHARSET_NORMALIZER_AVAILABLE:
-            try:
-                result = from_bytes(data).best()
-                if result and result.encoding:
-                    return result.encoding
-            except Exception:
-                pass
-
-        # Fallback detection
-        for encoding in ['utf-8', 'shift_jis', 'euc-jp', 'iso2022_jp',
-                        'windows-1252', 'iso-8859-1']:
-            try:
-                data.decode(encoding)
-                return encoding
-            except UnicodeDecodeError:
-                continue
-
-        return 'utf-8'  # Final fallback  # Final fallback
+        """Advanced encoding detection using charset-normalizer.
+        
+        Leverages charset-normalizer's superior detection algorithm
+        instead of manual fallback logic.
+        """
+        if not CHARSET_NORMALIZER_AVAILABLE:
+            return 'utf-8'  # Fallback if library not available
+        
+        try:
+            result = from_bytes(data).best()
+            if result and result.encoding:
+                return result.encoding
+        except Exception:
+            pass
+        
+        return 'utf-8'  # Final fallback  # Final fallback  # Final fallback
