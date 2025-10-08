@@ -16,8 +16,6 @@ from .abstractions import ApplicationServiceInterface
 
 # Import command modules
 from .commands.transform_cmd import transform_text
-from .commands.crypto_cmd import register_crypto_commands
-from .commands.rules_cmd import register_rules_command
 from .commands.status_cmd import register_status_commands
 from .commands.iconv_cmd import register_iconv_command
 from .commands.clipboard_cmd import register_clipboard_commands
@@ -83,15 +81,34 @@ def normalize_rule_argument(rules: str | None) -> str | None:
 
 
 def _register_all_commands() -> None:
-    """Register all CLI commands with dependency injection."""
+    """Register all CLI commands following industry-standard hierarchical patterns.
+
+    Command Structure (following GitHub CLI, Docker, kubectl patterns):
+        textkit text transform      - Text transformation operations
+        textkit text encode         - Character encoding conversion
+        textkit crypto encrypt      - Encryption operations
+        textkit crypto decrypt      - Decryption operations
+        textkit rules list          - List transformation rules
+        textkit clipboard get       - Clipboard operations
+        textkit clipboard set
+        textkit clipboard clear
+
+    Legacy flat commands (deprecated but maintained for backward compatibility):
+        textkit transform           - Use 'textkit text transform' instead
+        textkit iconv               - Use 'textkit text encode' instead
+        textkit encrypt             - Use 'textkit crypto encrypt' instead
+        textkit decrypt             - Use 'textkit crypto decrypt' instead
+        textkit rules               - Use 'textkit rules list' instead
+    """
 
     # ========================================================================
-    # New Subcommand Structure (Industry Standard)
+    # Modern Hierarchical Subcommand Structure (Recommended)
+    # Following patterns from: GitHub CLI, Docker, kubectl, git
     # ========================================================================
-    
-    # Register text subcommand group (new hierarchical structure)
+
+    # text subcommand group: textkit text {transform,encode}
     from .commands.text_cmd import create_text_subcommand
-    
+
     text_subcommand = create_text_subcommand(
         get_app_func=get_app,
         normalize_rule_func=normalize_rule_argument,
@@ -100,10 +117,36 @@ def _register_all_commands() -> None:
     )
     app.add_typer(text_subcommand, name="text")
 
+    # crypto subcommand group: textkit crypto {encrypt,decrypt}
+    from .commands.crypto_cmd import create_crypto_subcommand
+
+    crypto_subcommand = create_crypto_subcommand(
+        get_app_func=get_app,
+        handle_cli_error_func=error_handler.handle_cli_error,
+    )
+    app.add_typer(crypto_subcommand, name="crypto")
+
+    # rules subcommand group: textkit rules {list}
+    from .commands.rules_cmd import create_rules_subcommand
+
+    rules_subcommand = create_rules_subcommand(
+        get_app_func=get_app,
+        handle_cli_error_func=error_handler.handle_cli_error,
+    )
+    app.add_typer(rules_subcommand, name="rules")
+
+    # clipboard subcommand group: textkit clipboard {get,set,clear,status}
+    # Already implemented with modern structure
+    register_clipboard_commands(
+        app=app,
+        get_app_func=get_app,
+        handle_cli_error_func=error_handler.handle_cli_error,
+    )
+
     # ========================================================================
-    # Backward Compatibility Aliases (Deprecated but functional)
+    # Legacy Flat Command Structure (Deprecated - Backward Compatibility)
     # ========================================================================
-    
+
     # Legacy transform command (deprecated, use: textkit text transform)
     transform_text(
         app=app,
@@ -122,11 +165,8 @@ def _register_all_commands() -> None:
         handle_cli_error_func=error_handler.handle_cli_error,
     )
 
-    # ========================================================================
-    # Other Commands (Unchanged)
-    # ========================================================================
-
-    # Register crypto commands
+    # Legacy crypto commands (deprecated, use: textkit crypto {encrypt,decrypt})
+    from .commands.crypto_cmd import register_crypto_commands
     register_crypto_commands(
         app=app,
         get_app_func=get_app,
@@ -135,22 +175,11 @@ def _register_all_commands() -> None:
         handle_cli_error_func=error_handler.handle_cli_error,
     )
 
-    # Register rules command
-    register_rules_command(
-        app=app,
-        get_app_func=get_app,
-        handle_cli_error_func=error_handler.handle_cli_error,
-    )
+    # Note: Legacy 'textkit rules' command removed - users must use 'textkit rules list'
+    # This follows modern CLI patterns where subcommand groups require a specific action
 
     # Register status commands
     register_status_commands(
-        app=app,
-        get_app_func=get_app,
-        handle_cli_error_func=error_handler.handle_cli_error,
-    )
-
-    # Register clipboard commands (already uses subcommand structure)
-    register_clipboard_commands(
         app=app,
         get_app_func=get_app,
         handle_cli_error_func=error_handler.handle_cli_error,

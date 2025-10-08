@@ -21,6 +21,8 @@ from ..shared.standard_options import (
     InputTextOption,
     OutputPathOption,
     ClipboardOption,
+    FromClipboardOption,
+    ToClipboardOption,
     RulesArgument,
     SourceEncodingOption,
     TargetEncodingOption,
@@ -62,8 +64,9 @@ def create_text_subcommand(
     def transform(
         rules: RulesArgument,
         text: InputTextOption = None,
+        from_clipboard: FromClipboardOption = False,
         output: OutputPathOption = None,
-        clipboard: ClipboardOption = True,
+        to_clipboard: ToClipboardOption = False,
         show_rules: Annotated[bool, typer.Option("--show-rules", help="Show available rules and exit")] = False,
     ) -> None:
         """Apply transformation rules to input text.
@@ -88,27 +91,34 @@ def create_text_subcommand(
         **Usage Examples:**
 
         ```bash
-        # Basic transformations
-        textkit text transform '/t/l' --input "  Hello World  "
+        # Basic transformations (explicit input)
+        textkit text transform '/t/l' -i "  Hello World  "
         textkit text t '/t/l' -i "  Hello World  "  # Short alias
 
         # Multiple rules (applied in sequence)
         textkit text transform '/t/u/R' -i "hello"
 
-        # From clipboard (default)
-        textkit text transform '/p'
+        # From clipboard
+        textkit text transform '/p' --from-clipboard
+
+        # To clipboard
+        textkit text transform '/l' -i "HELLO" --to-clipboard
+
+        # From clipboard to clipboard
+        textkit text transform '/u' --from-clipboard --to-clipboard
 
         # Output to file
-        textkit text transform '/l' -i "HELLO" --output ./output
+        textkit text transform '/l' -i "HELLO" -o ./output
 
-        # Disable clipboard
-        textkit text transform '/u' -i "hello" --no-clipboard
+        # Pipe input (stdin)
+        echo "HELLO" | textkit text transform '/l'
         ```
 
         **Tips:**
         - Use `--show-rules` to see all available rules
         - Use `textkit rules` for the complete rules table
         - Multiple rules are applied left to right
+        - Specify input explicitly with `-i` or use `--from-clipboard`
         """
         if show_rules:
             _show_available_rules(get_app_func)
@@ -119,12 +129,28 @@ def create_text_subcommand(
 
         try:
             app_instance = get_app_func()
-            input_text = get_input_text_func(app_instance, text)
+
+            # Determine input source with explicit priority
+            if text is not None:
+                # Explicit text input has highest priority
+                input_text = text
+            elif from_clipboard:
+                # Explicit clipboard flag
+                input_text = app_instance.io_manager.get_clipboard_text()
+            else:
+                # Fallback to pipe/stdin or error
+                import sys
+                if not sys.stdin.isatty():
+                    input_text = sys.stdin.read()
+                else:
+                    console.print("[yellow]Warning: No input specified. Use -i, --from-clipboard, or pipe input.[/yellow]")
+                    raise typer.Exit(1)
+
             result = app_instance.apply_transformation(input_text, normalized_rules)
 
-            # Use enhanced output manager
+            # Handle output with explicit flags
             output_manager = OutputManager(app_instance)
-            output_manager.handle_output(result, output_folder=output, clipboard=clipboard)
+            output_manager.handle_output(result, output_folder=output, clipboard=to_clipboard)
 
         except Exception as e:
             handle_cli_error_func(e, "text transformation")
@@ -136,11 +162,12 @@ def create_text_subcommand(
     @text_app.command("encode")
     def encode(
         text: InputTextOption = None,
+        from_clipboard: FromClipboardOption = False,
         from_encoding: SourceEncodingOption = "auto",
         to_encoding: TargetEncodingOption = "utf-8",
         error_handling: ErrorHandlingOption = "strict",
         output: OutputPathOption = None,
-        clipboard: ClipboardOption = True,
+        to_clipboard: ToClipboardOption = False,
     ) -> None:
         """Convert text between character encodings (iconv-compatible).
 
@@ -178,22 +205,47 @@ def create_text_subcommand(
         textkit text encode -f utf-8 -t ascii -e replace -i "Hello 世界"
 
         # From clipboard
-        textkit text encode -f shift_jis -t utf-8
+        textkit text encode -f shift_jis -t utf-8 --from-clipboard
+
+        # To clipboard
+        textkit text encode -f shift_jis -t utf-8 -i "text" --to-clipboard
+
+        # From clipboard to clipboard
+        textkit text encode -f auto -t utf-8 --from-clipboard --to-clipboard
 
         # Save to file
         textkit text encode -f auto -t utf-8 -i "text" -o ./output
+
+        # Pipe input
+        echo "日本語" | textkit text encode -f shift_jis -t utf-8
         ```
 
         **Tips:**
         - Use 'auto' to automatically detect source encoding
         - Use 'ignore' or 'replace' for lossy conversions
         - Common aliases: sjis→shift_jis, eucjp→euc-jp
+        - Specify input explicitly with `-i` or use `--from-clipboard`
         """
         try:
             from textkit.text_core.transformers.encoding_transformer import EncodingTransformer
 
             app_instance = get_app_func()
-            input_text = get_input_text_func(app_instance, text)
+
+            # Determine input source with explicit priority
+            if text is not None:
+                # Explicit text input has highest priority
+                input_text = text
+            elif from_clipboard:
+                # Explicit clipboard flag
+                input_text = app_instance.io_manager.get_clipboard_text()
+            else:
+                # Fallback to pipe/stdin or error
+                import sys
+                if not sys.stdin.isatty():
+                    input_text = sys.stdin.read()
+                else:
+                    console.print("[yellow]Warning: No input specified. Use -i, --from-clipboard, or pipe input.[/yellow]")
+                    raise typer.Exit(1)
 
             # Use EncodingTransformer public API
             encoding_transformer = EncodingTransformer()
@@ -204,9 +256,9 @@ def create_text_subcommand(
                 error_handling
             )
 
-            # Use enhanced output manager
+            # Handle output with explicit flags
             output_manager = OutputManager(app_instance)
-            output_manager.handle_output(result, output_folder=output, clipboard=clipboard)
+            output_manager.handle_output(result, output_folder=output, clipboard=to_clipboard)
 
         except Exception as e:
             handle_cli_error_func(e, "character encoding conversion")

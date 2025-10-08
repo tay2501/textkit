@@ -28,9 +28,12 @@ def transform_text(
     @app.command("transform")
     def _transform_text_impl(
         rules: Annotated[str, typer.Argument(help="Transformation rules (e.g., '/t/l' for trim+lowercase)")] = None,
-        text: Annotated[str | None, typer.Option("--text", "-t", help="Input text (uses clipboard if not provided)")] = None,
-        output: Annotated[str | None, typer.Option("--output", "-o", help="Output folder path (if not specified, no file output)")] = None,
-        clipboard: Annotated[bool, typer.Option("--clipboard/--no-clipboard", help="Copy result to clipboard")] = True,
+        text: Annotated[str | None, typer.Option("--text", "-t", help="Input text (deprecated, use -i)")] = None,
+        input_text: Annotated[str | None, typer.Option("--input", "-i", help="Input text")] = None,
+        from_clipboard: Annotated[bool, typer.Option("--from-clipboard", help="Read input from clipboard")] = False,
+        output: Annotated[str | None, typer.Option("--output", "-o", help="Output folder path")] = None,
+        to_clipboard: Annotated[bool, typer.Option("--to-clipboard", help="Write output to clipboard")] = False,
+        clipboard: Annotated[bool, typer.Option("--clipboard/--no-clipboard", help="(Deprecated) Copy result to clipboard")] = None,
         show_rules: Annotated[bool, typer.Option("--show-rules", help="Show available rules and exit")] = False,
     ) -> None:
         """Apply **transformation rules** to input text.
@@ -78,9 +81,9 @@ def transform_text(
         - Use `--no-clipboard` to disable clipboard copying
         - For encoding: Use Unix iconv syntax with -f (from) and -t (to) flags
         """
-        # Display deprecation warning (without emoji for Windows terminal compatibility)
+        # Display deprecation warning
         console.print("[yellow]Warning: 'textkit transform' is deprecated. Use 'textkit text transform' instead.[/yellow]")
-        
+
         if show_rules:
             _show_available_rules(get_app_func)
             return
@@ -89,17 +92,44 @@ def transform_text(
             console.print("[red]Error: RULES argument is required when not using --show-rules[/red]")
             raise typer.Exit(1)
 
+        # Handle input options priority: -i > --text > --from-clipboard > pipe/stdin
+        final_input_text = None
+        if input_text is not None:
+            final_input_text = input_text
+        elif text is not None:
+            console.print("[yellow]Warning: --text/-t is deprecated. Use --input/-i instead.[/yellow]")
+            final_input_text = text
+        elif from_clipboard:
+            try:
+                app_instance = get_app_func()
+                final_input_text = app_instance.io_manager.get_clipboard_text()
+            except Exception as e:
+                console.print(f"[red]Error reading from clipboard: {e}[/red]")
+                raise typer.Exit(1)
+        else:
+            import sys
+            if not sys.stdin.isatty():
+                final_input_text = sys.stdin.read()
+            else:
+                console.print("[yellow]Warning: No input specified. Use -i, --from-clipboard, or pipe input.[/yellow]")
+                raise typer.Exit(1)
+
+        # Handle clipboard output options
+        final_clipboard_flag = to_clipboard
+        if clipboard is not None:
+            console.print("[yellow]Warning: --clipboard/--no-clipboard is deprecated. Use --to-clipboard instead.[/yellow]")
+            final_clipboard_flag = clipboard
+
         # Normalize rule argument to handle Windows path expansion
         normalized_rules = normalize_rule_func(rules)
 
         try:
             app_instance = get_app_func()
-            input_text = get_input_text_func(app_instance, text)
-            result = app_instance.apply_transformation(input_text, normalized_rules)
+            result = app_instance.apply_transformation(final_input_text, normalized_rules)
 
             # Use enhanced output manager
             output_manager = OutputManager(app_instance)
-            output_manager.handle_output(result, output_folder=output, clipboard=clipboard)
+            output_manager.handle_output(result, output_folder=output, clipboard=final_clipboard_flag)
 
         except Exception as e:
             handle_cli_error_func(e, "text transformation")

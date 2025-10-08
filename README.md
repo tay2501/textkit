@@ -102,70 +102,107 @@ uv run python main.py --install-completion powershell
 
 Once enabled, you can use tab completion for:
 
-- **Main Commands**: `text`, `clipboard`, `encrypt`, `decrypt`, `rules`, `status`, `version`
+- **Main Command Groups**: `text`, `crypto`, `rules`, `clipboard`, `status`, `version`
 - **Text Subcommands**: `transform`, `encode` (under `text` group)
-- **Legacy Commands**: `transform`, `iconv` (deprecated but functional)
-- **Options**: `--help`, `--input`, `-i`, `--output`, `-o`, `--clipboard`, `-f`, `-t`
+- **Crypto Subcommands**: `encrypt`, `decrypt` (under `crypto` group)
+- **Rules Subcommands**: `list` (under `rules` group)
+- **Clipboard Subcommands**: `get`, `set`, `clear`, `status` (under `clipboard` group)
+- **Legacy Commands**: `transform`, `iconv`, `encrypt`, `decrypt` (deprecated but functional)
+- **Options**: `--help`, `--input`, `-i`, `--output`, `-o`, `--from-clipboard`, `--to-clipboard`, `-f`, `-t`
 - **Help text**: Displays descriptions alongside suggestions (shell-dependent)
 
 ### Usage Examples
 
 ```bash
-# Tab complete main commands
+# Tab complete main command groups
 uv run python main.py [TAB][TAB]
-# Shows: text, clipboard, encrypt, decrypt, rules, status, version
+# Shows: text, crypto, rules, clipboard, status, version
 
 # Tab complete text subcommands
 uv run python main.py text [TAB][TAB]
 # Shows: transform, encode
 
-# Tab complete options
-uv run python main.py text encode --[TAB][TAB]
-# Shows: --help, --input, -i, --output, -o, -f, -t, --error
+# Tab complete crypto subcommands
+uv run python main.py crypto [TAB][TAB]
+# Shows: encrypt, decrypt
 
-# Tab complete with context-aware suggestions
-uv run python main.py text transform [TAB][TAB]
-# Shows available transformation rules
+# Tab complete rules subcommands
+uv run python main.py rules [TAB][TAB]
+# Shows: list
 
 # Tab complete clipboard subcommands
 uv run python main.py clipboard [TAB][TAB]
-# Shows: clear, get, set, status
+# Shows: get, set, clear, status
+
+# Tab complete options
+uv run python main.py text encode --[TAB][TAB]
+# Shows: --help, --input, -i, --output, -o, -f, -t, --error
 ```
 
 **Supported Shells**: Bash, Zsh, Fish, PowerShell
 
 ## 🎯 Usage
 
-### 🆕 New Hierarchical Command Structure (Recommended)
+### 🆕 Modern Hierarchical Command Structure (Recommended)
 
-Following industry-standard CLI patterns (similar to Docker, GitHub CLI, kubectl):
+Following industry-standard CLI patterns from **GitHub CLI** (`gh pr create`), **Docker** (`docker container ls`), and **kubectl** (`kubectl get pods`):
+
+#### Text Processing Operations
 
 ```bash
 # Text transformation with rules
-uv run python main.py text transform '/t/l' --input "  HELLO WORLD  "
+uv run python main.py text transform '/t/l' -i "  HELLO WORLD  "
 uv run python main.py text transform '/t/u/R' -i "hello"
 
 # Character encoding conversion (iconv-compatible)
 uv run python main.py text encode -f shift_jis -t utf-8 -i "日本語"
-uv run python main.py text encode -f auto -t utf-8  # Auto-detect encoding
+uv run python main.py text encode -f auto -t utf-8 -i "text"  # Auto-detect encoding
 uv run python main.py text encode -f utf-8 -t ascii --error replace -i "Hello, 世界"
 
-# Show available transformation rules
-uv run python main.py text transform --show-rules
+# From clipboard
+uv run python main.py text transform '/l' --from-clipboard
+
+# To clipboard
+uv run python main.py text transform '/u' -i "hello" --to-clipboard
 
 # Output to file
-uv run python main.py text transform '/l' -i "HELLO" --output ./output
+uv run python main.py text transform '/l' -i "HELLO" -o ./output
 uv run python main.py text encode -f auto -t utf-8 -i "text" -o ./output
+```
 
-# Disable clipboard
-uv run python main.py text transform '/u' -i "hello" --no-clipboard
+#### Cryptographic Operations
+
+```bash
+# Encrypt text
+uv run python main.py crypto encrypt -i "secret message"
+uv run python main.py crypto encrypt --from-clipboard
+uv run python main.py crypto encrypt -i "secret" --to-clipboard
+
+# Decrypt text
+uv run python main.py crypto decrypt -i "encrypted_base64_text"
+uv run python main.py crypto decrypt --from-clipboard
+uv run python main.py crypto decrypt -i "encrypted" --to-clipboard
+```
+
+#### Rules Management
+
+```bash
+# List all transformation rules
+uv run python main.py rules list
+
+# Search for specific rules
+uv run python main.py rules list --search "case"
+uv run python main.py rules list -s "japanese"
 ```
 
 **Migration Guide:**
 ```bash
-# Old (deprecated)                         → New (recommended)
-main.py transform '/t/l' --text "text"    → main.py text transform '/t/l' -i "text"
-main.py iconv -f shift_jis -t utf-8       → main.py text encode -f shift_jis -t utf-8
+# Old (deprecated)                          → New (recommended)
+main.py transform '/t/l' --text "text"     → main.py text transform '/t/l' -i "text"
+main.py iconv -f shift_jis -t utf-8        → main.py text encode -f shift_jis -t utf-8
+main.py encrypt --text "secret"            → main.py crypto encrypt -i "secret"
+main.py decrypt --text "encrypted"         → main.py crypto decrypt -i "encrypted"
+main.py rules                              → main.py rules list
 ```
 
 ### 📋 Clipboard Operations
@@ -194,29 +231,29 @@ uv run python main.py clipboard status
 
 ### 📜 Legacy Commands (Deprecated)
 
-The following commands are maintained for backward compatibility but show deprecation warnings:
+The following flat commands are maintained for backward compatibility but show deprecation warnings. **Please migrate to the new hierarchical structure above.**
 
 ```bash
-# Legacy transform command (use 'text transform' instead)
+# ⚠️  DEPRECATED: Legacy transform command
 uv run python main.py transform '/t/l' --text "text"
+# Use instead: main.py text transform '/t/l' -i "text"
 
-# Legacy iconv command (use 'text encode' instead)
+# ⚠️  DEPRECATED: Legacy iconv command
 uv run python main.py iconv -f shift_jis -t utf-8 --text "日本語"
+# Use instead: main.py text encode -f shift_jis -t utf-8 -i "日本語"
+
+# ⚠️  DEPRECATED: Legacy encrypt/decrypt commands
+uv run python main.py encrypt --text "secret"
+uv run python main.py decrypt --text "encrypted"
+# Use instead: main.py crypto encrypt -i "secret"
+#              main.py crypto decrypt -i "encrypted"
 ```
 
-### Other Commands
-
-```bash
-# Run the main CLI application
-uv run python main.py
-
-# Show available commands
-uv run python main.py --help
-
-# Encrypt/decrypt text
-uv run python main.py encrypt --help
-uv run python main.py decrypt --help
-```
+**Why migrate?**
+- ✅ Consistent with industry standards (GitHub CLI, Docker, kubectl)
+- ✅ Better discoverability with hierarchical structure
+- ✅ Clearer separation of concerns
+- ✅ Easier to extend with new features
 
 ### Windows Usage Notes
 
@@ -394,6 +431,27 @@ uv run python main.py transform "hf" --text "hello123"
 - Converts Katakana, ASCII, and digits
 - Integrated with transform command architecture
 - Powered by `jaconv` library
+
+### 🔤 Hyphen/Underscore Conversion
+Convert between hyphens and underscores for filename and identifier transformations:
+
+```bash
+# Hyphen to underscore (useful for Python identifiers)
+uv run python main.py text transform '/h2u' -i "my-test-file"
+# Result: "my_test_file"
+
+# Underscore to hyphen (useful for kebab-case)
+uv run python main.py text transform '/u2h' -i "my_test_file"
+# Result: "my-test-file"
+
+# Pipe usage
+echo "hello-world" | uv run python main.py text transform '/h2u'
+# Result: "hello_world"
+```
+
+**Available rules:**
+- `h2u` - Convert hyphens (-) to underscores (_)
+- `u2h` - Convert underscores (_) to hyphens (-)
 
 ### ⚡ High-Performance String Operations (StringZilla)
 Ultra-fast string processing with SIMD acceleration for maximum performance:

@@ -32,7 +32,6 @@ dev = [
     "pytest>=8.4.1",
     "pytest-cov>=6.2.1",
     "mypy>=1.17.1",
-    "black>=24.0.0",
     "ruff>=0.6.0",
 ]
 docs = [
@@ -68,3 +67,29 @@ top-namespace = "textkit"
 "components/io_handler" = "textkit/io_handler"
 "components/rule_parser" = "textkit/rule_parser"
 "components/text_core" = "textkit/text_core"
+
+# Ruff configuration
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
+ignore = ["E501"]  # Line too long (handled by formatter)
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # Unused imports in __init__.py
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+# MyPy configuration (complementary to mypy.ini)
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+check_untyped_defs = true

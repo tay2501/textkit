@@ -45,8 +45,8 @@ Use bullet points to list specific changes.
 - [ ] `async_core` - Asynchronous operations (components/)
 - [ ] `cli_interface` - Command-line interface (bases/)
 - [ ] `interactive_session` - Interactive mode functionality (bases/)
-- [ ] CLI commands (`text`, `clipboard`, etc.) - New hierarchical commands
-- [ ] Legacy commands (`transform`, `iconv`) - Deprecated commands
+- [ ] CLI commands - Hierarchical structure (`text`, `crypto`, `rules`, `clipboard`)
+- [ ] Legacy commands - Deprecated flat commands (`transform`, `iconv`, `encrypt`, `decrypt`)
 - [ ] Other: _______________
 
 ### Specific Changes
@@ -147,7 +147,7 @@ Complete this checklist before requesting review.
 - [ ] Linting passes locally (`uv run ruff check .`)
 - [ ] Type checking passes locally (`uv run mypy .`)
 - [ ] Code formatting is correct (`uv run ruff format --check .`)
-- [ ] Manual testing of CLI commands if applicable (e.g., `textkit text transform`, `textkit text encode`)
+- [ ] Manual testing of CLI commands if applicable (e.g., `textkit text transform`, `textkit crypto encrypt`, `textkit rules list`)
 
 ### Documentation
 - [ ] I have made corresponding changes to the documentation

@@ -26,9 +26,12 @@ def register_iconv_command(
     def iconv_command(
         from_encoding: Annotated[str, typer.Option("-f", "--from", help="Source character encoding")] = "auto",
         to_encoding: Annotated[str, typer.Option("-t", "--to", help="Target character encoding")] = "utf-8",
-        text: Annotated[str | None, typer.Option("--text", help="Input text (uses clipboard if not provided)")] = None,
+        text: Annotated[str | None, typer.Option("--text", help="Input text (deprecated, use -i)")] = None,
+        input_text: Annotated[str | None, typer.Option("--input", "-i", help="Input text")] = None,
+        from_clipboard: Annotated[bool, typer.Option("--from-clipboard", help="Read input from clipboard")] = False,
         error_handling: Annotated[str, typer.Option("--error", help="Error handling mode: strict, ignore, replace")] = "strict",
-        clipboard: Annotated[bool, typer.Option("--clipboard/--no-clipboard", help="Copy result to clipboard")] = True,
+        to_clipboard: Annotated[bool, typer.Option("--to-clipboard", help="Write output to clipboard")] = False,
+        clipboard: Annotated[bool, typer.Option("--clipboard/--no-clipboard", help="(Deprecated) Copy result to clipboard")] = None,
         output: Annotated[str | None, typer.Option("--output", "-o", help="Output folder path")] = None,
     ) -> None:
         """Convert text between character encodings (Unix iconv-compatible).
@@ -66,22 +69,47 @@ def register_iconv_command(
         - ignore: Skip problematic characters
         - replace: Replace problematic characters with placeholders
         """
+        # Display deprecation warning
+        console.print("[yellow]Warning: 'textkit iconv' is deprecated. Use 'textkit text encode' instead.[/yellow]")
+
         try:
             from textkit.text_core.transformers.encoding_transformer import EncodingTransformer
 
             app_instance = get_app_func()
-            input_text = get_input_text_func(app_instance, text)
 
-            # Use EncodingTransformer directly for simpler implementation
+            # Handle input options priority: -i > --text > --from-clipboard > pipe/stdin
+            final_input_text = None
+            if input_text is not None:
+                final_input_text = input_text
+            elif text is not None:
+                console.print("[yellow]Warning: --text is deprecated. Use --input/-i instead.[/yellow]")
+                final_input_text = text
+            elif from_clipboard:
+                final_input_text = app_instance.io_manager.get_clipboard_text()
+            else:
+                import sys
+                if not sys.stdin.isatty():
+                    final_input_text = sys.stdin.read()
+                else:
+                    console.print("[yellow]Warning: No input specified. Use -i, --from-clipboard, or pipe input.[/yellow]")
+                    raise typer.Exit(1)
+
+            # Handle clipboard output options
+            final_clipboard_flag = to_clipboard
+            if clipboard is not None:
+                console.print("[yellow]Warning: --clipboard/--no-clipboard is deprecated. Use --to-clipboard instead.[/yellow]")
+                final_clipboard_flag = clipboard
+
+            # Use EncodingTransformer public API
             encoding_transformer = EncodingTransformer()
-            result = encoding_transformer._convert_encoding(
-                input_text,
+            result = encoding_transformer.convert(
+                final_input_text,
                 from_encoding,
                 to_encoding,
                 error_handling
             )
 
-            output_result_enhanced_func(app_instance, result, output_folder=output, clipboard=clipboard)
+            output_result_enhanced_func(app_instance, result, output_folder=output, clipboard=final_clipboard_flag)
 
         except Exception as e:
             handle_cli_error_func(e, "character encoding conversion")

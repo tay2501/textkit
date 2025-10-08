@@ -46,6 +46,22 @@ ClipboardOption = Annotated[
     ),
 ]
 
+FromClipboardOption = Annotated[
+    bool,
+    typer.Option(
+        "--from-clipboard",
+        help="Read input from clipboard",
+    ),
+]
+
+ToClipboardOption = Annotated[
+    bool,
+    typer.Option(
+        "--to-clipboard",
+        help="Write output to clipboard",
+    ),
+]
+
 
 # ============================================================================
 # Encoding Options (for text encode/iconv commands)
@@ -179,6 +195,8 @@ __all__ = [
     "InputTextOption",
     "OutputPathOption",
     "ClipboardOption",
+    "FromClipboardOption",
+    "ToClipboardOption",
     # Encoding
     "SourceEncodingOption",
     "TargetEncodingOption",
