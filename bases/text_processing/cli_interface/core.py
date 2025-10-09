@@ -15,13 +15,10 @@ from .factory import ApplicationFactory
 from .abstractions import ApplicationServiceInterface
 
 # Import command modules
-from .commands.transform_cmd import transform_text
 from .commands.status_cmd import register_status_commands
-from .commands.iconv_cmd import register_iconv_command
 from .commands.clipboard_cmd import register_clipboard_commands
 
 # Import middleware
-from .middleware.output_manager import output_result_enhanced, output_result_simple
 from .middleware.error_handler import ErrorHandler
 
 if TYPE_CHECKING:
@@ -92,18 +89,13 @@ def _register_all_commands() -> None:
         textkit clipboard get       - Clipboard operations
         textkit clipboard set
         textkit clipboard clear
-
-    Legacy flat commands (deprecated but maintained for backward compatibility):
-        textkit transform           - Use 'textkit text transform' instead
-        textkit iconv               - Use 'textkit text encode' instead
-        textkit encrypt             - Use 'textkit crypto encrypt' instead
-        textkit decrypt             - Use 'textkit crypto decrypt' instead
-        textkit rules               - Use 'textkit rules list' instead
+        textkit clipboard status
+        textkit status              - Show application status
+        textkit version             - Show version information
     """
 
     # ========================================================================
-    # Modern Hierarchical Subcommand Structure (Recommended)
-    # Following patterns from: GitHub CLI, Docker, kubectl, git
+    # Hierarchical Subcommand Structure (GitHub CLI, Docker, kubectl style)
     # ========================================================================
 
     # text subcommand group: textkit text {transform,encode}
@@ -136,49 +128,13 @@ def _register_all_commands() -> None:
     app.add_typer(rules_subcommand, name="rules")
 
     # clipboard subcommand group: textkit clipboard {get,set,clear,status}
-    # Already implemented with modern structure
     register_clipboard_commands(
         app=app,
         get_app_func=get_app,
         handle_cli_error_func=error_handler.handle_cli_error,
     )
 
-    # ========================================================================
-    # Legacy Flat Command Structure (Deprecated - Backward Compatibility)
-    # ========================================================================
-
-    # Legacy transform command (deprecated, use: textkit text transform)
-    transform_text(
-        app=app,
-        get_app_func=get_app,
-        normalize_rule_func=normalize_rule_argument,
-        get_input_text_func=get_input_text,
-        handle_cli_error_func=error_handler.handle_cli_error,
-    )
-
-    # Legacy iconv command (deprecated, use: textkit text encode)
-    register_iconv_command(
-        app=app,
-        get_app_func=get_app,
-        get_input_text_func=get_input_text,
-        output_result_enhanced_func=output_result_enhanced,
-        handle_cli_error_func=error_handler.handle_cli_error,
-    )
-
-    # Legacy crypto commands (deprecated, use: textkit crypto {encrypt,decrypt})
-    from .commands.crypto_cmd import register_crypto_commands
-    register_crypto_commands(
-        app=app,
-        get_app_func=get_app,
-        get_input_text_func=get_input_text,
-        output_result_func=output_result_simple,
-        handle_cli_error_func=error_handler.handle_cli_error,
-    )
-
-    # Note: Legacy 'textkit rules' command removed - users must use 'textkit rules list'
-    # This follows modern CLI patterns where subcommand groups require a specific action
-
-    # Register status commands
+    # status and version commands (top-level utilities)
     register_status_commands(
         app=app,
         get_app_func=get_app,

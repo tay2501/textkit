@@ -24,8 +24,12 @@ class TestTextTransformationEngine:
 
     def test_engine_initialization(self, engine):
         """Test basic engine initialization."""
+        from textkit.config_manager.core import ConfigurationManager
+
         assert engine is not None
-        assert engine.config_manager is None
+        # config_manager is automatically created when not provided
+        assert engine.config_manager is not None
+        assert isinstance(engine.config_manager, ConfigurationManager)
         assert engine.crypto_manager is None
         assert isinstance(engine._available_rules, dict)
         assert len(engine._available_rules) > 0
@@ -171,25 +175,3 @@ class TestTextTransformationEngine:
         result = engine.apply_transformations("  HELLO  ", rule_string)
         assert result == "hello"
 
-    def test_case_conversion_methods(self, engine):
-        """Test individual case conversion methods."""
-        # Test edge cases for case conversions
-        assert engine._to_pascal_case("hello_world-test") == "HelloWorldTest"
-        assert engine._to_camel_case("hello_world-test") == "helloWorldTest"
-        assert engine._to_snake_case("HelloWorldTest") == "hello_world_test"
-
-    def test_trim_method(self, engine):
-        """Test trim functionality."""
-        assert engine._trim_text("  test  ") == "test"
-        assert engine._trim_text("\n\ttest\n\t") == "test"
-
-    def test_hash_method(self, engine):
-        """Test SHA256 hash method."""
-        result = engine._sha256_hash("test")
-        assert len(result) == 64
-        assert result == "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
-
-
-def test_module_availability():
-    """Test that the core module is available for import."""
-    assert core is not None

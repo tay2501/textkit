@@ -88,8 +88,15 @@ class CryptographyManager:
             Base64 encoded encrypted data
 
         Raises:
-            CryptographyError: If encryption fails
+            CryptographyError: If encryption fails or input validation fails
         """
+        # Input validation (following EAFP principle)
+        if not isinstance(text, str):
+            raise CryptographyError(
+                f"Input must be str, got {type(text).__name__}",
+                {"input_type": type(text).__name__}
+            )
+
         try:
             # Generate AES key and IV
             aes_key = secrets.token_bytes(self.rsa_config["aes_key_size"])
@@ -122,9 +129,13 @@ class CryptographyManager:
             return base64.b64encode(combined_data).decode("ascii")
 
         except Exception as e:
+            # Safe error handling - avoid calling len() on potentially invalid types
+            context = {"error_type": type(e).__name__}
+            if isinstance(text, str):
+                context["text_length"] = len(text)
             raise CryptographyError(
                 f"Encryption failed: {e}",
-                {"text_length": len(text), "error_type": type(e).__name__},
+                context
             ) from e
 
     def decrypt_text(self, encrypted_text: str) -> str:

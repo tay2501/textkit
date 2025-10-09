@@ -6,6 +6,7 @@ This module provides the main RuleParser class for parsing transformation rule s
 from __future__ import annotations
 
 import re
+import shlex
 import structlog
 from typing import List, Tuple
 
@@ -132,7 +133,12 @@ class RuleParser:
         return [(rule_name, [])]
 
     def _parse_slash_format(self, rule_string: str) -> List[Tuple[str, List[str]]]:
-        """Parse slash-separated rule format: /rule1/rule2/...
+        """Parse slash-separated rule format: /rule1/rule2/... or /rule args
+
+        Handles both simple slash-separated rules and rules with arguments.
+        Examples:
+            '/t/l/u' -> [('t', []), ('l', []), ('u', [])]
+            '/r "old" "new"' -> [('r', ['old', 'new'])]
 
         Args:
             rule_string: Rule string starting with '/'
@@ -143,20 +149,38 @@ class RuleParser:
         Raises:
             ValidationError: If no rules found
         """
-        # Check for quoted arguments
-        if "'" in rule_string or '"' in rule_string:
-            return self._parse_with_quotes(rule_string)
+        # Remove leading slash
+        rule_string = rule_string[1:]
 
-        # Simple parsing for rules without quotes
-        parts = rule_string.split("/")[1:]  # Skip empty first part
-        if not parts:
+        # Check if this looks like a single rule with arguments (contains space)
+        if " " in rule_string:
+            # Use shlex to properly handle quoted arguments
+            try:
+                parts = shlex.split(rule_string)
+                if parts:
+                    rule_name = parts[0]
+                    args = parts[1:]
+                    return [(rule_name, args)]
+            except ValueError as e:
+                # shlex.split can raise ValueError for mismatched quotes
+                raise ValidationError(
+                    f"Failed to parse quoted arguments: {e}",
+                    {"rule_string": rule_string}
+                ) from e
+
+        # Check for quoted arguments without spaces (e.g., /rule/"arg1"/"arg2")
+        if "'" in rule_string or '"' in rule_string:
+            return self._parse_with_quotes("/" + rule_string)  # Add slash back for _parse_with_quotes
+
+        # Simple slash-separated rules
+        parts = rule_string.split("/")
+        if not parts or all(not p for p in parts):
             raise ValidationError("No rules found in rule string")
 
         rules = []
         for part in parts:
-            if not part:
-                continue
-            rules.append((part, []))
+            if part:  # Skip empty parts
+                rules.append((part, []))
 
         return rules
 

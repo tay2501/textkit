@@ -7,7 +7,7 @@ and structured logging support.
 
 from typing import Any, Dict, Optional, Union
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class BaseTextProcessingError(Exception):
@@ -40,7 +40,7 @@ class BaseTextProcessingError(Exception):
         self.context = context or {}
         self.operation = operation
         self.cause = cause
-        self.timestamp = datetime.utcnow()
+        self.timestamp = datetime.now(timezone.utc)
 
     def add_context(self, key: str, value: Any) -> "BaseTextProcessingError":
         """Add context information to the exception.

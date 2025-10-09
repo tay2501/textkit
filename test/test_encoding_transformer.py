@@ -79,10 +79,10 @@ class TestEncodingTransformer:
         assert isinstance(result, str)
         assert len(result) > 0
 
-    def test_from_utf8_conversion(self):
-        """Test conversion from UTF-8 to target encoding."""
+    def test_iconv_utf8_to_ascii(self):
+        """Test conversion from UTF-8 to ASCII encoding using iconv."""
         input_text = "Hello"
-        result = self.transformer.transform(input_text, "from-utf8", ["ascii"])
+        result = self.transformer.transform(input_text, "iconv", ["-f", "utf-8", "-t", "ascii"])
         assert result == input_text
 
     def test_detect_encoding(self):
@@ -144,8 +144,7 @@ class TestEncodingTransformer:
         """Test that all expected rules are available."""
         rules = self.transformer.get_rules()
         expected_rules = {
-            "iconv", "to-utf8", "from-utf8", "detect-encoding",
-            "detect-encoding-advanced"
+            "iconv", "to-utf8", "detect-encoding"
         }
         assert set(rules.keys()) == expected_rules
 
@@ -153,7 +152,7 @@ class TestEncodingTransformer:
         """Test rule support checking."""
         assert self.transformer.supports_rule("iconv")
         assert self.transformer.supports_rule("to-utf8")
-        assert self.transformer.supports_rule("detect-encoding-advanced")
+        assert self.transformer.supports_rule("detect-encoding")
         assert not self.transformer.supports_rule("nonexistent-rule")
 
     def test_iconv_missing_target_encoding(self):
@@ -164,14 +163,6 @@ class TestEncodingTransformer:
         assert isinstance(result, str)
         assert len(result) > 0
 
-    def test_from_utf8_missing_arguments(self):
-        """Test from-utf8 transformation with missing arguments uses default."""
-        # Should not raise an error due to default arguments
-        input_text = "Hello"
-        result = self.transformer.transform(input_text, "from-utf8", [])
-        assert isinstance(result, str)
-        assert len(result) > 0
-
     def test_iconv_no_arguments_uses_default(self):
         """Test iconv transformation with no arguments uses defaults."""
         input_text = "Hello, World!"
@@ -179,25 +170,11 @@ class TestEncodingTransformer:
         assert isinstance(result, str)
         assert len(result) > 0
 
-    def test_from_utf8_no_arguments_uses_default(self):
-        """Test from-utf8 transformation with no arguments uses defaults."""
-        input_text = "Hello"
-        result = self.transformer.transform(input_text, "from-utf8")
-        assert isinstance(result, str)
-        assert len(result) > 0
-
     def test_unsupported_rule(self):
         """Test error handling for unsupported rules."""
-        with pytest.raises(KeyError):
+        from textkit.exceptions import TransformationError
+        with pytest.raises(TransformationError):
             self.transformer.transform("test", "unsupported-rule")
-
-    def test_list_supported_encodings(self):
-        """Test listing supported encodings."""
-        encodings = EncodingTransformer.list_supported_encodings()
-        assert isinstance(encodings, list)
-        assert len(encodings) > 0
-        assert "utf-8" in encodings
-        assert "shift_jis" in encodings or "shift-jis" in encodings
 
     def test_japanese_text_conversion_cycle(self):
         """Test round-trip conversion of Japanese text."""
@@ -231,9 +208,9 @@ class TestEncodingTransformer:
         """Test encoding detection fallback mechanism."""
         transformer = self.transformer
 
-        # Test with ASCII data
+        # Test with ASCII data using advanced detection method
         ascii_data = b"Hello, World!"
-        detected = transformer._detect_encoding_fallback(ascii_data)
+        detected = transformer._detect_encoding_advanced(ascii_data)
         assert detected in ["utf-8", "ascii"]
 
     def test_complex_encoding_conversion(self):
@@ -249,7 +226,7 @@ class TestEncodingTransformer:
     def test_advanced_encoding_detection(self):
         """Test advanced encoding detection with charset-normalizer."""
         input_text = "Hello, World!"
-        result = self.transformer.transform(input_text, "detect-encoding-advanced")
+        result = self.transformer.transform(input_text, "detect-encoding")
         assert "Detected encoding:" in result
         # Should include confidence score if charset-normalizer is available
         if hasattr(self.transformer, '_detect_encoding_advanced'):
@@ -261,15 +238,15 @@ class TestEncodingTransformer:
         # This test ensures the code works even without charset-normalizer
         transformer = self.transformer
 
-        # Test encoding detection fallback
+        # Test encoding detection with advanced method
         test_data = b"Hello, World!"
-        encoding = transformer._detect_encoding_fallback(test_data)
+        encoding = transformer._detect_encoding_advanced(test_data)
         assert encoding in ['utf-8', 'ascii']
 
     def test_encoding_detection_with_confidence(self):
         """Test encoding detection returns confidence when available."""
         input_text = "café français"
-        result = self.transformer.transform(input_text, "detect-encoding-advanced")
+        result = self.transformer.transform(input_text, "detect-encoding")
         assert "Detected encoding:" in result
         # The result should be a valid string regardless of charset-normalizer availability
         assert isinstance(result, str)

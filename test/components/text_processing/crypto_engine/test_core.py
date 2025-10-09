@@ -192,8 +192,10 @@ class TestCryptographyManager:
     @pytest.mark.skipif(not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available")
     def test_encrypt_invalid_input_type(self, crypto_manager):
         """Test encryption with invalid input types."""
-        with pytest.raises(AttributeError):  # str.encode() will fail
+        from textkit.exceptions import CryptographyError
+        with pytest.raises(CryptographyError) as exc_info:
             crypto_manager.encrypt_text(123)
+        assert "Input must be str" in str(exc_info.value)
 
     @pytest.mark.skipif(not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available")
     def test_decrypt_invalid_base64(self, crypto_manager):
