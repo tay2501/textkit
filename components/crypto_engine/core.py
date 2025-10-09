@@ -12,6 +12,8 @@ import secrets
 from pathlib import Path
 from typing import Any
 
+from textkit.exceptions import CryptoTransformationError as CryptographyError
+
 # Cryptography imports with availability check
 try:
     from cryptography.hazmat.primitives import hashes, serialization
@@ -22,14 +24,6 @@ try:
     CRYPTOGRAPHY_AVAILABLE = True
 except ImportError:
     CRYPTOGRAPHY_AVAILABLE = False
-
-
-class CryptographyError(Exception):
-    """Exception raised for cryptographic operation errors."""
-
-    def __init__(self, message: str, context: dict[str, Any] | None = None) -> None:
-        super().__init__(message)
-        self.context = context or {}
 
 
 class CryptographyManager:
