@@ -1,9 +1,9 @@
 <a href='https://ko-fi.com/Z8Z31J3LMW' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 <a href="https://www.buymeacoffee.com/tay2501" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 36px !important;width: 130px !important;" ></a>
 
-# Text Processing Toolkit
+# TextKit
 
-A modern, modular text processing workspace built with the Polylith architecture, providing reusable components for text transformation, line ending conversion, character encoding conversion, encryption, and I/O operations.
+A modern, modular text processing toolkit built with the Polylith architecture, providing reusable components for text transformation, line ending conversion, character encoding conversion, encryption, and I/O operations.
 
 ## 🏗️ Architecture
 
@@ -12,24 +12,30 @@ This workspace follows the [Polylith architecture](https://polylith.gitbook.io/)
 ### Structure Overview
 
 ```
-text-processing-toolkit/
-├── components/           # Reusable business logic
-│   └── text_processing/
-│       ├── text_core/           # Core text transformations, line endings, encoding
-│       ├── crypto_engine/       # Encryption/decryption operations
-│       ├── io_handler/          # Input/output and clipboard management
-│       └── config_manager/      # Configuration management
-├── bases/               # Application entry points
-│   └── text_processing/
-│       ├── cli_interface/       # Command-line interface
-│       └── interactive_session/ # Interactive session management
-├── projects/            # Deployable applications
-│   ├── text_transformer/       # Basic text transformation
-│   ├── crypto_processor/       # Cryptographic operations
-│   ├── encoding_specialist/    # Text encoding conversions
-│   ├── format_converter/       # Format conversion utilities
-│   └── tsv_translator/         # TSV file processing
-└── main.py             # Main application entry point
+textkit/
+├── components/              # Reusable business logic
+│   ├── text_core/          # Core text transformations, line endings, encoding
+│   ├── crypto_engine/      # Encryption/decryption operations
+│   ├── io_handler/         # Input/output and clipboard management
+│   ├── config_manager/     # Configuration management
+│   ├── rule_parser/        # Rule parsing engine
+│   ├── command_handler/    # Command handling logic
+│   ├── async_core/         # Asynchronous operations
+│   ├── common_utils/       # Common utility functions
+│   ├── dependency_injection/  # DI container (lagom-based)
+│   ├── exceptions/         # Custom exception classes
+│   └── help_system/        # Help and documentation system
+├── bases/                  # Application entry points
+│   └── textkit/
+│       └── cli_interface/  # Command-line interface implementation
+├── projects/               # Deployable project configurations
+│   ├── text_transformer/   # Basic text transformation
+│   ├── crypto_processor/   # Cryptographic operations
+│   ├── encoding_specialist/# Text encoding conversions
+│   ├── format_converter/   # Format conversion utilities
+│   └── tsv_translator/     # TSV file processing
+├── textkit/                # Top-level namespace package
+└── main.py                 # Main application entry point
 ```
 
 ### Architecture Benefits
@@ -52,7 +58,7 @@ text-processing-toolkit/
 1. **Clone the repository**
    ```bash
    git clone https://github.com/tay2501/textkit.git
-   cd text-processing-toolkit
+   cd textkit
    ```
 
 2. **Install dependencies**
@@ -102,13 +108,12 @@ uv run python main.py --install-completion powershell
 
 Once enabled, you can use tab completion for:
 
-- **Main Command Groups**: `text`, `crypto`, `rules`, `clipboard`, `status`, `version`
-- **Text Subcommands**: `transform`, `encode` (under `text` group)
-- **Crypto Subcommands**: `encrypt`, `decrypt` (under `crypto` group)
-- **Rules Subcommands**: `list` (under `rules` group)
-- **Clipboard Subcommands**: `get`, `set`, `clear`, `status` (under `clipboard` group)
-- **Legacy Commands**: `transform`, `iconv`, `encrypt`, `decrypt` (deprecated but functional)
-- **Options**: `--help`, `--input`, `-i`, `--output`, `-o`, `--from-clipboard`, `--to-clipboard`, `-f`, `-t`
+- **Main Commands**: `text`, `crypto`, `rules`, `clipboard`, `status`, `version`
+- **Text Subcommands**: `transform`, `encode`
+- **Crypto Subcommands**: `encrypt`, `decrypt`
+- **Rules Subcommands**: `list`
+- **Clipboard Subcommands**: `get`, `set`, `clear`, `status`
+- **Options**: `--help`, `--input`, `-i`, `--output`, `-o`, `--from-clipboard`, `--to-clipboard`, `-f`, `-t`, `--error`
 - **Help text**: Displays descriptions alongside suggestions (shell-dependent)
 
 ### Usage Examples
@@ -195,15 +200,12 @@ uv run python main.py rules list --search "case"
 uv run python main.py rules list -s "japanese"
 ```
 
-**Migration Guide:**
-```bash
-# Old (deprecated)                          → New (recommended)
-main.py transform '/t/l' --text "text"     → main.py text transform '/t/l' -i "text"
-main.py iconv -f shift_jis -t utf-8        → main.py text encode -f shift_jis -t utf-8
-main.py encrypt --text "secret"            → main.py crypto encrypt -i "secret"
-main.py decrypt --text "encrypted"         → main.py crypto decrypt -i "encrypted"
-main.py rules                              → main.py rules list
-```
+**Recent Improvements:**
+- ✅ Hierarchical command structure (v0.1.0) - Industry-standard CLI design
+- ✅ Namespace migration to `textkit` - Cleaner imports and better organization
+- ✅ Dependency injection with `lagom` - Improved modularity and testability
+- ✅ Structured logging with `structlog` - Better observability
+- ✅ Pydantic validation - Type-safe configuration and data handling
 
 ### 📋 Clipboard Operations
 
@@ -231,29 +233,22 @@ uv run python main.py clipboard status
 
 ### 📜 Legacy Commands (Deprecated)
 
-The following flat commands are maintained for backward compatibility but show deprecation warnings. **Please migrate to the new hierarchical structure above.**
+The following flat commands are maintained for backward compatibility but show deprecation warnings:
 
 ```bash
-# ⚠️  DEPRECATED: Legacy transform command
+# ⚠️  DEPRECATED: Use 'main.py text transform' instead
 uv run python main.py transform '/t/l' --text "text"
-# Use instead: main.py text transform '/t/l' -i "text"
 
-# ⚠️  DEPRECATED: Legacy iconv command
+# ⚠️  DEPRECATED: Use 'main.py text encode' instead
 uv run python main.py iconv -f shift_jis -t utf-8 --text "日本語"
-# Use instead: main.py text encode -f shift_jis -t utf-8 -i "日本語"
 
-# ⚠️  DEPRECATED: Legacy encrypt/decrypt commands
+# ⚠️  DEPRECATED: Use 'main.py crypto encrypt/decrypt' instead
 uv run python main.py encrypt --text "secret"
 uv run python main.py decrypt --text "encrypted"
-# Use instead: main.py crypto encrypt -i "secret"
-#              main.py crypto decrypt -i "encrypted"
-```
 
-**Why migrate?**
-- ✅ Consistent with industry standards (GitHub CLI, Docker, kubectl)
-- ✅ Better discoverability with hierarchical structure
-- ✅ Clearer separation of concerns
-- ✅ Easier to extend with new features
+# ⚠️  DEPRECATED: Use 'main.py rules list' instead
+uv run python main.py rules
+```
 
 ### Windows Usage Notes
 
@@ -288,25 +283,21 @@ uv run python main.py transform "to-utf8" --text "Hello"
 uv run python main.py transform "iconv -f shift_jis -t utf-8" --text "日本語"
 ```
 
-### Individual Projects
+### Command Structure
 
-Each project can be run independently:
+TextKit uses a hierarchical command structure following industry standards (GitHub CLI, Docker, kubectl):
 
 ```bash
-# Text transformation utilities
-uv run --project projects/text_transformer text-transformer --help
+# Main entry point
+uv run python main.py [COMMAND] [SUBCOMMAND] [OPTIONS]
 
-# Cryptographic operations
-uv run --project projects/crypto_processor crypto-processor --help
-
-# Encoding specialist
-uv run --project projects/encoding_specialist encoding-specialist --help
-
-# Format converter
-uv run --project projects/format_converter format-converter --help
-
-# TSV translator
-uv run --project projects/tsv_translator tsv-translator --help
+# Available main commands
+uv run python main.py text       # Text processing operations
+uv run python main.py crypto     # Cryptographic operations
+uv run python main.py rules      # View transformation rules
+uv run python main.py clipboard  # Clipboard management
+uv run python main.py status     # Show status
+uv run python main.py version    # Show version
 ```
 
 ## 🛠️ Development
@@ -537,38 +528,35 @@ uv run python main.py transform "to-utf8"
 
 ## 🔧 Tech Stack
 
+### Core Technologies
 - **Language**: Python 3.12+
-- **Architecture**: Polylith
-- **CLI Framework**: Typer with Rich
+- **Architecture**: [Polylith](https://polylith.gitbook.io/) - Modular monolith architecture
+- **CLI Framework**: [Typer](https://typer.tiangolo.com/) with [Rich](https://rich.readthedocs.io/)
 - **Build System**: Hatchling with hatch-polylith-bricks
-- **Package Management**: uv
-- **Dependency Injection**: lagom
-- **Code Quality**: Black, Ruff, MyPy
-- **Testing**: pytest with coverage
-- **Documentation**: Sphinx with RTD theme
-- **Key Features**:
-  - Line ending conversion (Unix tr-like)
-  - Character encoding conversion (Unix iconv-like)
-  - SIMD-accelerated string operations (StringZilla)
-  - Text transformations and formatting
-  - Cryptographic operations
-  - File I/O and clipboard management
-  - High-performance text processing with hardware acceleration
-- **Core Dependencies**:
-  - `typer>=0.16.1` - Modern CLI framework
-  - `rich>=14.1.0` - Rich text and beautiful formatting
-  - `pyperclip>=1.9.0` - Clipboard operations
-  - `watchdog>=6.0.0` - File system monitoring
-  - `cryptography>=45.0.6` - Cryptographic operations
-  - `sqlalchemy>=2.0.43` - Database operations
-  - `structlog>=25.4.0` - Structured logging
-  - `jaconv>=0.4.0` - Japanese character width conversion
+- **Package Management**: [uv](https://docs.astral.sh/uv/) - Fast Python package installer
+
+### Development Tools
+- **Dependency Injection**: [lagom](https://lagom-di.readthedocs.io/) - Modern DI container
+- **Logging**: [structlog](https://www.structlog.org/) - Structured logging
+- **Validation**: [Pydantic](https://docs.pydantic.dev/) v2 - Data validation and settings
+- **Code Quality**: [Black](https://black.readthedocs.io/), [Ruff](https://docs.astral.sh/ruff/), [MyPy](https://mypy-lang.org/)
+- **Testing**: [pytest](https://docs.pytest.org/) with coverage
+- **Documentation**: [Sphinx](https://www.sphinx-doc.org/) with RTD theme
+
+### Key Libraries
+- **Text Processing**:
   - `stringzilla>=4.0.14` - SIMD-accelerated string operations
   - `charset-normalizer>=3.4.0` - Character encoding detection
+  - `jaconv>=0.4.0` - Japanese character width conversion
+- **Cryptography**:
+  - `cryptography>=45.0.6` - Modern cryptographic operations
+- **I/O Operations**:
+  - `pyperclip>=1.9.0` - Cross-platform clipboard operations
   - `aiofiles>=24.1.0` - Asynchronous file operations
-  - `pydantic>=2.10.0` - Data validation and settings management
-  - `pydantic-settings>=2.6.0` - Settings management with Pydantic
-  - `lagom>=2.7.7` - Dependency injection container
+  - `watchdog>=6.0.0` - File system monitoring
+- **Data Management**:
+  - `sqlalchemy>=2.0.43` - SQL toolkit and ORM
+  - `orjson>=3.10.0` - Fast JSON serialization
 
 ## 📋 Development Guidelines
 
@@ -603,9 +591,22 @@ This project is licensed under the MIT License.
 
 ## 🙏 Acknowledgments
 
-- Built with [Polylith](https://polylith.gitbook.io/) architecture
-- CLI powered by [Typer](https://typer.tiangolo.com/)
-- Package management with [uv](https://docs.astral.sh/uv/)
+- Built with [Polylith](https://polylith.gitbook.io/) architecture for modular development
+- CLI powered by [Typer](https://typer.tiangolo.com/) and [Rich](https://rich.readthedocs.io/)
+- Package management with [uv](https://docs.astral.sh/uv/) for fast dependency resolution
+- Dependency injection with [lagom](https://lagom-di.readthedocs.io/) for clean architecture
+- Structured logging with [structlog](https://www.structlog.org/) for better observability
 - Inspired by Unix tools: `tr` (line ending conversion) and `iconv` (character encoding conversion)
+
+## 🔄 Recent Changes
+
+### v0.1.0 (2025-10)
+- ✅ **Hierarchical CLI structure** - Migrated to industry-standard command organization
+- ✅ **Namespace refactoring** - Complete migration from `text_processing` to `textkit`
+- ✅ **Dependency injection** - Replaced custom DI with lagom library
+- ✅ **Structured logging** - Implemented structlog for better observability
+- ✅ **Type safety** - Enhanced Pydantic validation across components
+- ✅ **Test improvements** - Comprehensive test suite with skip markers and coverage
+- ✅ **Security enhancements** - Improved encoding and cryptographic operations
 
 
