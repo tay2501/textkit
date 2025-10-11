@@ -88,6 +88,7 @@ class TestTransformationFactory:
 
     def test_register_invalid_transformer(self):
         """Test registering invalid transformer raises error."""
+
         class NotATransformer:
             pass
 
@@ -140,7 +141,20 @@ class TestTransformationFactory:
         assert rules == sorted(rules)
 
         # Should contain expected rules
-        expected_rules = ["t", "l", "u", "p", "c", "s", "sha256", "b64e", "b64d", "R", "r", "json"]
+        expected_rules = [
+            "t",
+            "l",
+            "u",
+            "p",
+            "c",
+            "s",
+            "sha256",
+            "b64e",
+            "b64d",
+            "R",
+            "r",
+            "json",
+        ]
         for rule in expected_rules:
             assert rule in rules
 

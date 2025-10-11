@@ -25,6 +25,7 @@ logger = structlog.get_logger(__name__)
 @dataclass
 class StreamingConfig:
     """Configuration for streaming operations."""
+
     chunk_size: int = 1024 * 64  # 64KB chunks
     max_buffer_size: int = 1024 * 1024 * 10  # 10MB buffer limit
     enable_backpressure: bool = True
@@ -39,7 +40,7 @@ class AsyncTextStreamer:
         self,
         sync_engine: TextTransformationEngine | None = None,
         config: StreamingConfig | None = None,
-        settings: ApplicationSettings | None = None
+        settings: ApplicationSettings | None = None,
     ) -> None:
         """Initialize async text streamer.
 
@@ -60,14 +61,14 @@ class AsyncTextStreamer:
         logger.info(
             "async_streamer_initialized",
             chunk_size=self.config.chunk_size,
-            max_concurrent_streams=self.config.max_concurrent_streams
+            max_concurrent_streams=self.config.max_concurrent_streams,
         )
 
     async def stream_transform(
         self,
         text_source: str | AsyncIterator[str],
         rule_string: str,
-        stream_id: str | None = None
+        stream_id: str | None = None,
     ) -> AsyncIterator[str]:
         """Stream text transformation with backpressure handling.
 
@@ -90,10 +91,14 @@ class AsyncTextStreamer:
 
                 # Handle different input types
                 if isinstance(text_source, str):
-                    async for chunk in self._stream_from_string(text_source, rule_string):
+                    async for chunk in self._stream_from_string(
+                        text_source, rule_string
+                    ):
                         yield chunk
                 else:
-                    async for chunk in self._stream_from_iterator(text_source, rule_string):
+                    async for chunk in self._stream_from_iterator(
+                        text_source, rule_string
+                    ):
                         yield chunk
 
             except asyncio.CancelledError:
@@ -107,9 +112,7 @@ class AsyncTextStreamer:
                 self._active_streams.pop(stream_id, None)
 
     async def _stream_from_string(
-        self,
-        text: str,
-        rule_string: str
+        self, text: str, rule_string: str
     ) -> AsyncIterator[str]:
         """Stream transformation from a string input.
 
@@ -122,7 +125,7 @@ class AsyncTextStreamer:
         """
         # Split into chunks for streaming
         for i in range(0, len(text), self.config.chunk_size):
-            chunk = text[i:i + self.config.chunk_size]
+            chunk = text[i : i + self.config.chunk_size]
 
             # Apply backpressure if needed
             if self.config.enable_backpressure:
@@ -131,9 +134,7 @@ class AsyncTextStreamer:
             # Transform chunk
             try:
                 transformed_chunk = await asyncio.to_thread(
-                    self.sync_engine.apply_transformations,
-                    chunk,
-                    rule_string
+                    self.sync_engine.apply_transformations, chunk, rule_string
                 )
 
                 # Update buffer tracking
@@ -149,9 +150,7 @@ class AsyncTextStreamer:
                 yield chunk  # Return original chunk on error
 
     async def _stream_from_iterator(
-        self,
-        text_iterator: AsyncIterator[str],
-        rule_string: str
+        self, text_iterator: AsyncIterator[str], rule_string: str
     ) -> AsyncIterator[str]:
         """Stream transformation from an async iterator.
 
@@ -168,9 +167,7 @@ class AsyncTextStreamer:
 
             try:
                 transformed_chunk = await asyncio.to_thread(
-                    self.sync_engine.apply_transformations,
-                    chunk,
-                    rule_string
+                    self.sync_engine.apply_transformations, chunk, rule_string
                 )
 
                 self._buffer_size += len(transformed_chunk)
@@ -187,7 +184,7 @@ class AsyncTextStreamer:
             logger.warning(
                 "backpressure_triggered",
                 buffer_size=self._buffer_size,
-                max_buffer_size=self.config.max_buffer_size
+                max_buffer_size=self.config.max_buffer_size,
             )
 
             # Wait until buffer reduces
@@ -231,7 +228,7 @@ class AsyncTextStreamer:
             "current_buffer_size": self._buffer_size,
             "max_buffer_size": self.config.max_buffer_size,
             "buffer_utilization": self._buffer_size / self.config.max_buffer_size,
-            "active_streams": len(self._active_streams)
+            "active_streams": len(self._active_streams),
         }
 
 
@@ -241,7 +238,7 @@ class ChunkedProcessor:
     def __init__(
         self,
         sync_engine: TextTransformationEngine | None = None,
-        settings: ApplicationSettings | None = None
+        settings: ApplicationSettings | None = None,
     ) -> None:
         """Initialize chunked processor.
 
@@ -258,10 +255,7 @@ class ChunkedProcessor:
         self._max_history = 10
 
     async def process_chunks(
-        self,
-        text: str,
-        rule_string: str,
-        max_concurrent: int = 4
+        self, text: str, rule_string: str, max_concurrent: int = 4
     ) -> str:
         """Process text using optimized chunking strategy.
 
@@ -276,9 +270,7 @@ class ChunkedProcessor:
         if len(text) <= self._optimal_chunk_size:
             # Small text - process directly
             return await asyncio.to_thread(
-                self.sync_engine.apply_transformations,
-                text,
-                rule_string
+                self.sync_engine.apply_transformations, text, rule_string
             )
 
         # Create optimized chunks
@@ -292,9 +284,7 @@ class ChunkedProcessor:
                 start_time = time.perf_counter()
 
                 result = await asyncio.to_thread(
-                    self.sync_engine.apply_transformations,
-                    chunk,
-                    rule_string
+                    self.sync_engine.apply_transformations, chunk, rule_string
                 )
 
                 processing_time = time.perf_counter() - start_time
@@ -305,17 +295,14 @@ class ChunkedProcessor:
                 return index, result
 
         # Create and execute tasks
-        tasks = [
-            process_single_chunk(chunk, i)
-            for i, chunk in enumerate(chunks)
-        ]
+        tasks = [process_single_chunk(chunk, i) for i, chunk in enumerate(chunks)]
 
         # Gather results in order
         results = await asyncio.gather(*tasks)
         results.sort(key=lambda x: x[0])  # Sort by index
 
         # Combine results
-        return ''.join(result[1] for result in results)
+        return "".join(result[1] for result in results)
 
     def _create_optimized_chunks(self, text: str) -> list[str]:
         """Create optimized text chunks with word boundary awareness.
@@ -339,7 +326,7 @@ class ChunkedProcessor:
             # Try to break on word boundaries
             if chunk_end < len(text):
                 # Look for good break points
-                for break_char in ['\n\n', '\n', '. ', '? ', '! ', ' ']:
+                for break_char in ["\n\n", "\n", ". ", "? ", "! ", " "]:
                     break_pos = text.rfind(break_char, position, chunk_end)
                     if break_pos > position + self._optimal_chunk_size * 0.7:
                         chunk_end = break_pos + len(break_char)
@@ -353,12 +340,14 @@ class ChunkedProcessor:
             "text_chunked",
             total_length=len(text),
             num_chunks=len(chunks),
-            optimal_chunk_size=self._optimal_chunk_size
+            optimal_chunk_size=self._optimal_chunk_size,
         )
 
         return chunks
 
-    def _update_chunk_performance(self, chunk_size: int, processing_time: float) -> None:
+    def _update_chunk_performance(
+        self, chunk_size: int, processing_time: float
+    ) -> None:
         """Update chunk performance history for adaptive sizing.
 
         Args:
@@ -393,7 +382,9 @@ class ChunkedProcessor:
         # Find the chunk size with best throughput
         best_throughput = max(throughputs)
         best_index = throughputs.index(best_throughput)
-        best_chunk_size = self._chunk_performance_history[-(len(throughputs) - best_index)][0]
+        best_chunk_size = self._chunk_performance_history[
+            -(len(throughputs) - best_index)
+        ][0]
 
         # Gradually adjust toward optimal size
         adjustment_factor = 0.1
@@ -401,13 +392,15 @@ class ChunkedProcessor:
         self._optimal_chunk_size += int(size_diff * adjustment_factor)
 
         # Keep within reasonable bounds
-        self._optimal_chunk_size = max(1024 * 16, min(1024 * 512, self._optimal_chunk_size))
+        self._optimal_chunk_size = max(
+            1024 * 16, min(1024 * 512, self._optimal_chunk_size)
+        )
 
         logger.debug(
             "chunk_size_adjusted",
             old_size=self._optimal_chunk_size - int(size_diff * adjustment_factor),
             new_size=self._optimal_chunk_size,
-            best_throughput=best_throughput
+            best_throughput=best_throughput,
         )
 
     def get_performance_info(self) -> dict[str, Any]:
@@ -419,7 +412,7 @@ class ChunkedProcessor:
         if not self._chunk_performance_history:
             return {
                 "optimal_chunk_size": self._optimal_chunk_size,
-                "performance_samples": 0
+                "performance_samples": 0,
             }
 
         # Calculate average throughput
@@ -437,6 +430,10 @@ class ChunkedProcessor:
             "optimal_chunk_size": self._optimal_chunk_size,
             "performance_samples": len(self._chunk_performance_history),
             "average_throughput_chars_per_sec": avg_throughput,
-            "recent_chunk_sizes": [cs for cs, _ in self._chunk_performance_history[-3:]],
-            "recent_processing_times": [pt for _, pt in self._chunk_performance_history[-3:]]
+            "recent_chunk_sizes": [
+                cs for cs, _ in self._chunk_performance_history[-3:]
+            ],
+            "recent_processing_times": [
+                pt for _, pt in self._chunk_performance_history[-3:]
+            ],
         }

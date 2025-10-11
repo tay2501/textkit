@@ -11,7 +11,7 @@ from collections import defaultdict, deque
 from collections.abc import Callable
 from typing import Any, TypeVar
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class PerformanceMixin:
@@ -34,7 +34,7 @@ class PerformanceMixin:
         elapsed_ms: float,
         input_length: int,
         output_length: int,
-        context: dict[str, Any] | None = None
+        context: dict[str, Any] | None = None,
     ) -> None:
         """Track performance metrics for a transformation.
 
@@ -52,9 +52,13 @@ class PerformanceMixin:
             "output_length": output_length,
             "timestamp": time.time(),
             "transformer": self.__class__.__name__,
-            "throughput_chars_per_sec": (input_length / elapsed_ms * 1000) if elapsed_ms > 0 else 0,
-            "compression_ratio": output_length / input_length if input_length > 0 else 1.0,
-            **(context or {})
+            "throughput_chars_per_sec": (input_length / elapsed_ms * 1000)
+            if elapsed_ms > 0
+            else 0,
+            "compression_ratio": output_length / input_length
+            if input_length > 0
+            else 1.0,
+            **(context or {}),
         }
 
         # Store in performance stats
@@ -63,7 +67,7 @@ class PerformanceMixin:
         self._operation_count[rule_name] += 1
 
         # Log performance warning if needed
-        if hasattr(self, 'log_performance_warning'):
+        if hasattr(self, "log_performance_warning"):
             self.log_performance_warning(rule_name, elapsed_ms)
 
     def get_performance_stats(self) -> dict[str, Any]:
@@ -76,8 +80,10 @@ class PerformanceMixin:
             "transformer": self.__class__.__name__,
             "total_operations": sum(self._operation_count.values()),
             "rule_stats": {},
-            "recent_operations": list(self._recent_operations)[-10:],  # Last 10 operations
-            "averages": {}
+            "recent_operations": list(self._recent_operations)[
+                -10:
+            ],  # Last 10 operations
+            "averages": {},
         }
 
         # Calculate statistics per rule
@@ -94,7 +100,7 @@ class PerformanceMixin:
                     "max_elapsed_ms": max(elapsed_times),
                     "avg_input_length": sum(input_lengths) / len(input_lengths),
                     "avg_throughput": sum(throughputs) / len(throughputs),
-                    "total_characters_processed": sum(input_lengths)
+                    "total_characters_processed": sum(input_lengths),
                 }
 
                 stats["rule_stats"][rule_name] = rule_stats
@@ -102,12 +108,14 @@ class PerformanceMixin:
         # Calculate overall averages
         if self._recent_operations:
             all_elapsed = [op["elapsed_ms"] for op in self._recent_operations]
-            all_throughput = [op["throughput_chars_per_sec"] for op in self._recent_operations]
+            all_throughput = [
+                op["throughput_chars_per_sec"] for op in self._recent_operations
+            ]
 
             stats["averages"] = {
                 "avg_elapsed_ms": sum(all_elapsed) / len(all_elapsed),
                 "avg_throughput": sum(all_throughput) / len(all_throughput),
-                "operations_per_minute": self._calculate_operations_per_minute()
+                "operations_per_minute": self._calculate_operations_per_minute(),
             }
 
         return stats
@@ -163,6 +171,7 @@ class PerformanceMixin:
         Returns:
             Decorator function
         """
+
         def decorator(func: Callable[..., T]) -> Callable[..., T]:
             @functools.wraps(func)
             def wrapper(self, text: str, *args, **kwargs) -> T:
@@ -174,13 +183,13 @@ class PerformanceMixin:
                     elapsed_ms = (time.perf_counter() - start_time) * 1000
 
                     # Track performance if the mixin is available
-                    if hasattr(self, 'track_performance'):
+                    if hasattr(self, "track_performance"):
                         self.track_performance(
                             effective_rule_name,
                             elapsed_ms,
                             len(text),
                             len(result) if isinstance(result, str) else 0,
-                            {"function": func.__name__}
+                            {"function": func.__name__},
                         )
 
                     return result
@@ -189,25 +198,23 @@ class PerformanceMixin:
                     elapsed_ms = (time.perf_counter() - start_time) * 1000
 
                     # Track failed operation
-                    if hasattr(self, 'track_performance'):
+                    if hasattr(self, "track_performance"):
                         self.track_performance(
                             effective_rule_name,
                             elapsed_ms,
                             len(text),
                             0,  # No output on failure
-                            {"function": func.__name__, "error": str(e)}
+                            {"function": func.__name__, "error": str(e)},
                         )
 
                     raise
 
             return wrapper
+
         return decorator
 
     def benchmark_rule(
-        self,
-        rule_name: str,
-        test_texts: list[str],
-        iterations: int = 1
+        self, rule_name: str, test_texts: list[str], iterations: int = 1
     ) -> dict[str, Any]:
         """Benchmark a specific transformation rule.
 
@@ -219,15 +226,17 @@ class PerformanceMixin:
         Returns:
             Benchmark results
         """
-        if not hasattr(self, 'transform'):
-            raise AttributeError("Transformer must have a 'transform' method for benchmarking")
+        if not hasattr(self, "transform"):
+            raise AttributeError(
+                "Transformer must have a 'transform' method for benchmarking"
+            )
 
         results = {
             "rule_name": rule_name,
             "test_count": len(test_texts),
             "iterations": iterations,
             "individual_results": [],
-            "summary": {}
+            "summary": {},
         }
 
         all_times = []
@@ -238,7 +247,7 @@ class PerformanceMixin:
                 "input_length": len(text),
                 "times_ms": [],
                 "output_length": None,
-                "error": None
+                "error": None,
             }
 
             for iteration in range(iterations):
@@ -250,7 +259,9 @@ class PerformanceMixin:
                     all_times.append(elapsed_ms)
 
                     if text_results["output_length"] is None:
-                        text_results["output_length"] = len(result) if isinstance(result, str) else 0
+                        text_results["output_length"] = (
+                            len(result) if isinstance(result, str) else 0
+                        )
 
                 except Exception as e:
                     elapsed_ms = (time.perf_counter() - start_time) * 1000
@@ -260,7 +271,9 @@ class PerformanceMixin:
 
             # Calculate statistics for this test text
             if text_results["times_ms"]:
-                text_results["avg_ms"] = sum(text_results["times_ms"]) / len(text_results["times_ms"])
+                text_results["avg_ms"] = sum(text_results["times_ms"]) / len(
+                    text_results["times_ms"]
+                )
                 text_results["min_ms"] = min(text_results["times_ms"])
                 text_results["max_ms"] = max(text_results["times_ms"])
 
@@ -274,7 +287,9 @@ class PerformanceMixin:
                 "min_time_ms": min(all_times),
                 "max_time_ms": max(all_times),
                 "total_time_ms": sum(all_times),
-                "operations_per_second": len(all_times) / (sum(all_times) / 1000) if sum(all_times) > 0 else 0
+                "operations_per_second": len(all_times) / (sum(all_times) / 1000)
+                if sum(all_times) > 0
+                else 0,
             }
 
         return results

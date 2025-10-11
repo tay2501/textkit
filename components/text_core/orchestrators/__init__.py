@@ -7,6 +7,4 @@ complex transformation workflows following the single responsibility principle.
 
 from .transformation_orchestrator import TransformationOrchestrator
 
-__all__ = [
-    "TransformationOrchestrator"
-]
+__all__ = ["TransformationOrchestrator"]

@@ -1,6 +1,5 @@
 """Factory for creating transformation strategies and managing rules."""
 
-
 from ..transformers import (
     BaseTransformer,
     BasicTransformer,
@@ -40,7 +39,9 @@ class TransformationFactory:
         self.register_transformer("encoding", EncodingTransformer)
         self.register_transformer("japanese", JapaneseTransformer)
 
-    def register_transformer(self, name: str, transformer_class: type[BaseTransformer]) -> None:
+    def register_transformer(
+        self, name: str, transformer_class: type[BaseTransformer]
+    ) -> None:
         """Register a new transformer strategy.
 
         Args:
@@ -97,7 +98,9 @@ class TransformationFactory:
 
             for rule_name, rule in rules.items():
                 if rule_name in all_rules:
-                    conflicts.append(f"Rule '{rule_name}' conflicts between transformers")
+                    conflicts.append(
+                        f"Rule '{rule_name}' conflicts between transformers"
+                    )
                 all_rules[rule_name] = rule
 
         if conflicts:

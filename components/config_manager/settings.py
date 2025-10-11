@@ -21,7 +21,7 @@ logger = structlog.get_logger(__name__)
 
 def configure_logging() -> None:
     """Configure structured logging for the application.
-    
+
     Uses modern structlog patterns with environment-aware configuration.
     """
     import logging
@@ -47,7 +47,7 @@ def configure_logging() -> None:
             structlog.dev.ConsoleRenderer(
                 colors=True,
                 exception_formatter=_get_exception_formatter(),
-                timestamp_key="timestamp"
+                timestamp_key="timestamp",
             ),
         ]
         logger_factory = structlog.PrintLoggerFactory()
@@ -56,6 +56,7 @@ def configure_logging() -> None:
         # Production: Structured JSON output
         try:
             import orjson
+
             json_renderer = structlog.processors.JSONRenderer(serializer=orjson.dumps)
         except ImportError:
             json_renderer = structlog.processors.JSONRenderer()
@@ -86,7 +87,7 @@ def configure_logging() -> None:
 
 def _get_exception_formatter() -> Any:
     """Get the best available exception formatter for development.
-    
+
     Returns:
         Exception formatter function or None if none available
     """
@@ -106,13 +107,15 @@ def _get_exception_formatter() -> Any:
             except Exception:
                 # Fallback to default formatting
                 import traceback
-                return ''.join(traceback.format_exception(*exc_info))
+
+                return "".join(traceback.format_exception(*exc_info))
 
         return rich_formatter
 
     except ImportError:
         try:
             import better_exceptions
+
             return better_exceptions.format_exception
         except ImportError:
             # Use default formatting
@@ -125,6 +128,7 @@ configure_logging()
 
 class LogLevel(str, Enum):
     """Enumeration for log levels."""
+
     DEBUG = "DEBUG"
     INFO = "INFO"
     WARNING = "WARNING"
@@ -136,62 +140,58 @@ class SecurityConfig(BaseSettings):
     """Security-related configuration settings."""
 
     model_config = SettingsConfigDict(
-        env_prefix='TEXTKIT_SECURITY_',
-        env_nested_delimiter='__',
+        env_prefix="TEXTKIT_SECURITY_",
+        env_nested_delimiter="__",
         case_sensitive=False,
-        env_file='.env',
-        extra='ignore'  # Allow extra environment variables
+        env_file=".env",
+        extra="ignore",  # Allow extra environment variables
     )
 
     # RSA Configuration
-    rsa_key_size: Annotated[int, Field(
-        default=4096,
-        ge=2048,
-        le=8192,
-        description="RSA key size in bits"
-    )]
+    rsa_key_size: Annotated[
+        int, Field(default=4096, ge=2048, le=8192, description="RSA key size in bits")
+    ]
 
-    rsa_public_exponent: Annotated[int, Field(
-        default=65537,
-        description="RSA public exponent"
-    )]
+    rsa_public_exponent: Annotated[
+        int, Field(default=65537, description="RSA public exponent")
+    ]
 
     # AES Configuration
-    aes_key_size: Annotated[int, Field(
-        default=32,
-        ge=16,
-        le=32,
-        description="AES key size in bytes"
-    )]
+    aes_key_size: Annotated[
+        int, Field(default=32, ge=16, le=32, description="AES key size in bytes")
+    ]
 
-    aes_iv_size: Annotated[int, Field(
-        default=16,
-        ge=12,
-        le=16,
-        description="AES initialization vector size in bytes"
-    )]
+    aes_iv_size: Annotated[
+        int,
+        Field(
+            default=16,
+            ge=12,
+            le=16,
+            description="AES initialization vector size in bytes",
+        ),
+    ]
 
     # Key Management
-    key_directory: Annotated[str, Field(
-        default="rsa",
-        min_length=1,
-        description="Directory for storing encryption keys"
-    )]
+    key_directory: Annotated[
+        str,
+        Field(
+            default="rsa",
+            min_length=1,
+            description="Directory for storing encryption keys",
+        ),
+    ]
 
     # Security Features
     encryption_enabled: bool = Field(
-        default=True,
-        description="Enable encryption features"
+        default=True, description="Enable encryption features"
     )
 
     auto_generate_keys: bool = Field(
-        default=True,
-        description="Automatically generate keys if missing"
+        default=True, description="Automatically generate keys if missing"
     )
 
     secure_delete: bool = Field(
-        default=True,
-        description="Use secure deletion for sensitive data"
+        default=True, description="Use secure deletion for sensitive data"
     )
 
     @computed_field
@@ -200,7 +200,7 @@ class SecurityConfig(BaseSettings):
         """Computed field for key directory as Path object."""
         return Path(self.key_directory).resolve()
 
-    @field_validator('rsa_key_size')
+    @field_validator("rsa_key_size")
     @classmethod
     def validate_rsa_key_size(cls, v: int) -> int:
         """Validate RSA key size is power of 2."""
@@ -213,41 +213,34 @@ class HotkeyConfig(BaseSettings):
     """Hotkey configuration settings."""
 
     model_config = SettingsConfigDict(
-        env_prefix='TEXTKIT_HOTKEY_',
-        env_nested_delimiter='__',
+        env_prefix="TEXTKIT_HOTKEY_",
+        env_nested_delimiter="__",
         case_sensitive=False,
-        env_file='.env',
-        extra='ignore'  # Allow extra environment variables
+        env_file=".env",
+        extra="ignore",  # Allow extra environment variables
     )
 
     # Hotkey Definitions
     toggle_interactive: str = Field(
-        default="ctrl+shift+t",
-        description="Hotkey to toggle interactive mode"
+        default="ctrl+shift+t", description="Hotkey to toggle interactive mode"
     )
 
     quick_transform: str = Field(
-        default="ctrl+shift+q",
-        description="Hotkey for quick transformation"
+        default="ctrl+shift+q", description="Hotkey for quick transformation"
     )
 
     emergency_stop: str = Field(
-        default="ctrl+shift+esc",
-        description="Emergency stop hotkey"
+        default="ctrl+shift+esc", description="Emergency stop hotkey"
     )
 
     # Hotkey Features
-    enabled: bool = Field(
-        default=False,
-        description="Enable hotkey functionality"
-    )
+    enabled: bool = Field(default=False, description="Enable hotkey functionality")
 
     global_hotkeys: bool = Field(
-        default=False,
-        description="Enable global system hotkeys"
+        default=False, description="Enable global system hotkeys"
     )
 
-    @field_validator('toggle_interactive', 'quick_transform', 'emergency_stop')
+    @field_validator("toggle_interactive", "quick_transform", "emergency_stop")
     @classmethod
     def validate_hotkey_format(cls, v: str) -> str:
         """Validate hotkey format."""
@@ -255,8 +248,8 @@ class HotkeyConfig(BaseSettings):
             raise ValueError("Hotkey cannot be empty")
 
         # Basic validation for common hotkey patterns
-        valid_keys = {'ctrl', 'shift', 'alt', 'cmd', 'meta'}
-        parts = [part.strip().lower() for part in v.split('+')]
+        valid_keys = {"ctrl", "shift", "alt", "cmd", "meta"}
+        parts = [part.strip().lower() for part in v.split("+")]
 
         if len(parts) < 2:
             raise ValueError(f"Hotkey must contain modifier + key, got: {v}")
@@ -267,7 +260,7 @@ class HotkeyConfig(BaseSettings):
             logger.warning(
                 "hotkey_validation_warning",
                 hotkey=v,
-                message="No recognized modifiers found"
+                message="No recognized modifiers found",
             )
 
         return v
@@ -277,149 +270,143 @@ class TransformationRulesConfig(BaseSettings):
     """Configuration for transformation rules."""
 
     model_config = SettingsConfigDict(
-        env_prefix='TEXTKIT_RULES_',
-        env_nested_delimiter='__',
+        env_prefix="TEXTKIT_RULES_",
+        env_nested_delimiter="__",
         case_sensitive=False,
-        env_file='.env',
-        extra='ignore'  # Allow extra environment variables
+        env_file=".env",
+        extra="ignore",  # Allow extra environment variables
     )
 
     # Rule Categories
     basic_rules_enabled: bool = Field(
-        default=True,
-        description="Enable basic transformation rules"
+        default=True, description="Enable basic transformation rules"
     )
 
     advanced_rules_enabled: bool = Field(
-        default=True,
-        description="Enable advanced transformation rules"
+        default=True, description="Enable advanced transformation rules"
     )
 
     crypto_rules_enabled: bool = Field(
-        default=True,
-        description="Enable cryptographic transformation rules"
+        default=True, description="Enable cryptographic transformation rules"
     )
 
     custom_rules_enabled: bool = Field(
-        default=False,
-        description="Enable custom user-defined rules"
+        default=False, description="Enable custom user-defined rules"
     )
 
     # Rule Configuration
-    max_rules_per_chain: Annotated[int, Field(
-        default=50,
-        ge=1,
-        le=1000,
-        description="Maximum number of rules in a transformation chain"
-    )]
+    max_rules_per_chain: Annotated[
+        int,
+        Field(
+            default=50,
+            ge=1,
+            le=1000,
+            description="Maximum number of rules in a transformation chain",
+        ),
+    ]
 
-    rule_timeout_seconds: Annotated[float, Field(
-        default=30.0,
-        gt=0.0,
-        le=300.0,
-        description="Timeout for rule execution in seconds"
-    )]
+    rule_timeout_seconds: Annotated[
+        float,
+        Field(
+            default=30.0,
+            gt=0.0,
+            le=300.0,
+            description="Timeout for rule execution in seconds",
+        ),
+    ]
 
 
 class ApplicationSettings(BaseSettings):
     """Main application settings using Pydantic Settings."""
 
     model_config = SettingsConfigDict(
-        env_prefix='TEXTKIT_',
-        env_nested_delimiter='__',
+        env_prefix="TEXTKIT_",
+        env_nested_delimiter="__",
         case_sensitive=False,
-        env_file='.env',
-        env_file_encoding='utf-8',
-        extra='allow'  # Allow additional environment variables
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="allow",  # Allow additional environment variables
     )
 
     # Application Metadata
-    app_name: str = Field(
-        default="TextKit",
-        description="Application name"
-    )
+    app_name: str = Field(default="TextKit", description="Application name")
 
-    app_version: str = Field(
-        default="0.1.0",
-        description="Application version"
-    )
+    app_version: str = Field(default="0.1.0", description="Application version")
 
     # Core Settings
-    debug_mode: bool = Field(
-        default=False,
-        description="Enable debug mode"
-    )
+    debug_mode: bool = Field(default=False, description="Enable debug mode")
 
-    log_level: LogLevel = Field(
-        default=LogLevel.INFO,
-        description="Logging level"
-    )
+    log_level: LogLevel = Field(default=LogLevel.INFO, description="Logging level")
 
     # Text Processing Configuration
-    max_text_length: Annotated[int, Field(
-        default=10_000_000,
-        gt=0,
-        le=100_000_000,
-        description="Maximum allowed text length in characters"
-    )]
+    max_text_length: Annotated[
+        int,
+        Field(
+            default=10_000_000,
+            gt=0,
+            le=100_000_000,
+            description="Maximum allowed text length in characters",
+        ),
+    ]
 
-    max_line_length: Annotated[int, Field(
-        default=100_000,
-        gt=0,
-        le=1_000_000,
-        description="Maximum line length before warning"
-    )]
+    max_line_length: Annotated[
+        int,
+        Field(
+            default=100_000,
+            gt=0,
+            le=1_000_000,
+            description="Maximum line length before warning",
+        ),
+    ]
 
     # I/O Configuration
     auto_clipboard_monitoring: bool = Field(
-        default=False,
-        description="Enable automatic clipboard monitoring"
+        default=False, description="Enable automatic clipboard monitoring"
     )
 
-    clipboard_check_interval: Annotated[float, Field(
-        default=1.0,
-        ge=0.1,
-        le=10.0,
-        description="Clipboard check interval in seconds"
-    )]
+    clipboard_check_interval: Annotated[
+        float,
+        Field(
+            default=1.0,
+            ge=0.1,
+            le=10.0,
+            description="Clipboard check interval in seconds",
+        ),
+    ]
 
-    clipboard_max_size: Annotated[int, Field(
-        default=1_000_000,
-        gt=0,
-        le=100_000_000,
-        description="Maximum clipboard content size in bytes"
-    )]
+    clipboard_max_size: Annotated[
+        int,
+        Field(
+            default=1_000_000,
+            gt=0,
+            le=100_000_000,
+            description="Maximum clipboard content size in bytes",
+        ),
+    ]
 
     # Configuration Directories
-    config_dir: Annotated[str, Field(
-        default="config",
-        description="Configuration directory path"
-    )]
+    config_dir: Annotated[
+        str, Field(default="config", description="Configuration directory path")
+    ]
 
-    cache_dir: Annotated[str, Field(
-        default="cache",
-        description="Cache directory path"
-    )]
+    cache_dir: Annotated[
+        str, Field(default="cache", description="Cache directory path")
+    ]
 
-    log_dir: Annotated[str, Field(
-        default="logs",
-        description="Log directory path"
-    )]
+    log_dir: Annotated[str, Field(default="logs", description="Log directory path")]
 
     # Nested Configuration
     security: SecurityConfig = Field(
-        default_factory=SecurityConfig,
-        description="Security configuration"
+        default_factory=SecurityConfig, description="Security configuration"
     )
 
     hotkeys: HotkeyConfig = Field(
-        default_factory=HotkeyConfig,
-        description="Hotkey configuration"
+        default_factory=HotkeyConfig, description="Hotkey configuration"
     )
 
     transformation_rules: TransformationRulesConfig = Field(
         default_factory=TransformationRulesConfig,
-        description="Transformation rules configuration"
+        description="Transformation rules configuration",
     )
 
     @computed_field
@@ -444,9 +431,13 @@ class ApplicationSettings(BaseSettings):
     @property
     def is_production(self) -> bool:
         """Computed field indicating if running in production mode."""
-        return not self.debug_mode and self.log_level in [LogLevel.INFO, LogLevel.WARNING, LogLevel.ERROR]
+        return not self.debug_mode and self.log_level in [
+            LogLevel.INFO,
+            LogLevel.WARNING,
+            LogLevel.ERROR,
+        ]
 
-    @field_validator('max_text_length')
+    @field_validator("max_text_length")
     @classmethod
     def validate_memory_usage(cls, v: int) -> int:
         """Validate text length for memory implications."""
@@ -457,12 +448,12 @@ class ApplicationSettings(BaseSettings):
             logger.warning(
                 "high_memory_configuration",
                 max_text_length=v,
-                estimated_memory_mb=estimated_memory_mb
+                estimated_memory_mb=estimated_memory_mb,
             )
 
         return v
 
-    @field_validator('config_dir', 'cache_dir', 'log_dir')
+    @field_validator("config_dir", "cache_dir", "log_dir")
     @classmethod
     def validate_directory_paths(cls, v: str) -> str:
         """Validate directory paths."""
@@ -473,11 +464,7 @@ class ApplicationSettings(BaseSettings):
         try:
             Path(v).mkdir(parents=True, exist_ok=True)
         except OSError as e:
-            logger.error(
-                "directory_creation_failed",
-                path=v,
-                error=str(e)
-            )
+            logger.error("directory_creation_failed", path=v, error=str(e))
             # Don't raise error - allow configuration to proceed
 
         return v
@@ -489,7 +476,7 @@ class ApplicationSettings(BaseSettings):
             app_name=self.app_name,
             app_version=self.app_version,
             debug_mode=self.debug_mode,
-            log_level=self.log_level.value
+            log_level=self.log_level.value,
         )
 
         # Ensure directories exist

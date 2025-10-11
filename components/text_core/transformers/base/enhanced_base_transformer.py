@@ -15,11 +15,7 @@ from ..mixins import ErrorHandlingMixin, LoggingMixin, PerformanceMixin, Validat
 
 
 class EnhancedBaseTransformer(
-    BaseTransformer,
-    ErrorHandlingMixin,
-    ValidationMixin,
-    LoggingMixin,
-    PerformanceMixin
+    BaseTransformer, ErrorHandlingMixin, ValidationMixin, LoggingMixin, PerformanceMixin
 ):
     """Enhanced base class for all transformers with comprehensive functionality.
 
@@ -37,6 +33,7 @@ class EnhancedBaseTransformer(
 
         # Initialize logger for LoggingMixin
         import structlog
+
         self.logger = structlog.get_logger(self.__class__.__name__)
 
         self._rules: dict[str, TransformationRule] = {}
@@ -57,10 +54,7 @@ class EnhancedBaseTransformer(
         return rule_name in self._rules
 
     def transform(
-        self,
-        text: str,
-        rule_name: str,
-        args: list[str] | None = None
+        self, text: str, rule_name: str, args: list[str] | None = None
     ) -> str:
         """Apply transformation to text with enhanced capabilities.
 
@@ -81,12 +75,15 @@ class EnhancedBaseTransformer(
         # Check rule support
         if not self.supports_rule(rule_name):
             available_rules = list(self._rules.keys())[:10]  # Limit for readability
-            raise TransformationError(
-                f"Rule '{rule_name}' not supported by {self.__class__.__name__}",
-                operation="rule_lookup"
-            ).add_context("rule_name", rule_name)\
-             .add_context("transformer", self.__class__.__name__)\
-             .add_context("available_rules", available_rules)
+            raise (
+                TransformationError(
+                    f"Rule '{rule_name}' not supported by {self.__class__.__name__}",
+                    operation="rule_lookup",
+                )
+                .add_context("rule_name", rule_name)
+                .add_context("transformer", self.__class__.__name__)
+                .add_context("available_rules", available_rules)
+            )
 
         # Execute transformation with comprehensive monitoring
         with self.with_transformation_context(rule_name, validated_text):
@@ -94,16 +91,12 @@ class EnhancedBaseTransformer(
 
             try:
                 result = self._apply_transformation_safely(
-                    validated_text,
-                    rule_name,
-                    args
+                    validated_text, rule_name, args
                 )
 
                 # Validate result
                 validated_result = self.validate_transformation_result(
-                    result,
-                    rule_name,
-                    str
+                    result, rule_name, str
                 )
 
                 # Log success and track performance
@@ -112,15 +105,17 @@ class EnhancedBaseTransformer(
                     start_time,
                     validated_text,
                     validated_result,
-                    success=True
+                    success=True,
                 )
 
-                elapsed_ms = (self.log_transformation_start.__func__(self, rule_name, validated_text, args) - start_time) * 1000
+                elapsed_ms = (
+                    self.log_transformation_start.__func__(
+                        self, rule_name, validated_text, args
+                    )
+                    - start_time
+                ) * 1000
                 self.track_performance(
-                    rule_name,
-                    elapsed_ms,
-                    len(validated_text),
-                    len(validated_result)
+                    rule_name, elapsed_ms, len(validated_text), len(validated_result)
                 )
 
                 return validated_result
@@ -128,26 +123,14 @@ class EnhancedBaseTransformer(
             except Exception as e:
                 # Log failure
                 self.log_transformation_end(
-                    rule_name,
-                    start_time,
-                    validated_text,
-                    "",
-                    success=False,
-                    error=e
+                    rule_name, start_time, validated_text, "", success=False, error=e
                 )
 
                 # Wrap and enhance error
-                raise self._wrap_transformation_error(
-                    e,
-                    rule_name,
-                    validated_text
-                )
+                raise self._wrap_transformation_error(e, rule_name, validated_text)
 
     def _apply_transformation_safely(
-        self,
-        text: str,
-        rule_name: str,
-        args: list[str] | None
+        self, text: str, rule_name: str, args: list[str] | None
     ) -> str:
         """Apply transformation with safe execution patterns.
 
@@ -172,18 +155,18 @@ class EnhancedBaseTransformer(
                 return rule.function(text)
 
         except Exception as e:
-            raise TransformationError(
-                f"Transformation failed for rule '{rule_name}': {e}",
-                operation="rule_execution",
-                cause=e
-            ).add_context("rule_name", rule_name)\
-             .add_context("transformer", self.__class__.__name__)
+            raise (
+                TransformationError(
+                    f"Transformation failed for rule '{rule_name}': {e}",
+                    operation="rule_execution",
+                    cause=e,
+                )
+                .add_context("rule_name", rule_name)
+                .add_context("transformer", self.__class__.__name__)
+            )
 
     def _apply_with_args(
-        self,
-        text: str,
-        rule: TransformationRule,
-        args: list[str]
+        self, text: str, rule: TransformationRule, args: list[str]
     ) -> str:
         """Apply transformation that requires arguments.
 
@@ -201,7 +184,8 @@ class EnhancedBaseTransformer(
     def get_rules_by_type(self, rule_type) -> dict[str, TransformationRule]:
         """Return rules filtered by type."""
         return {
-            name: rule for name, rule in self._rules.items()
+            name: rule
+            for name, rule in self._rules.items()
             if rule.rule_type == rule_type
         }
 
@@ -214,7 +198,7 @@ class EnhancedBaseTransformer(
         base_stats = {
             "transformer_class": self.__class__.__name__,
             "supported_rules": len(self._rules),
-            "rule_names": list(self._rules.keys())
+            "rule_names": list(self._rules.keys()),
         }
 
         # Add performance stats
@@ -233,39 +217,38 @@ class EnhancedBaseTransformer(
             "total_rules": len(self._rules),
             "valid_rules": [],
             "invalid_rules": [],
-            "warnings": []
+            "warnings": [],
         }
 
         for rule_name, rule in self._rules.items():
             try:
                 # Basic rule validation
                 if not rule.name:
-                    report["invalid_rules"].append({
-                        "rule_name": rule_name,
-                        "issue": "Empty rule name"
-                    })
+                    report["invalid_rules"].append(
+                        {"rule_name": rule_name, "issue": "Empty rule name"}
+                    )
                     continue
 
                 if not callable(rule.function):
-                    report["invalid_rules"].append({
-                        "rule_name": rule_name,
-                        "issue": "Non-callable function"
-                    })
+                    report["invalid_rules"].append(
+                        {"rule_name": rule_name, "issue": "Non-callable function"}
+                    )
                     continue
 
                 # Check for common issues
                 if rule.requires_args and not rule.default_args:
-                    report["warnings"].append({
-                        "rule_name": rule_name,
-                        "warning": "Requires args but no default args provided"
-                    })
+                    report["warnings"].append(
+                        {
+                            "rule_name": rule_name,
+                            "warning": "Requires args but no default args provided",
+                        }
+                    )
 
                 report["valid_rules"].append(rule_name)
 
             except Exception as e:
-                report["invalid_rules"].append({
-                    "rule_name": rule_name,
-                    "issue": f"Validation error: {e}"
-                })
+                report["invalid_rules"].append(
+                    {"rule_name": rule_name, "issue": f"Validation error: {e}"}
+                )
 
         return report

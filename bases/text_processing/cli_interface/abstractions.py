@@ -34,7 +34,9 @@ class TextTransformationEngineInterface(ABC):
         pass
 
     @abstractmethod
-    def set_crypto_manager(self, crypto_manager: CryptographyManagerInterface | None) -> None:
+    def set_crypto_manager(
+        self, crypto_manager: CryptographyManagerInterface | None
+    ) -> None:
         """Set the cryptography manager dependency."""
         pass
 

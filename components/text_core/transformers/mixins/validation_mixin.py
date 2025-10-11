@@ -5,7 +5,6 @@ Provides standardized validation patterns that can be mixed
 into transformer classes for consistent input validation.
 """
 
-
 from textkit.common_utils import validate_text_input
 from textkit.exceptions import ParameterValidationError, ValidationError
 
@@ -23,7 +22,7 @@ class ValidationMixin:
         rule_name: str,
         args: list[str] | None = None,
         allow_empty: bool = True,
-        max_length: int | None = None
+        max_length: int | None = None,
     ) -> str:
         """Validate transformation input parameters.
 
@@ -46,7 +45,7 @@ class ValidationMixin:
                 text,
                 allow_empty=allow_empty,
                 max_length=max_length,
-                parameter_name="text"
+                parameter_name="text",
             )
 
             # Validate rule name
@@ -54,7 +53,7 @@ class ValidationMixin:
                 raise ParameterValidationError(
                     "Rule name must be a non-empty string",
                     parameter_name="rule_name",
-                    parameter_value=rule_name
+                    parameter_value=rule_name,
                 )
 
             # Validate args if provided
@@ -64,7 +63,7 @@ class ValidationMixin:
                         "Arguments must be a list",
                         parameter_name="args",
                         parameter_value=args,
-                        constraints={"expected_type": "list"}
+                        constraints={"expected_type": "list"},
                     )
 
                 for i, arg in enumerate(args):
@@ -73,7 +72,7 @@ class ValidationMixin:
                             f"Argument at index {i} must be a string",
                             parameter_name=f"args[{i}]",
                             parameter_value=arg,
-                            constraints={"expected_type": "str"}
+                            constraints={"expected_type": "str"},
                         )
 
             return validated_text
@@ -83,9 +82,7 @@ class ValidationMixin:
             raise
         except Exception as e:
             raise ParameterValidationError(
-                f"Input validation failed: {e}",
-                parameter_name="validation",
-                cause=e
+                f"Input validation failed: {e}", parameter_name="validation", cause=e
             ).add_context("rule_name", rule_name)
 
     def validate_rule_arguments(
@@ -95,7 +92,7 @@ class ValidationMixin:
         required_count: int | None = None,
         min_count: int | None = None,
         max_count: int | None = None,
-        allowed_values: dict[int, list[str]] | None = None
+        allowed_values: dict[int, list[str]] | None = None,
     ) -> list[str]:
         """Validate transformation rule arguments.
 
@@ -122,8 +119,8 @@ class ValidationMixin:
                     parameter_value=args,
                     constraints={
                         "required_count": required_count,
-                        "actual_count": len(args)
-                    }
+                        "actual_count": len(args),
+                    },
                 )
 
             if min_count is not None and len(args) < min_count:
@@ -131,10 +128,7 @@ class ValidationMixin:
                     f"Rule '{rule_name}' requires at least {min_count} arguments, got {len(args)}",
                     parameter_name="args",
                     parameter_value=args,
-                    constraints={
-                        "min_count": min_count,
-                        "actual_count": len(args)
-                    }
+                    constraints={"min_count": min_count, "actual_count": len(args)},
                 )
 
             if max_count is not None and len(args) > max_count:
@@ -142,10 +136,7 @@ class ValidationMixin:
                     f"Rule '{rule_name}' accepts at most {max_count} arguments, got {len(args)}",
                     parameter_name="args",
                     parameter_value=args,
-                    constraints={
-                        "max_count": max_count,
-                        "actual_count": len(args)
-                    }
+                    constraints={"max_count": max_count, "actual_count": len(args)},
                 )
 
             # Check allowed values
@@ -159,8 +150,8 @@ class ValidationMixin:
                                 parameter_value=args[position],
                                 constraints={
                                     "allowed_values": allowed,
-                                    "position": position
-                                }
+                                    "position": position,
+                                },
                             )
 
             return args
@@ -173,14 +164,11 @@ class ValidationMixin:
                 f"Argument validation failed for rule '{rule_name}': {e}",
                 parameter_name="args",
                 parameter_value=args,
-                cause=e
+                cause=e,
             ).add_context("rule_name", rule_name)
 
     def validate_encoding_parameter(
-        self,
-        encoding: str,
-        parameter_name: str = "encoding",
-        allow_auto: bool = True
+        self, encoding: str, parameter_name: str = "encoding", allow_auto: bool = True
     ) -> str:
         """Validate encoding parameter.
 
@@ -200,7 +188,7 @@ class ValidationMixin:
                 f"{parameter_name} must be a string",
                 parameter_name=parameter_name,
                 parameter_value=encoding,
-                constraints={"expected_type": "str"}
+                constraints={"expected_type": "str"},
             )
 
         encoding = encoding.strip()
@@ -208,25 +196,22 @@ class ValidationMixin:
             raise ParameterValidationError(
                 f"{parameter_name} cannot be empty",
                 parameter_name=parameter_name,
-                parameter_value=encoding
+                parameter_value=encoding,
             )
 
         # Allow 'auto' if specified
-        if allow_auto and encoding.lower() == 'auto':
-            return 'auto'
+        if allow_auto and encoding.lower() == "auto":
+            return "auto"
 
         # Validate encoding exists
         import codecs
+
         try:
             codecs.lookup(encoding)
         except LookupError:
             # Try common aliases
-            aliases = {
-                'sjis': 'shift_jis',
-                'eucjp': 'euc_jp',
-                'utf8': 'utf_8'
-            }
-            normalized = encoding.lower().replace('-', '_')
+            aliases = {"sjis": "shift_jis", "eucjp": "euc_jp", "utf8": "utf_8"}
+            normalized = encoding.lower().replace("-", "_")
 
             if normalized in aliases:
                 try:
@@ -239,16 +224,13 @@ class ValidationMixin:
                 f"Unsupported encoding: {encoding}",
                 parameter_name=parameter_name,
                 parameter_value=encoding,
-                constraints={"validation_type": "encoding_support"}
+                constraints={"validation_type": "encoding_support"},
             )
 
         return encoding
 
     def require_arguments(
-        self,
-        args: list[str] | None,
-        rule_name: str,
-        min_count: int = 1
+        self, args: list[str] | None, rule_name: str, min_count: int = 1
     ) -> list[str]:
         """Require minimum number of arguments for a rule.
 
@@ -269,10 +251,7 @@ class ValidationMixin:
                 f"Rule '{rule_name}' requires at least {min_count} arguments, got {actual_count}",
                 parameter_name="args",
                 parameter_value=args,
-                constraints={
-                    "min_count": min_count,
-                    "actual_count": actual_count
-                }
+                constraints={"min_count": min_count, "actual_count": actual_count},
             )
 
         return args

@@ -14,6 +14,7 @@ class ParsedRule(BaseModel):
         name: Rule name (e.g., 't', 'l', 'iconv')
         args: Arguments for the rule
     """
+
     name: str
     args: list[str] = []
 

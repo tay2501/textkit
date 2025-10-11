@@ -67,15 +67,14 @@ class InputOutputManager:
                 {
                     "stdin_isatty": sys.stdin.isatty(),
                     "clipboard_available": self.clipboard_available,
-                }
+                },
             )
 
         except IOError:
             raise
         except Exception as e:
             raise IOError(
-                f"Failed to get input text: {e}",
-                {"error_type": type(e).__name__}
+                f"Failed to get input text: {e}", {"error_type": type(e).__name__}
             ) from e
 
     def get_clipboard_text(self) -> str:
@@ -90,7 +89,7 @@ class InputOutputManager:
         if not self.clipboard_available:
             raise IOError(
                 "Clipboard functionality not available - install pyperclip",
-                {"clipboard_available": False}
+                {"clipboard_available": False},
             )
 
         try:
@@ -108,8 +107,7 @@ class InputOutputManager:
 
         except Exception as e:
             raise IOError(
-                f"Failed to read from clipboard: {e}",
-                {"error_type": type(e).__name__}
+                f"Failed to read from clipboard: {e}", {"error_type": type(e).__name__}
             ) from e
 
     def set_output_text(self, text: str) -> None:
@@ -124,7 +122,7 @@ class InputOutputManager:
         if not isinstance(text, str):
             raise IOError(
                 f"Invalid output type: expected str, got {type(text).__name__}",
-                {"text_type": type(text).__name__}
+                {"text_type": type(text).__name__},
             )
 
         success_count = 0
@@ -153,8 +151,8 @@ class InputOutputManager:
                 {
                     "clipboard_available": self.clipboard_available,
                     "errors": errors,
-                    "text_length": len(text)
-                }
+                    "text_length": len(text),
+                },
             )
 
     def get_pipe_input(self) -> str:
@@ -168,8 +166,7 @@ class InputOutputManager:
         """
         if sys.stdin.isatty():
             raise IOError(
-                "No piped input available - stdin is a terminal",
-                {"stdin_isatty": True}
+                "No piped input available - stdin is a terminal", {"stdin_isatty": True}
             )
 
         try:
@@ -184,8 +181,7 @@ class InputOutputManager:
 
         except Exception as e:
             raise IOError(
-                f"Failed to read from pipe: {e}",
-                {"error_type": type(e).__name__}
+                f"Failed to read from pipe: {e}", {"error_type": type(e).__name__}
             ) from e
 
     def is_pipe_available(self) -> bool:
@@ -217,7 +213,7 @@ class InputOutputManager:
         if not isinstance(text, str):
             raise IOError(
                 f"Invalid text type: expected str, got {type(text).__name__}",
-                {"text_type": type(text).__name__}
+                {"text_type": type(text).__name__},
             )
 
         try:
@@ -227,7 +223,7 @@ class InputOutputManager:
         except UnicodeError as e:
             raise IOError(
                 f"Text encoding validation failed: {e}",
-                {"encoding_error": str(e), "text_length": len(text)}
+                {"encoding_error": str(e), "text_length": len(text)},
             ) from e
 
     def safe_copy_to_clipboard(self, text: str) -> bool:
@@ -264,7 +260,7 @@ class InputOutputManager:
         if not self.clipboard_available:
             raise IOError(
                 "Clipboard functionality not available - install pyperclip",
-                {"clipboard_available": False}
+                {"clipboard_available": False},
             )
 
         try:
@@ -273,26 +269,25 @@ class InputOutputManager:
 
             # Log the operation
             import structlog
+
             logger = structlog.get_logger(__name__)
             logger.info(
                 "clipboard_cleared",
                 operation="clear_clipboard",
-                clipboard_available=self.clipboard_available
+                clipboard_available=self.clipboard_available,
             )
 
             return True
 
         except Exception as e:
             import structlog
+
             logger = structlog.get_logger(__name__)
             logger.error(
-                "clipboard_clear_failed",
-                error=str(e),
-                error_type=type(e).__name__
+                "clipboard_clear_failed", error=str(e), error_type=type(e).__name__
             )
             raise IOError(
-                f"Failed to clear clipboard: {e}",
-                {"error_type": type(e).__name__}
+                f"Failed to clear clipboard: {e}", {"error_type": type(e).__name__}
             ) from e
 
     def emergency_output(self, text: str) -> None:
@@ -328,6 +323,7 @@ class InputOutputManager:
         # If all else fails, store in a temporary file
         try:
             from pathlib import Path
+
             emergency_file = Path("emergency_output.txt")
             with open(emergency_file, "w", encoding="utf-8") as f:
                 f.write(text)

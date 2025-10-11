@@ -41,8 +41,8 @@ class TestTextTransformationEngineIntegration:
         """Test various case transformation chains."""
         test_cases = [
             ("hello world", "/p/s", "hello_world"),  # pascal then snake
-            ("HELLO WORLD", "/l/c", "helloWorld"),   # lower then camel
-            ("hello_world", "/p/c", "helloWorld"),    # pascal then camel
+            ("HELLO WORLD", "/l/c", "helloWorld"),  # lower then camel
+            ("hello_world", "/p/c", "helloWorld"),  # pascal then camel
         ]
 
         for input_text, rules, expected in test_cases:
@@ -58,6 +58,7 @@ class TestTextTransformationEngineIntegration:
 
         # Should be base64 encoded hash
         import base64
+
         decoded = base64.b64decode(result)
         assert len(decoded) == 32  # SHA256 produces 32 bytes
 
@@ -73,8 +74,8 @@ class TestTextTransformationEngineIntegration:
             ("/t", ["t"]),
             ("//t", ["", "t"]),  # Empty rule should be handled
             ("/t/", ["t", ""]),  # Trailing empty rule
-            ("-t", ["t"]),       # Different separator
-            ("|t|l", ["t", "l"]), # Pipe separator
+            ("-t", ["t"]),  # Different separator
+            ("|t|l", ["t", "l"]),  # Pipe separator
         ]
 
         for rule_string, expected_rules in test_cases:
@@ -218,8 +219,8 @@ class TestComponentInteraction:
         factory = self.engine._transformation_factory
 
         # Test that factory has necessary methods
-        assert hasattr(factory, 'get_all_transformers')
-        assert hasattr(factory, 'get_transformer_for_rule')
+        assert hasattr(factory, "get_all_transformers")
+        assert hasattr(factory, "get_transformer_for_rule")
 
 
 class TestErrorScenarios:
@@ -240,11 +241,11 @@ class TestErrorScenarios:
     def test_malformed_rule_strings(self):
         """Test handling of malformed rule strings."""
         malformed_rules = [
-            "",           # Empty string
-            "   ",        # Whitespace only
-            "no_slash",   # No separator
-            "/",          # Just separator
-            "///",        # Multiple separators
+            "",  # Empty string
+            "   ",  # Whitespace only
+            "no_slash",  # No separator
+            "/",  # Just separator
+            "///",  # Multiple separators
         ]
 
         for rule in malformed_rules:
@@ -282,9 +283,9 @@ class TestErrorScenarios:
         """Test handling of Unicode-related errors."""
         # Test with problematic Unicode sequences
         problematic_texts = [
-            "\udcff",      # Surrogate character
-            "\uffff",      # Non-character
-            "\u0000",      # Null character
+            "\udcff",  # Surrogate character
+            "\uffff",  # Non-character
+            "\u0000",  # Null character
         ]
 
         for text in problematic_texts:

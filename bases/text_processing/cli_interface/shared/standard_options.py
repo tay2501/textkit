@@ -101,16 +101,12 @@ ErrorHandlingOption = Annotated[
 
 RulesArgument = Annotated[
     str,
-    typer.Argument(
-        help="Transformation rules (e.g., '/t/l' for trim+lowercase)"
-    ),
+    typer.Argument(help="Transformation rules (e.g., '/t/l' for trim+lowercase)"),
 ]
 
 TextArgument = Annotated[
     str,
-    typer.Argument(
-        help="Text to process"
-    ),
+    typer.Argument(help="Text to process"),
 ]
 
 
@@ -148,6 +144,7 @@ ForceOption = Annotated[
 # ============================================================================
 # Helper Functions
 # ============================================================================
+
 
 def create_input_option(default: str | None = None, required: bool = False) -> type:
     """Create a customized input option.

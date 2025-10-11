@@ -79,9 +79,13 @@ class BaseCommandHandler(ABC):
         if should_output:
             try:
                 self.app.io_manager.set_output_text(result)
-                console.print("[green]Success: Result copied to clipboard and printed[/green]")
+                console.print(
+                    "[green]Success: Result copied to clipboard and printed[/green]"
+                )
             except Exception:
-                console.print("[yellow]Warning: Result printed (clipboard unavailable)[/yellow]")
+                console.print(
+                    "[yellow]Warning: Result printed (clipboard unavailable)[/yellow]"
+                )
 
         # Show preview
         preview = result[:100] + "..." if len(result) > 100 else result

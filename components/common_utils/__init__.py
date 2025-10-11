@@ -33,14 +33,12 @@ __all__ = [
     "handle_validation_error",
     "with_error_context",
     "retry_on_failure",
-
     # Logging utilities
     "get_structured_logger",
     "log_performance",
     "log_operation_start",
     "log_operation_end",
     "create_log_context",
-
     # Validation helpers
     "validate_text_input",
     "validate_encoding_name",

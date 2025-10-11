@@ -68,10 +68,7 @@ class OutputFormatter:
         self.console.print(f"[cyan]{message}[/cyan]")
 
     def format_status_panel(
-        self,
-        title: str,
-        content: dict[str, Any],
-        border_style: str = "blue"
+        self, title: str, content: dict[str, Any], border_style: str = "blue"
     ) -> Panel:
         """Create a formatted panel for status information.
 
@@ -87,16 +84,10 @@ class OutputFormatter:
         for key, value in content.items():
             content_lines.append(f"{key}: {value}")
 
-        return Panel(
-            "\n".join(content_lines),
-            title=title,
-            border_style=border_style
-        )
+        return Panel("\n".join(content_lines), title=title, border_style=border_style)
 
     def format_rules_table(
-        self,
-        rules: dict[str, Any],
-        search_filter: str | None = None
+        self, rules: dict[str, Any], search_filter: str | None = None
     ) -> Table:
         """Create a formatted table for transformation rules.
 

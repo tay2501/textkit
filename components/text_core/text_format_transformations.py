@@ -296,7 +296,9 @@ class TextFormatTransformations(TransformationBase):
                 return "()"
 
             # Quote each item and join with commas
-            quoted_items = [f"'{item.replace(chr(39), chr(39) + chr(39))}'" for item in items]
+            quoted_items = [
+                f"'{item.replace(chr(39), chr(39) + chr(39))}'" for item in items
+            ]
             return f"({', '.join(quoted_items)})"
 
         except Exception as e:

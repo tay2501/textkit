@@ -21,6 +21,7 @@ class ValidationRule:
     This dataclass encapsulates validation logic with
     proper error messaging and context information.
     """
+
     name: str
     validator: Callable[[Any], bool]
     error_message: str
@@ -95,7 +96,9 @@ class CommandValidator:
         """
         # Validate arguments
         for arg_name, value in context.arguments.items():
-            self._validate_field(arg_name, value, self._argument_rules.get(arg_name, []))
+            self._validate_field(
+                arg_name, value, self._argument_rules.get(arg_name, [])
+            )
 
         # Validate options
         for opt_name, value in context.options.items():
@@ -106,7 +109,9 @@ class CommandValidator:
             if not rule.validator(context):
                 raise ValidationError(rule.error_message, "context")
 
-    def _validate_field(self, field_name: str, value: Any, rules: list[ValidationRule]) -> None:
+    def _validate_field(
+        self, field_name: str, value: Any, rules: list[ValidationRule]
+    ) -> None:
         """Validate a specific field with given rules.
 
         Args:
@@ -120,7 +125,9 @@ class CommandValidator:
         for rule in rules:
             # Check if required field is present
             if rule.required and (value is None or value == ""):
-                raise ValidationError(f"Required field '{field_name}' is missing", field_name)
+                raise ValidationError(
+                    f"Required field '{field_name}' is missing", field_name
+                )
 
             # Skip validation if value is None/empty and not required
             if not rule.required and (value is None or value == ""):
@@ -130,7 +137,7 @@ class CommandValidator:
             if not rule.validator(value):
                 raise ValidationError(
                     f"Validation failed for '{field_name}': {rule.error_message}",
-                    field_name
+                    field_name,
                 )
 
 
@@ -154,16 +161,20 @@ class CommonValidators:
     @staticmethod
     def max_length(max_len: int) -> Callable[[Any], bool]:
         """Create validator for maximum string length."""
+
         def validator(value: Any) -> bool:
             return len(str(value)) <= max_len
+
         return validator
 
     @staticmethod
     def matches_pattern(pattern: str) -> Callable[[Any], bool]:
         """Create validator for regex pattern matching."""
         import re
+
         compiled_pattern = re.compile(pattern)
 
         def validator(value: Any) -> bool:
             return bool(compiled_pattern.match(str(value)))
+
         return validator

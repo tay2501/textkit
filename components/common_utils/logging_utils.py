@@ -13,12 +13,14 @@ from typing import Any, TypeVar
 
 try:
     import structlog
+
     STRUCTLOG_AVAILABLE = True
 except ImportError:
     import logging
+
     STRUCTLOG_AVAILABLE = False
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def get_structured_logger(name: str, context: dict[str, Any] | None = None):
@@ -42,7 +44,7 @@ def get_structured_logger(name: str, context: dict[str, Any] | None = None):
         if not logger.handlers:
             handler = logging.StreamHandler()
             formatter = logging.Formatter(
-                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
             )
             handler.setFormatter(formatter)
             logger.addHandler(handler)
@@ -56,7 +58,7 @@ def log_performance(
     operation: str,
     context: dict[str, Any] | None = None,
     log_start: bool = True,
-    log_end: bool = True
+    log_end: bool = True,
 ):
     """Context manager for performance logging.
 
@@ -84,7 +86,7 @@ def log_performance(
                 "operation_completed",
                 operation=operation,
                 elapsed_ms=elapsed_time,
-                **log_context
+                **log_context,
             )
     except Exception as e:
         elapsed_time = (time.perf_counter() - start_time) * 1000
@@ -95,15 +97,13 @@ def log_performance(
                 elapsed_ms=elapsed_time,
                 error=str(e),
                 error_type=type(e).__name__,
-                **log_context
+                **log_context,
             )
         raise
 
 
 def log_operation_start(
-    logger,
-    operation: str,
-    context: dict[str, Any] | None = None
+    logger, operation: str, context: dict[str, Any] | None = None
 ) -> float:
     """Log the start of an operation and return start time.
 
@@ -117,11 +117,7 @@ def log_operation_start(
     """
     start_time = time.perf_counter()
     if logger:
-        logger.debug(
-            "operation_started",
-            operation=operation,
-            **(context or {})
-        )
+        logger.debug("operation_started", operation=operation, **(context or {}))
     return start_time
 
 
@@ -131,7 +127,7 @@ def log_operation_end(
     start_time: float,
     context: dict[str, Any] | None = None,
     success: bool = True,
-    error: Exception | None = None
+    error: Exception | None = None,
 ) -> None:
     """Log the end of an operation with timing information.
 
@@ -149,18 +145,14 @@ def log_operation_end(
 
     if logger:
         if success:
-            logger.info(
-                "operation_completed",
-                operation=operation,
-                **log_context
-            )
+            logger.info("operation_completed", operation=operation, **log_context)
         else:
             logger.error(
                 "operation_failed",
                 operation=operation,
                 error=str(error) if error else "Unknown error",
                 error_type=type(error).__name__ if error else "UnknownError",
-                **log_context
+                **log_context,
             )
 
 
@@ -181,6 +173,7 @@ def create_log_context(**kwargs) -> dict[str, Any]:
             try:
                 # Test if value is JSON serializable
                 import json
+
                 json.dumps(value, default=str)
                 context[key] = value
             except (TypeError, ValueError):
@@ -194,7 +187,7 @@ def performance_monitor(
     logger,
     operation_name: str | None = None,
     log_args: bool = False,
-    log_result: bool = False
+    log_result: bool = False,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Decorator for automatic performance monitoring.
 
@@ -207,6 +200,7 @@ def performance_monitor(
     Returns:
         Decorator function
     """
+
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> T:
@@ -215,17 +209,12 @@ def performance_monitor(
 
             log_context = {"function": func.__name__}
             if log_args:
-                log_context.update({
-                    "args_count": len(args),
-                    "kwargs_keys": list(kwargs.keys())
-                })
+                log_context.update(
+                    {"args_count": len(args), "kwargs_keys": list(kwargs.keys())}
+                )
 
             if logger:
-                logger.debug(
-                    "function_started",
-                    operation=op_name,
-                    **log_context
-                )
+                logger.debug("function_started", operation=op_name, **log_context)
 
             try:
                 result = func(*args, **kwargs)
@@ -233,7 +222,7 @@ def performance_monitor(
 
                 if log_result and result is not None:
                     log_context["result_type"] = type(result).__name__
-                    if hasattr(result, '__len__'):
+                    if hasattr(result, "__len__"):
                         try:
                             log_context["result_length"] = len(result)
                         except (TypeError, AttributeError):
@@ -244,7 +233,7 @@ def performance_monitor(
                         "function_completed",
                         operation=op_name,
                         elapsed_ms=elapsed_time,
-                        **log_context
+                        **log_context,
                     )
 
                 return result
@@ -258,9 +247,10 @@ def performance_monitor(
                         elapsed_ms=elapsed_time,
                         error=str(e),
                         error_type=type(e).__name__,
-                        **log_context
+                        **log_context,
                     )
                 raise
 
         return wrapper
+
     return decorator

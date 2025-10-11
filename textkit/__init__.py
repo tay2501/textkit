@@ -1,4 +1,5 @@
 """Textkit root namespace package."""
+
 from pathlib import Path
 
 # Extend the package's __path__ to include components and bases

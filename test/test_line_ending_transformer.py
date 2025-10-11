@@ -10,6 +10,7 @@ from textkit.text_core.transformers.line_ending_transformer import LineEndingTra
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
+
 class TestLineEndingTransformer:
     """Test cases for LineEndingTransformer."""
 
@@ -120,8 +121,14 @@ class TestLineEndingTransformer:
         """Test that all expected rules are available."""
         rules = self.transformer.get_rules()
         expected_rules = {
-            "tr", "unix-to-windows", "windows-to-unix", "unix-to-mac",
-            "mac-to-unix", "windows-to-mac", "mac-to-windows", "normalize"
+            "tr",
+            "unix-to-windows",
+            "windows-to-unix",
+            "unix-to-mac",
+            "mac-to-unix",
+            "windows-to-mac",
+            "mac-to-windows",
+            "normalize",
         }
         assert set(rules.keys()) == expected_rules
 
@@ -133,7 +140,9 @@ class TestLineEndingTransformer:
 
     def test_tr_missing_arguments(self):
         """Test tr transformation with missing arguments."""
-        with pytest.raises(ValueError, match="tr transformation requires exactly 2 arguments"):
+        with pytest.raises(
+            ValueError, match="tr transformation requires exactly 2 arguments"
+        ):
             self.transformer.transform("test", "tr", ["\\n"])
 
     def test_tr_no_arguments_uses_default(self):

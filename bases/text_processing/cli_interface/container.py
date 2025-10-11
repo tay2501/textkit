@@ -30,26 +30,32 @@ def create_container() -> Container:
 
     # Configuration management
     from textkit.config_manager import ConfigurationManager
+
     container[ConfigurationManagerInterface] = lambda: ConfigurationManager()
 
     # I/O management
     from textkit.io_handler import InputOutputManager
+
     container[InputOutputManagerInterface] = InputOutputManager
 
     # Rule parser
     from textkit.rule_parser import RuleParser
+
     container[RuleParser] = RuleParser
 
     # Text transformation engine
     from textkit.text_core import TextTransformationEngine
+
     container[TextTransformationEngineInterface] = lambda c: TextTransformationEngine(
-        config_manager=c[ConfigurationManagerInterface],
-        rule_parser=c[RuleParser]
+        config_manager=c[ConfigurationManagerInterface], rule_parser=c[RuleParser]
     )
 
     # Cryptography manager (optional dependency)
     from textkit.crypto_engine import CryptographyManager
-    container[CryptographyManagerInterface] = lambda c: CryptographyManager(c[ConfigurationManagerInterface])
+
+    container[CryptographyManagerInterface] = lambda c: CryptographyManager(
+        c[ConfigurationManagerInterface]
+    )
 
     # Application service (facade) - lazy import to avoid circular dependency
     def create_application_service(container_instance):

@@ -52,7 +52,9 @@ def get_app() -> ApplicationServiceInterface:
     return _app_instance
 
 
-def get_input_text(app_instance: ApplicationServiceInterface, text: str | None = None) -> str:
+def get_input_text(
+    app_instance: ApplicationServiceInterface, text: str | None = None
+) -> str:
     """Get input text from various sources."""
     if text is not None:
         return text
@@ -170,9 +172,7 @@ def run_cli() -> None:
     except Exception as e:
         logger = structlog.get_logger(__name__)
         logger.exception(
-            "application_failed_unexpectedly",
-            error_type=type(e).__name__,
-            error=str(e)
+            "application_failed_unexpectedly", error_type=type(e).__name__, error=str(e)
         )
         error_handler.handle_cli_error(e, "CLI initialization")
 

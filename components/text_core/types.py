@@ -48,15 +48,20 @@ except ImportError:
 
     def computed_field(*args, **kwargs):
         """Stub for pydantic computed_field."""
+
         def decorator(func):
             return func
+
         return decorator
 
     def field_validator(*args, **kwargs):
         """Stub for pydantic field_validator."""
+
         def decorator(func):
             return func
+
         return decorator
+
     ConfigDict = dict
     ValidationInfo = object
 
@@ -119,72 +124,73 @@ class TransformationRule(BaseModel):
         frozen=True,  # Immutable like the original dataclass
         str_strip_whitespace=True,
         validate_assignment=True,
-        extra='forbid'
+        extra="forbid",
     )
 
-    name: Annotated[str, Field(
-        min_length=1,
-        max_length=50,
-        description="Human-readable rule name or identifier"
-    )]
+    name: Annotated[
+        str,
+        Field(
+            min_length=1,
+            max_length=50,
+            description="Human-readable rule name or identifier",
+        ),
+    ]
 
-    description: Annotated[str, Field(
-        min_length=1,
-        max_length=500,
-        description="Human-readable description of the rule"
-    )]
+    description: Annotated[
+        str,
+        Field(
+            min_length=1,
+            max_length=500,
+            description="Human-readable description of the rule",
+        ),
+    ]
 
-    example: Annotated[str, Field(
-        min_length=1,
-        max_length=200,
-        description="Example usage of the rule"
-    )]
+    example: Annotated[
+        str,
+        Field(min_length=1, max_length=200, description="Example usage of the rule"),
+    ]
 
     function: Callable[[str], str] = Field(
         description="Function that implements the transformation"
     )
 
     requires_args: bool = Field(
-        default=False,
-        description="Whether this rule requires additional arguments"
+        default=False, description="Whether this rule requires additional arguments"
     )
 
     default_args: list[str] | None = Field(
-        default=None,
-        description="Default arguments for the rule"
+        default=None, description="Default arguments for the rule"
     )
 
     rule_type: TransformationRuleType = Field(
         default=TransformationRuleType.BASIC,
-        description="Category of the transformation rule"
+        description="Category of the transformation rule",
     )
 
-    @field_validator('default_args', mode='after')
+    @field_validator("default_args", mode="after")
     @classmethod
     def validate_default_args_consistency(
-        cls,
-        v: list[str] | None,
-        info: ValidationInfo
+        cls, v: list[str] | None, info: ValidationInfo
     ) -> list[str] | None:
         """Ensure default_args is provided when requires_args is True."""
-        if info.context and 'requires_args' in info.context:
-            requires_args = info.context['requires_args']
+        if info.context and "requires_args" in info.context:
+            requires_args = info.context["requires_args"]
         else:
             # Access the requires_args value from the current validation
-            requires_args = info.data.get('requires_args', False)
+            requires_args = info.data.get("requires_args", False)
 
         # Allow empty list when requires_args is True but don't require it
         if requires_args and v is not None and len(v) == 0:
             # Empty list is allowed, just warn
             logger.warning(
                 "default_args is empty but requires_args is True",
-                rule_name=info.data.get('name', 'unknown')
+                rule_name=info.data.get("name", "unknown"),
             )
 
         if not requires_args and v:
             logger.warning(
                 "default_args provided but requires_args is False",
-                rule_name=info.data.get('name', 'unknown')
+                rule_name=info.data.get("name", "unknown"),
             )
 
         return v
@@ -206,6 +212,7 @@ class TransformationRule(BaseModel):
 TransformerStrategyT = TypeVar("TransformerStrategyT")
 FactoryT = TypeVar("FactoryT")
 
+
 @runtime_checkable
 class TransformerProtocol(Protocol):
     """Protocol for transformer strategies."""
@@ -218,9 +225,12 @@ class TransformerProtocol(Protocol):
         """Check if transformer supports given rule."""
         ...
 
-    def transform(self, text: str, rule_name: str, args: list[str] | None = None) -> str:
+    def transform(
+        self, text: str, rule_name: str, args: list[str] | None = None
+    ) -> str:
         """Apply transformation to text."""
         ...
+
 
 @runtime_checkable
 class TransformationFactoryProtocol(Protocol):
@@ -748,6 +758,7 @@ def is_transformation_rule(obj: Any) -> TypeGuard[TransformationRule]:
         and callable(obj.function)
     )
 
+
 def is_transformer_protocol(obj: Any) -> TypeGuard[TransformerProtocol]:
     """Type guard for TransformerProtocol validation.
 
@@ -765,6 +776,7 @@ def is_transformer_protocol(obj: Any) -> TypeGuard[TransformerProtocol]:
         and callable(obj.supports_rule)
         and callable(obj.transform)
     )
+
 
 def is_transformation_factory(obj: Any) -> TypeGuard[TransformationFactoryProtocol]:
     """Type guard for TransformationFactoryProtocol validation.

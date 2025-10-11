@@ -4,7 +4,6 @@ This module provides transformations for converting between full-width and
 half-width Japanese characters using the jaconv library.
 """
 
-
 from ..types import TransformationRule, TransformationRuleType
 from .base_transformer import BaseTransformer
 
@@ -47,6 +46,7 @@ class JapaneseTransformer(BaseTransformer):
         """
         try:
             import jaconv
+
             return jaconv.z2h(text, kana=True, ascii=True, digit=True)
         except ImportError as e:
             raise ValueError(
@@ -67,6 +67,7 @@ class JapaneseTransformer(BaseTransformer):
         """
         try:
             import jaconv
+
             return jaconv.h2z(text, kana=True, ascii=True, digit=True)
         except ImportError as e:
             raise ValueError(

@@ -35,7 +35,9 @@ class TestTextTransformationEngine:
         assert isinstance(engine._available_rules, dict)
         assert len(engine._available_rules) > 0
 
-    def test_engine_initialization_with_config(self, engine_with_config, mock_config_manager):
+    def test_engine_initialization_with_config(
+        self, engine_with_config, mock_config_manager
+    ):
         """Test engine initialization with config manager."""
         assert engine_with_config.config_manager is mock_config_manager
 
@@ -45,16 +47,23 @@ class TestTextTransformationEngine:
         engine.set_crypto_manager(mock_crypto)
         assert engine.crypto_manager is mock_crypto
 
-    @pytest.mark.parametrize("text,rule,expected", [
-        ("  hello  ", "/t", "hello"),
-        ("HELLO", "/l", "hello"),
-        ("hello", "/u", "HELLO"),
-        ("hello", "/R", "olleh"),
-        ("hello world", "/p", "HelloWorld"),
-        ("hello world", "/c", "helloWorld"),
-        ("Hello World", "/s", "hello_world"),
-        ("hello", "/sha256", "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"),
-    ])
+    @pytest.mark.parametrize(
+        "text,rule,expected",
+        [
+            ("  hello  ", "/t", "hello"),
+            ("HELLO", "/l", "hello"),
+            ("hello", "/u", "HELLO"),
+            ("hello", "/R", "olleh"),
+            ("hello world", "/p", "HelloWorld"),
+            ("hello world", "/c", "helloWorld"),
+            ("Hello World", "/s", "hello_world"),
+            (
+                "hello",
+                "/sha256",
+                "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+            ),
+        ],
+    )
     def test_basic_transformations(self, engine, text, rule, expected):
         """Test basic transformation rules."""
         result = engine.apply_transformations(text, rule)
@@ -130,7 +139,9 @@ class TestTextTransformationEngine:
         # Test through apply_transformations instead
         result = engine.apply_transformations("  HELLO  ", "/t/l/u")
         # Rules are applied in sequence: trim -> lowercase -> uppercase
-        assert result == "HELLO"  # trim, lowercase, uppercase cancel out to lowercase  # trim, lowercase, uppercase cancel out to lowercase
+        assert (
+            result == "HELLO"
+        )  # trim, lowercase, uppercase cancel out to lowercase  # trim, lowercase, uppercase cancel out to lowercase
 
     def test_parse_rule_string_with_args(self, engine):
         """Test parsing of rule strings with arguments."""
@@ -171,14 +182,16 @@ class TestTextTransformationEngine:
         with pytest.raises(TransformationError) as exc_info:
             engine.apply_transformations("test", "/unknown")
         # Check that error has context
-        assert hasattr(exc_info.value, 'context')
+        assert hasattr(exc_info.value, "context")
         assert exc_info.value.context is not None
 
-    @pytest.mark.parametrize("rule_string", [
-        "/t/l",  # Slash separator - trim then lowercase
-    ])
+    @pytest.mark.parametrize(
+        "rule_string",
+        [
+            "/t/l",  # Slash separator - trim then lowercase
+        ],
+    )
     def test_different_separators(self, engine, rule_string):
         """Test rule strings with slash separators."""
         result = engine.apply_transformations("  HELLO  ", rule_string)
         assert result == "hello"
-

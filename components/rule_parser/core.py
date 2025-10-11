@@ -54,19 +54,16 @@ class RuleParser:
                 return self._parse_space_separated(rule_string)
 
             # Handle simple rules without leading slash
-            if re.match(r'^[a-zA-Z][a-zA-Z0-9_-]*$', rule_string):
+            if re.match(r"^[a-zA-Z][a-zA-Z0-9_-]*$", rule_string):
                 return [(rule_string, [])]
 
-            raise ValidationError(
-                f"Invalid rule string format: '{rule_string}'"
-            )
+            raise ValidationError(f"Invalid rule string format: '{rule_string}'")
 
         except Exception as e:
             if isinstance(e, ValidationError):
                 raise
             raise ValidationError(
-                f"Failed to parse rule string: {e}",
-                {"rule_string": rule_string}
+                f"Failed to parse rule string: {e}", {"rule_string": rule_string}
             ) from e
 
     def normalize(self, rule_string: str | None) -> str | None:
@@ -87,27 +84,25 @@ class RuleParser:
 
         # Handle Windows drive path expansion for single character rules
         # Pattern: C:/ or L:/
-        if re.match(r'^[A-Za-z]:[\\/]$', rule_string):
+        if re.match(r"^[A-Za-z]:[\\/]$", rule_string):
             drive_letter = rule_string[0].lower()
-            return f'/{drive_letter}'
+            return f"/{drive_letter}"
 
         # Handle Git Bash Windows path expansion
         # Pattern: D:/Applications/Git/to-utf8 -> /to-utf8
         git_path_match = re.match(
-            r'^[A-Za-z]:[\\/][^/\\]*[\\/]Git[\\/](.+)',
-            rule_string
+            r"^[A-Za-z]:[\\/][^/\\]*[\\/]Git[\\/](.+)", rule_string
         )
         if git_path_match:
             rule_part = git_path_match.group(1)
-            if not rule_part.startswith('/'):
-                rule_part = '/' + rule_part
+            if not rule_part.startswith("/"):
+                rule_part = "/" + rule_part
             return rule_part
 
         # Handle other Windows path patterns that might contain rules
-        if re.match(r'^[A-Za-z]:[\\/]', rule_string):
+        if re.match(r"^[A-Za-z]:[\\/]", rule_string):
             rule_match = re.search(
-                r'([/-][a-zA-Z0-9_+-]+(?:[/-][a-zA-Z0-9_+-]+)*)',
-                rule_string
+                r"([/-][a-zA-Z0-9_+-]+(?:[/-][a-zA-Z0-9_+-]+)*)", rule_string
             )
             if rule_match:
                 return rule_match.group(1)
@@ -164,12 +159,14 @@ class RuleParser:
                 # shlex.split can raise ValueError for mismatched quotes
                 raise ValidationError(
                     f"Failed to parse quoted arguments: {e}",
-                    {"rule_string": rule_string}
+                    {"rule_string": rule_string},
                 ) from e
 
         # Check for quoted arguments without spaces (e.g., /rule/"arg1"/"arg2")
         if "'" in rule_string or '"' in rule_string:
-            return self._parse_with_quotes("/" + rule_string)  # Add slash back for _parse_with_quotes
+            return self._parse_with_quotes(
+                "/" + rule_string
+            )  # Add slash back for _parse_with_quotes
 
         # Simple slash-separated rules
         parts = rule_string.split("/")
@@ -214,8 +211,11 @@ class RuleParser:
                     part = parts[j]
 
                     # Check if this looks like an argument (quoted or not)
-                    if (part.startswith("'") or part.startswith('"') or
-                        not any(c.isalpha() for c in part)):
+                    if (
+                        part.startswith("'")
+                        or part.startswith('"')
+                        or not any(c.isalpha() for c in part)
+                    ):
                         # Clean quotes if present
                         cleaned_arg = part.strip("'\"")
                         args.append(cleaned_arg)
@@ -231,8 +231,7 @@ class RuleParser:
 
         except Exception as e:
             raise ValidationError(
-                f"Failed to parse quoted rule string: {e}",
-                {"rule_string": rule_string}
+                f"Failed to parse quoted rule string: {e}", {"rule_string": rule_string}
             ) from e
 
     def _parse_space_separated(self, rule_string: str) -> list[tuple[str, list[str]]]:
@@ -258,7 +257,7 @@ class RuleParser:
         Returns:
             True if it looks like a Windows path
         """
-        return bool(re.match(r'^[A-Za-z]:[\\/]', rule_string))
+        return bool(re.match(r"^[A-Za-z]:[\\/]", rule_string))
 
     def _parse_windows_path(self, rule_string: str) -> list[tuple[str, list[str]]]:
         """Parse Windows path that may contain a rule.
@@ -274,13 +273,10 @@ class RuleParser:
         """
         # Handle Git Bash Windows path expansion
         git_path_match = re.match(
-            r'^[A-Za-z]:[\\/][^/\\]*[\\/]Git[\\/](.+)',
-            rule_string
+            r"^[A-Za-z]:[\\/][^/\\]*[\\/]Git[\\/](.+)", rule_string
         )
         if git_path_match:
             rule_name = git_path_match.group(1)
             return [(rule_name, [])]
 
-        raise ValidationError(
-            f"Cannot extract rule from Windows path: '{rule_string}'"
-        )
+        raise ValidationError(f"Cannot extract rule from Windows path: '{rule_string}'")

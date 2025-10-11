@@ -35,7 +35,9 @@ def register_status_commands(
             # Add status rows
             for component, component_status in status.items():
                 if isinstance(component_status, dict):
-                    status_text = ", ".join([f"{k}: {v}" for k, v in component_status.items()])
+                    status_text = ", ".join(
+                        [f"{k}: {v}" for k, v in component_status.items()]
+                    )
                 else:
                     status_text = str(component_status)
 
@@ -54,7 +56,9 @@ def register_status_commands(
             console.print("Version: [cyan]0.1.0[/cyan]")
             console.print("Architecture: [green]Polylith[/green]")
             console.print("Python: [yellow]3.13+[/yellow]")
-            console.print("\\n[dim]A modern text transformation toolkit with modular architecture[/dim]")
+            console.print(
+                "\\n[dim]A modern text transformation toolkit with modular architecture[/dim]"
+            )
 
         except Exception as e:
             handle_cli_error_func(e, "version display")
@@ -80,7 +84,9 @@ def show_status_func(
             # Add status rows
             for component, component_status in status.items():
                 if isinstance(component_status, dict):
-                    status_text = ", ".join([f"{k}: {v}" for k, v in component_status.items()])
+                    status_text = ", ".join(
+                        [f"{k}: {v}" for k, v in component_status.items()]
+                    )
                 else:
                     status_text = str(component_status)
 
@@ -104,7 +110,9 @@ def show_version_func(handle_cli_error_func: callable) -> callable:
             console.print("Version: [cyan]0.1.0[/cyan]")
             console.print("Architecture: [green]Polylith[/green]")
             console.print("Python: [yellow]3.13+[/yellow]")
-            console.print("\\n[dim]A modern text transformation toolkit with modular architecture[/dim]")
+            console.print(
+                "\\n[dim]A modern text transformation toolkit with modular architecture[/dim]"
+            )
 
         except Exception as e:
             handle_cli_error_func(e, "version display")

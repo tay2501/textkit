@@ -20,7 +20,11 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
-from ..shared.standard_options import FromClipboardOption, InputTextOption, ToClipboardOption
+from ..shared.standard_options import (
+    FromClipboardOption,
+    InputTextOption,
+    ToClipboardOption,
+)
 
 console = Console()
 
@@ -94,10 +98,13 @@ def create_crypto_subcommand(
                 input_text = app_instance.io_manager.get_clipboard_text()
             else:
                 import sys
+
                 if not sys.stdin.isatty():
                     input_text = sys.stdin.read()
                 else:
-                    console.print("[yellow]Warning: No input specified. Use -i, --from-clipboard, or pipe input.[/yellow]")
+                    console.print(
+                        "[yellow]Warning: No input specified. Use -i, --from-clipboard, or pipe input.[/yellow]"
+                    )
                     raise typer.Exit(1)
 
             # Encrypt text
@@ -165,10 +172,13 @@ def create_crypto_subcommand(
                 input_text = app_instance.io_manager.get_clipboard_text()
             else:
                 import sys
+
                 if not sys.stdin.isatty():
                     input_text = sys.stdin.read()
                 else:
-                    console.print("[yellow]Warning: No input specified. Use -i, --from-clipboard, or pipe input.[/yellow]")
+                    console.print(
+                        "[yellow]Warning: No input specified. Use -i, --from-clipboard, or pipe input.[/yellow]"
+                    )
                     raise typer.Exit(1)
 
             # Decrypt text
@@ -192,6 +202,7 @@ def create_crypto_subcommand(
 # Legacy Command Registration (Backward Compatibility)
 # ============================================================================
 
+
 def register_crypto_commands(
     app: typer.Typer,
     get_app_func: callable,
@@ -207,14 +218,20 @@ def register_crypto_commands(
 
     @app.command("encrypt", help="[DEPRECATED] Use 'textkit crypto encrypt' instead")
     def encrypt_text(
-        text: Annotated[str | None, typer.Option("--text", "-t", help="Text to encrypt")] = None,
-        output: Annotated[bool, typer.Option("--output", "-o", help="Copy to clipboard")] = True,
+        text: Annotated[
+            str | None, typer.Option("--text", "-t", help="Text to encrypt")
+        ] = None,
+        output: Annotated[
+            bool, typer.Option("--output", "-o", help="Copy to clipboard")
+        ] = True,
     ) -> None:
         """Encrypt text using hybrid cryptography.
 
         [yellow]⚠️  DEPRECATED: Use 'textkit crypto encrypt' instead[/yellow]
         """
-        console.print("[yellow]Warning: 'textkit encrypt' is deprecated. Use 'textkit crypto encrypt' instead.[/yellow]")
+        console.print(
+            "[yellow]Warning: 'textkit encrypt' is deprecated. Use 'textkit crypto encrypt' instead.[/yellow]"
+        )
         try:
             app_instance = get_app_func()
             input_text = get_input_text_func(app_instance, text)
@@ -226,14 +243,20 @@ def register_crypto_commands(
 
     @app.command("decrypt", help="[DEPRECATED] Use 'textkit crypto decrypt' instead")
     def decrypt_text(
-        text: Annotated[str | None, typer.Option("--text", "-t", help="Text to decrypt")] = None,
-        output: Annotated[bool, typer.Option("--output", "-o", help="Copy to clipboard")] = True,
+        text: Annotated[
+            str | None, typer.Option("--text", "-t", help="Text to decrypt")
+        ] = None,
+        output: Annotated[
+            bool, typer.Option("--output", "-o", help="Copy to clipboard")
+        ] = True,
     ) -> None:
         """Decrypt text using hybrid cryptography.
 
         [yellow]⚠️  DEPRECATED: Use 'textkit crypto decrypt' instead[/yellow]
         """
-        console.print("[yellow]Warning: 'textkit decrypt' is deprecated. Use 'textkit crypto decrypt' instead.[/yellow]")
+        console.print(
+            "[yellow]Warning: 'textkit decrypt' is deprecated. Use 'textkit crypto decrypt' instead.[/yellow]"
+        )
         try:
             app_instance = get_app_func()
             input_text = get_input_text_func(app_instance, text)

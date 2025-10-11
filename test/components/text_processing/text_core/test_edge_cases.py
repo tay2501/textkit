@@ -64,7 +64,10 @@ class TestEdgeCasesCaseTransformer:
 
     def test_snake_case_multiple_spaces(self):
         """Test snake_case with multiple spaces."""
-        assert self.transformer.transform("hello    world   test", "s") == "hello_world_test"
+        assert (
+            self.transformer.transform("hello    world   test", "s")
+            == "hello_world_test"
+        )
 
     def test_special_characters_handling(self):
         """Test handling of special characters in case transformations."""
@@ -188,7 +191,7 @@ class TestEdgeCasesJsonTransformer:
         result = self.transformer.transform(nested_json, "json")
 
         # Should be properly indented
-        lines = result.split('\n')
+        lines = result.split("\n")
         assert len(lines) > 5  # Should have multiple lines
 
         # Check indentation levels
@@ -205,7 +208,9 @@ class TestEdgeCasesJsonTransformer:
 
     def test_json_with_special_characters(self):
         """Test JSON with escaped characters."""
-        json_with_escapes = '{"text":"Line 1\\nLine 2\\tTabbed","quote":"He said \\"Hello\\""}'
+        json_with_escapes = (
+            '{"text":"Line 1\\nLine 2\\tTabbed","quote":"He said \\"Hello\\""}'
+        )
         result = self.transformer.transform(json_with_escapes, "json")
 
         assert '"Line 1\\nLine 2\\tTabbed"' in result
@@ -230,7 +235,8 @@ class TestEdgeCasesJsonTransformer:
         # Create a large JSON object
         large_dict = {f"key_{i}": f"value_{i}" for i in range(1000)}
         import json
-        large_json = json.dumps(large_dict, separators=(',', ':'))
+
+        large_json = json.dumps(large_dict, separators=(",", ":"))
 
         result = self.transformer.transform(large_json, "json")
 

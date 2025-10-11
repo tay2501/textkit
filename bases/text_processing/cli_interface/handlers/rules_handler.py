@@ -80,6 +80,12 @@ class RulesCommandHandler(BaseCommandHandler):
         console = Console()
 
         console.print("\n[bold]Usage Examples:[/bold]")
-        console.print("  [cyan]text-processing-toolkit transform '/t/l'[/cyan] - Trim and lowercase")
-        console.print("  [cyan]text-processing-toolkit transform '/u/R'[/cyan] - Uppercase and reverse")
-        console.print("  [cyan]echo 'text' | text-processing-toolkit transform '/p'[/cyan] - PascalCase from pipe")
+        console.print(
+            "  [cyan]text-processing-toolkit transform '/t/l'[/cyan] - Trim and lowercase"
+        )
+        console.print(
+            "  [cyan]text-processing-toolkit transform '/u/R'[/cyan] - Uppercase and reverse"
+        )
+        console.print(
+            "  [cyan]echo 'text' | text-processing-toolkit transform '/p'[/cyan] - PascalCase from pipe"
+        )

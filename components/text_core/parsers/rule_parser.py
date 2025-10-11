@@ -8,12 +8,17 @@ with enhanced error handling and validation.
 import re
 from typing import NamedTuple
 
-from textkit.common_utils import get_structured_logger, validate_text_input, with_error_context
+from textkit.common_utils import (
+    get_structured_logger,
+    validate_text_input,
+    with_error_context,
+)
 from textkit.exceptions import ValidationError
 
 
 class ParsedRule(NamedTuple):
     """Represents a parsed transformation rule."""
+
     name: str
     args: list[str]
 
@@ -46,12 +51,12 @@ class RuleParser:
         Raises:
             ValidationError: If rule string format is invalid
         """
-        with with_error_context("rule_parsing", self.logger, {"rule_string": rule_string}):
+        with with_error_context(
+            "rule_parsing", self.logger, {"rule_string": rule_string}
+        ):
             # Validate input
             rule_string = validate_text_input(
-                rule_string,
-                allow_empty=False,
-                parameter_name="rule_string"
+                rule_string, allow_empty=False, parameter_name="rule_string"
             ).strip()
 
             try:
@@ -73,7 +78,7 @@ class RuleParser:
                 raise ValidationError(
                     f"Failed to parse rule string: {e}",
                     operation="rule_parsing",
-                    cause=e
+                    cause=e,
                 ).add_context("rule_string", rule_string)
 
     def _parse_flag_format(self, rule_string: str) -> list[ParsedRule]:
@@ -125,8 +130,11 @@ class RuleParser:
                     part = parts[j]
 
                     # Check if this looks like an argument
-                    if (part.startswith("'") or part.startswith('"') or
-                        not any(c.isalpha() for c in part)):
+                    if (
+                        part.startswith("'")
+                        or part.startswith('"')
+                        or not any(c.isalpha() for c in part)
+                    ):
                         # Clean quotes if present
                         cleaned_arg = part.strip("'\"")
                         args.append(cleaned_arg)
@@ -143,8 +151,7 @@ class RuleParser:
 
         except Exception as e:
             raise ValidationError(
-                f"Failed to parse quoted rule string: {e}",
-                operation="quoted_parsing"
+                f"Failed to parse quoted rule string: {e}", operation="quoted_parsing"
             ).add_context("rule_string", rule_string) from e
 
     def _parse_space_separated(self, rule_string: str) -> list[ParsedRule]:
@@ -156,13 +163,15 @@ class RuleParser:
         rule_name = parts[0]
         args = parts[1:]
 
-        self.logger.debug("parsed_space_separated_rule", rule_name=rule_name, arg_count=len(args))
+        self.logger.debug(
+            "parsed_space_separated_rule", rule_name=rule_name, arg_count=len(args)
+        )
         return [ParsedRule(rule_name, args)]
 
     def _parse_simple_rule(self, rule_string: str) -> list[ParsedRule]:
         """Parse simple rule name."""
         # Validate rule name format
-        if not re.match(r'^[a-zA-Z][a-zA-Z0-9_-]*$', rule_string):
+        if not re.match(r"^[a-zA-Z][a-zA-Z0-9_-]*$", rule_string):
             raise ValidationError(f"Invalid rule name format: '{rule_string}'")
 
         self.logger.debug("parsed_simple_rule", rule_name=rule_string)
@@ -171,19 +180,20 @@ class RuleParser:
     def _parse_windows_path(self, rule_string: str) -> list[ParsedRule]:
         """Parse Windows path format: D:/Applications/Git/rule-name"""
         git_path_match = re.match(
-            r'^[A-Za-z]:[\\\\/][^/\\]*[\\\\/]Git[\\\\/](.+)',
-            rule_string
+            r"^[A-Za-z]:[\\\\/][^/\\]*[\\\\/]Git[\\\\/](.+)", rule_string
         )
         if git_path_match:
             rule_name = git_path_match.group(1)
-            self.logger.debug("parsed_windows_path", rule_name=rule_name, original_path=rule_string)
+            self.logger.debug(
+                "parsed_windows_path", rule_name=rule_name, original_path=rule_string
+            )
             return [ParsedRule(rule_name, [])]
 
         raise ValidationError(f"Invalid Windows path format: '{rule_string}'")
 
     def _is_windows_git_path(self, rule_string: str) -> bool:
         """Check if string looks like a Windows Git path."""
-        return bool(re.match(r'^[A-Za-z]:[\\\\/][^/\\]*[\\\\/]Git[\\\\/]', rule_string))
+        return bool(re.match(r"^[A-Za-z]:[\\\\/][^/\\]*[\\\\/]Git[\\\\/]", rule_string))
 
     def validate_parsed_rules(self, rules: list[ParsedRule]) -> None:
         """Validate parsed rules for common issues.
@@ -211,7 +221,7 @@ class RuleParser:
                 raise ValidationError("Empty rule name found")
 
             # Check for suspicious characters
-            if any(char in rule.name for char in ['<', '>', '|', '&']):
+            if any(char in rule.name for char in ["<", ">", "|", "&"]):
                 raise ValidationError(
                     f"Rule name contains suspicious characters: '{rule.name}'"
                 ).add_context("rule_name", rule.name)

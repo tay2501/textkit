@@ -25,6 +25,7 @@ def setup_logging():
 def mock_logger():
     """Provide a mock logger for testing."""
     from unittest.mock import MagicMock
+
     return MagicMock()
 
 
@@ -32,6 +33,7 @@ def mock_logger():
 def sample_validation_error():
     """Provide a sample ValidationError for testing."""
     from textkit.text_core.exceptions import ValidationError
+
     return ValidationError("Test validation error", context={"field": "test"})
 
 
@@ -39,4 +41,5 @@ def sample_validation_error():
 def sample_transformation_error():
     """Provide a sample TransformationError for testing."""
     from textkit.text_core.exceptions import TransformationError
+
     return TransformationError("Test transformation error", operation="test_op")

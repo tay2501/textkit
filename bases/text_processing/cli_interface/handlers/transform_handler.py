@@ -49,7 +49,9 @@ class TransformCommandHandler(BaseCommandHandler):
             return self._handle_show_rules()
 
         if rules is None:
-            console.print("[red]Error: RULES argument is required when not using --show-rules[/red]")
+            console.print(
+                "[red]Error: RULES argument is required when not using --show-rules[/red]"
+            )
             raise ValueError("RULES argument is required")
 
         # Get input text and apply transformation
@@ -78,7 +80,9 @@ class TransformCommandHandler(BaseCommandHandler):
                     console.print(f"    [dim]Example: {example}[/dim]")
                 console.print()
 
-            console.print("[dim]Tip: Combine rules like '/t/l/p' to apply multiple transformations[/dim]")
+            console.print(
+                "[dim]Tip: Combine rules like '/t/l/p' to apply multiple transformations[/dim]"
+            )
         except Exception as e:
             console.print(f"[red]Error loading rules: {e}[/red]")
             raise

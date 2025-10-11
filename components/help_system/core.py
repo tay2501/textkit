@@ -19,6 +19,7 @@ class HelpSection:
     This dataclass represents a structured section of help content
     with title, content, and optional subsections.
     """
+
     title: str
     content: str
     subsections: list[HelpSection] = None
@@ -157,7 +158,9 @@ class HelpManager:
         """
         if topic:
             # Remove cached entries for specific topic
-            keys_to_remove = [key for key in self._content_cache.keys() if key.startswith(f"{topic}:")]
+            keys_to_remove = [
+                key for key in self._content_cache.keys() if key.startswith(f"{topic}:")
+            ]
             for key in keys_to_remove:
                 del self._content_cache[key]
         else:
@@ -166,4 +169,5 @@ class HelpManager:
 
 class HelpTopicNotFoundError(Exception):
     """Raised when a help topic is not found."""
+
     pass

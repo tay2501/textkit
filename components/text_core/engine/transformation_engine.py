@@ -7,7 +7,11 @@ Delegates parsing to RuleParser and execution to TransformationOrchestrator.
 
 from typing import Any
 
-from textkit.common_utils import get_structured_logger, handle_validation_error, with_error_context
+from textkit.common_utils import (
+    get_structured_logger,
+    handle_validation_error,
+    with_error_context,
+)
 from textkit.exceptions import TransformationError, ValidationError
 
 from ..factories import TransformationFactory
@@ -59,10 +63,7 @@ class TransformationEngine:
         self.transformation_factory.set_crypto_manager(crypto_manager)
 
     def apply_transformations(
-        self,
-        text: str,
-        rule_string: str,
-        context: dict[str, Any] | None = None
+        self, text: str, rule_string: str, context: dict[str, Any] | None = None
     ) -> str:
         """Apply transformation rules to text using simplified architecture.
 
@@ -81,7 +82,7 @@ class TransformationEngine:
         operation_context = {
             "text_length": len(text) if isinstance(text, str) else 0,
             "rule_string": rule_string,
-            **(context or {})
+            **(context or {}),
         }
 
         with with_error_context("text_transformation", self.logger, operation_context):
@@ -90,14 +91,14 @@ class TransformationEngine:
                 lambda data: TextTransformationRequest(**data),
                 {"text": text, "rule_string": rule_string},
                 self.logger,
-                operation_context
+                operation_context,
             )
 
             if validation_error:
                 self.logger.error(
                     "transformation_validation_failed",
                     error=str(validation_error),
-                    **operation_context
+                    **operation_context,
                 )
                 raise validation_error
 
@@ -109,14 +110,12 @@ class TransformationEngine:
                 self.logger.debug(
                     "rules_parsed_successfully",
                     rule_count=len(parsed_rules),
-                    rules=[rule.name for rule in parsed_rules]
+                    rules=[rule.name for rule in parsed_rules],
                 )
 
                 # Step 2: Execute transformations
                 result, execution_metadata = self.orchestrator.execute_transformations(
-                    request.text,
-                    parsed_rules,
-                    operation_context
+                    request.text, parsed_rules, operation_context
                 )
 
                 self.logger.info(
@@ -124,7 +123,7 @@ class TransformationEngine:
                     input_length=len(request.text),
                     output_length=len(result),
                     applied_rules=execution_metadata.get("applied_rules", []),
-                    total_elapsed_ms=execution_metadata.get("total_elapsed_ms", 0)
+                    total_elapsed_ms=execution_metadata.get("total_elapsed_ms", 0),
                 )
 
                 return result
@@ -135,7 +134,7 @@ class TransformationEngine:
                     "transformation_failed_with_known_error",
                     error_type=type(e).__name__,
                     error_message=str(e),
-                    **operation_context
+                    **operation_context,
                 )
                 raise
 
@@ -144,7 +143,7 @@ class TransformationEngine:
                 wrapped_error = TransformationError(
                     f"Unexpected error during transformation: {e}",
                     operation="text_transformation",
-                    cause=e
+                    cause=e,
                 )
 
                 # Add operation context
@@ -154,7 +153,7 @@ class TransformationEngine:
                 self.logger.exception(
                     "transformation_failed_with_unexpected_error",
                     error_type=type(e).__name__,
-                    **operation_context
+                    **operation_context,
                 )
                 raise wrapped_error
 
@@ -194,5 +193,7 @@ class TransformationEngine:
                 "crypto_manager": self.crypto_manager is not None,
             },
             "orchestrator_stats": self.orchestrator.get_performance_stats(),
-            "factory_stats": getattr(self.transformation_factory, 'get_stats', lambda: {})(),
+            "factory_stats": getattr(
+                self.transformation_factory, "get_stats", lambda: {}
+            )(),
         }

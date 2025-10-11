@@ -39,7 +39,7 @@ class TransformationOrchestrator:
         self,
         text: str,
         parsed_rules: list[ParsedRule],
-        context: dict[str, Any] | None = None
+        context: dict[str, Any] | None = None,
     ) -> tuple[str, dict[str, Any]]:
         """Execute a sequence of transformation rules.
 
@@ -61,10 +61,12 @@ class TransformationOrchestrator:
         execution_context = {
             "rule_count": len(parsed_rules),
             "input_length": len(text),
-            **(context or {})
+            **(context or {}),
         }
 
-        with with_error_context("transformation_orchestration", self.logger, execution_context):
+        with with_error_context(
+            "transformation_orchestration", self.logger, execution_context
+        ):
             start_time = time.perf_counter()
             result = text
             applied_rules = []
@@ -82,17 +84,19 @@ class TransformationOrchestrator:
                             rule_context={
                                 "rule_index": i,
                                 "total_rules": len(parsed_rules),
-                                "current_length": len(result)
-                            }
+                                "current_length": len(result),
+                            },
                         )
 
                         rule_elapsed = (time.perf_counter() - rule_start_time) * 1000
-                        rule_timings.append({
-                            "rule_name": rule.name,
-                            "elapsed_ms": rule_elapsed,
-                            "input_length": len(text) if i == 0 else None,
-                            "output_length": len(result)
-                        })
+                        rule_timings.append(
+                            {
+                                "rule_name": rule.name,
+                                "elapsed_ms": rule_elapsed,
+                                "input_length": len(text) if i == 0 else None,
+                                "output_length": len(result),
+                            }
+                        )
 
                         applied_rules.append(rule.name)
 
@@ -102,17 +106,19 @@ class TransformationOrchestrator:
                             rule_index=i,
                             elapsed_ms=rule_elapsed,
                             input_length=len(text) if i == 0 else None,
-                            output_length=len(result)
+                            output_length=len(result),
                         )
 
                     except Exception as e:
                         rule_elapsed = (time.perf_counter() - rule_start_time) * 1000
-                        rule_timings.append({
-                            "rule_name": rule.name,
-                            "elapsed_ms": rule_elapsed,
-                            "error": str(e),
-                            "error_type": type(e).__name__
-                        })
+                        rule_timings.append(
+                            {
+                                "rule_name": rule.name,
+                                "elapsed_ms": rule_elapsed,
+                                "error": str(e),
+                                "error_type": type(e).__name__,
+                            }
+                        )
 
                         # Enhance error with rule context
                         if isinstance(e, TransformationError):
@@ -120,13 +126,16 @@ class TransformationOrchestrator:
                             e.add_context("applied_rules", applied_rules)
                             raise
                         else:
-                            raise TransformationError(
-                                f"Rule '{rule.name}' failed: {e}",
-                                operation="rule_application",
-                                cause=e
-                            ).add_context("rule_name", rule.name)\
-                             .add_context("rule_index", i)\
-                             .add_context("applied_rules", applied_rules)
+                            raise (
+                                TransformationError(
+                                    f"Rule '{rule.name}' failed: {e}",
+                                    operation="rule_application",
+                                    cause=e,
+                                )
+                                .add_context("rule_name", rule.name)
+                                .add_context("rule_index", i)
+                                .add_context("applied_rules", applied_rules)
+                            )
 
                 total_elapsed = (time.perf_counter() - start_time) * 1000
 
@@ -139,13 +148,10 @@ class TransformationOrchestrator:
                     "input_length": len(text),
                     "output_length": len(result),
                     "compression_ratio": len(result) / len(text) if text else 1.0,
-                    "warnings": warnings
+                    "warnings": warnings,
                 }
 
-                self.logger.info(
-                    "transformation_orchestration_completed",
-                    **metadata
-                )
+                self.logger.info("transformation_orchestration_completed", **metadata)
 
                 return result, metadata
 
@@ -158,7 +164,7 @@ class TransformationOrchestrator:
                     "failed_at_rule": len(applied_rules),
                     "total_elapsed_ms": total_elapsed,
                     "rule_timings": rule_timings,
-                    "partial_success": bool(applied_rules)
+                    "partial_success": bool(applied_rules),
                 }
 
                 if isinstance(e, (TransformationError, ValidationError)):
@@ -171,14 +177,11 @@ class TransformationOrchestrator:
                     raise TransformationError(
                         f"Transformation orchestration failed: {e}",
                         operation="transformation_orchestration",
-                        cause=e
+                        cause=e,
                     ).add_context("error_metadata", error_metadata)
 
     def _apply_single_rule(
-        self,
-        text: str,
-        rule: ParsedRule,
-        rule_context: dict[str, Any] | None = None
+        self, text: str, rule: ParsedRule, rule_context: dict[str, Any] | None = None
     ) -> str:
         """Apply a single transformation rule.
 
@@ -195,42 +198,56 @@ class TransformationOrchestrator:
         """
         try:
             # Get the appropriate transformer for this rule
-            transformer = self.transformation_factory.get_transformer_for_rule(rule.name)
+            transformer = self.transformation_factory.get_transformer_for_rule(
+                rule.name
+            )
 
             # Apply the transformation
             result = transformer.transform(text, rule.name, rule.args or None)
 
             # Validate result
             if not isinstance(result, str):
-                raise TransformationError(
-                    f"Rule '{rule.name}' returned non-string result: {type(result)}"
-                ).add_context("rule_name", rule.name)\
-                 .add_context("result_type", type(result).__name__)
+                raise (
+                    TransformationError(
+                        f"Rule '{rule.name}' returned non-string result: {type(result)}"
+                    )
+                    .add_context("rule_name", rule.name)
+                    .add_context("result_type", type(result).__name__)
+                )
 
             return result
 
         except KeyError:
             available_rules = list(self.transformation_factory.get_all_rules().keys())
-            raise TransformationError(
-                f"Unknown transformation rule: '{rule.name}'",
-                operation="rule_lookup"
-            ).add_context("rule_name", rule.name)\
-             .add_context("available_rules", available_rules[:10])  # Limit for readability
+            raise (
+                TransformationError(
+                    f"Unknown transformation rule: '{rule.name}'",
+                    operation="rule_lookup",
+                )
+                .add_context("rule_name", rule.name)
+                .add_context("available_rules", available_rules[:10])
+            )  # Limit for readability
 
         except ValueError as e:
-            raise TransformationError(
-                f"Rule '{rule.name}' failed with invalid parameters: {e}",
-                operation="rule_application"
-            ).add_context("rule_name", rule.name)\
-             .add_context("rule_args", rule.args) from e
+            raise (
+                TransformationError(
+                    f"Rule '{rule.name}' failed with invalid parameters: {e}",
+                    operation="rule_application",
+                )
+                .add_context("rule_name", rule.name)
+                .add_context("rule_args", rule.args)
+            ) from e
 
         except Exception as e:
-            raise TransformationError(
-                f"Unexpected error applying rule '{rule.name}': {e}",
-                operation="rule_application",
-                cause=e
-            ).add_context("rule_name", rule.name)\
-             .add_context("rule_args", rule.args)
+            raise (
+                TransformationError(
+                    f"Unexpected error applying rule '{rule.name}': {e}",
+                    operation="rule_application",
+                    cause=e,
+                )
+                .add_context("rule_name", rule.name)
+                .add_context("rule_args", rule.args)
+            )
 
     def get_performance_stats(self) -> dict[str, Any]:
         """Get performance statistics for debugging.
@@ -239,7 +256,11 @@ class TransformationOrchestrator:
             Dictionary containing performance statistics
         """
         return {
-            "factory_stats": getattr(self.transformation_factory, 'get_stats', lambda: {})(),
+            "factory_stats": getattr(
+                self.transformation_factory, "get_stats", lambda: {}
+            )(),
             "available_rules": len(self.transformation_factory.get_all_rules()),
-            "transformers_count": len(getattr(self.transformation_factory, '_transformers', {}))
+            "transformers_count": len(
+                getattr(self.transformation_factory, "_transformers", {})
+            ),
         }

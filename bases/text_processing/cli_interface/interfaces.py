@@ -121,5 +121,7 @@ class ApplicationInterface(ApplicationServiceInterface):
                 if self.crypto_manager
                 else {"available": False}
             ),
-            "transformation_rules": len(self.transformation_engine.get_available_rules()),
+            "transformation_rules": len(
+                self.transformation_engine.get_available_rules()
+            ),
         }

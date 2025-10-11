@@ -18,10 +18,7 @@ from textkit.text_core.types import TransformationRule
 def test_transformation_request_validation():
     """Test TextTransformationRequest validation."""
     # Valid request
-    request = TextTransformationRequest(
-        text="Hello World",
-        rule_string="/u"
-    )
+    request = TextTransformationRequest(text="Hello World", rule_string="/u")
     assert request.text == "Hello World"
     assert request.rule_string == "/u"
 
@@ -30,11 +27,14 @@ def test_transformation_request_validation():
         TextTransformationRequest(text="test", rule_string="")  # Empty rule
 
     with pytest.raises(PydanticValidationError):
-        TextTransformationRequest(text="test", rule_string="invalid")  # Invalid rule format
+        TextTransformationRequest(
+            text="test", rule_string="invalid"
+        )  # Invalid rule format
 
 
 def test_transformation_rule_pydantic_model():
     """Test TransformationRule as Pydantic model."""
+
     def dummy_function(text: str) -> str:
         return text.upper()
 
@@ -43,7 +43,7 @@ def test_transformation_rule_pydantic_model():
         name="uppercase",
         description="Convert text to uppercase",
         example="hello -> HELLO",
-        function=dummy_function
+        function=dummy_function,
     )
 
     assert rule.name == "uppercase"
@@ -57,7 +57,7 @@ def test_transformation_rule_pydantic_model():
         example="hello -> hi",
         function=dummy_function,
         requires_args=True,
-        default_args=["old", "new"]
+        default_args=["old", "new"],
     )
 
     assert rule_with_args.is_configurable is True
@@ -69,7 +69,7 @@ def test_transformation_rule_pydantic_model():
             name="123invalid",  # Invalid name pattern
             description="Test",
             example="test",
-            function=dummy_function
+            function=dummy_function,
         )
 
 
@@ -81,9 +81,7 @@ def test_configuration_model():
 
     # Test custom values
     custom_config = ConfigurationModel(
-        debug_mode=True,
-        max_text_length=1000,
-        log_level="DEBUG"
+        debug_mode=True, max_text_length=1000, log_level="DEBUG"
     )
     assert custom_config.debug_mode is True
     assert custom_config.max_text_length == 1000
@@ -101,7 +99,7 @@ def test_transformation_response():
     response = TextTransformationResponse(
         transformed_text="HELLO WORLD",
         applied_rules=["uppercase"],
-        processing_time_ms=1.5
+        processing_time_ms=1.5,
     )
 
     assert response.transformed_text == "HELLO WORLD"
@@ -134,4 +132,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Test failed: {e}")
         import traceback
+
         traceback.print_exc()

@@ -1,6 +1,5 @@
 """String manipulation transformation strategies."""
 
-
 from ..types import TransformationRule, TransformationRuleType
 from .base_transformer import BaseTransformer
 
@@ -59,7 +58,9 @@ class StringTransformer(BaseTransformer):
             ),
         }
 
-    def _apply_with_args(self, text: str, rule: TransformationRule, args: list[str]) -> str:
+    def _apply_with_args(
+        self, text: str, rule: TransformationRule, args: list[str]
+    ) -> str:
         """Apply transformation that requires arguments with StringZilla optimizations."""
         if rule.name == "Replace":
             return self._replace_text(text, args)
@@ -81,7 +82,9 @@ class StringTransformer(BaseTransformer):
             ValueError: If insufficient arguments provided
         """
         if len(args) < 2:
-            raise ValueError("Replace operation requires exactly 2 arguments: old_text, new_text")
+            raise ValueError(
+                "Replace operation requires exactly 2 arguments: old_text, new_text"
+            )
 
         old_text, new_text = args[0], args[1]
         return text.replace(old_text, new_text)
@@ -109,7 +112,9 @@ class StringTransformer(BaseTransformer):
             ValueError: If insufficient arguments provided
         """
         if len(args) < 2:
-            raise ValueError("Replace operation requires exactly 2 arguments: old_text, new_text")
+            raise ValueError(
+                "Replace operation requires exactly 2 arguments: old_text, new_text"
+            )
 
         old_text, new_text = args[0], args[1]
 
@@ -143,21 +148,27 @@ class StringTransformer(BaseTransformer):
             import logging
 
             logger = logging.getLogger(__name__)
-            logger.debug(f"StringZilla not available, falling back to standard implementation: {e}")
+            logger.debug(
+                f"StringZilla not available, falling back to standard implementation: {e}"
+            )
             return text.replace(old_text, new_text)
         except AttributeError as e:
             # StringZilla API compatibility issue - fallback to standard implementation
             import logging
 
             logger = logging.getLogger(__name__)
-            logger.warning(f"StringZilla API issue, falling back to standard implementation: {e}")
+            logger.warning(
+                f"StringZilla API issue, falling back to standard implementation: {e}"
+            )
             return text.replace(old_text, new_text)
         except Exception as e:
             # Unexpected error in StringZilla - fallback with logging
             import logging
 
             logger = logging.getLogger(__name__)
-            logger.error(f"Unexpected error in StringZilla processing: {e}", exc_info=True)
+            logger.error(
+                f"Unexpected error in StringZilla processing: {e}", exc_info=True
+            )
             return text.replace(old_text, new_text)
 
     def _to_sql_in_list(self, text: str) -> str:
@@ -194,7 +205,9 @@ class StringTransformer(BaseTransformer):
             lines = [
                 f"'{stripped}'"
                 for line in sz_text.split_iter(separator="\\n")
-                if (stripped := str(line).strip())  # Convert back to str for compatibility
+                if (
+                    stripped := str(line).strip()
+                )  # Convert back to str for compatibility
             ]
 
             # Return result with trailing comma if lines exist, empty string otherwise
@@ -209,7 +222,9 @@ class StringTransformer(BaseTransformer):
             # Fallback to standard Python implementation
             try:
                 lines = [
-                    f"'{stripped}'" for line in text.splitlines() if (stripped := line.strip())
+                    f"'{stripped}'"
+                    for line in text.splitlines()
+                    if (stripped := line.strip())
                 ]
                 return ",\\n".join(lines) + ("," if lines else "")
             except AttributeError as e:
@@ -227,7 +242,9 @@ class StringTransformer(BaseTransformer):
             # Fallback to standard Python implementation
             try:
                 lines = [
-                    f"'{stripped}'" for line in text.splitlines() if (stripped := line.strip())
+                    f"'{stripped}'"
+                    for line in text.splitlines()
+                    if (stripped := line.strip())
                 ]
                 return ",\\n".join(lines) + ("," if lines else "")
             except (AttributeError, TypeError) as fallback_e:
@@ -239,14 +256,19 @@ class StringTransformer(BaseTransformer):
 
             logger = logging.getLogger(__name__)
             logger.error(
-                f"Unexpected error in StringZilla SQL IN list processing: {e}", exc_info=True
+                f"Unexpected error in StringZilla SQL IN list processing: {e}",
+                exc_info=True,
             )
             # Final fallback to standard implementation
             try:
                 lines = [
-                    f"'{stripped}'" for line in text.splitlines() if (stripped := line.strip())
+                    f"'{stripped}'"
+                    for line in text.splitlines()
+                    if (stripped := line.strip())
                 ]
                 return ",\\n".join(lines) + ("," if lines else "")
             except Exception as fallback_e:
-                logger.error(f"All fallback methods failed: {fallback_e}", exc_info=True)
+                logger.error(
+                    f"All fallback methods failed: {fallback_e}", exc_info=True
+                )
                 return ""

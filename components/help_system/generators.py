@@ -103,10 +103,12 @@ class DynamicHelpGenerator(HelpGenerator):
         ]
 
         if context and context.get("include_crypto"):
-            examples.extend([
-                "Encrypt text: text-processing-toolkit encrypt",
-                "Decrypt text: text-processing-toolkit decrypt",
-            ])
+            examples.extend(
+                [
+                    "Encrypt text: text-processing-toolkit encrypt",
+                    "Decrypt text: text-processing-toolkit decrypt",
+                ]
+            )
 
         content = "Common usage examples:\n\n" + "\n".join(f"- {ex}" for ex in examples)
         return HelpSection("Examples", content)
@@ -161,7 +163,9 @@ class RulesHelpGenerator(HelpGenerator):
         """
         return ["rules", "transformations", "commands", "reference"]
 
-    def _group_rules_by_category(self, rules: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    def _group_rules_by_category(
+        self, rules: dict[str, Any]
+    ) -> dict[str, dict[str, Any]]:
         """Group rules by category for better organization."""
         categories = {
             "Text Case": ["l", "u", "p", "c", "s"],
@@ -192,7 +196,9 @@ class RulesHelpGenerator(HelpGenerator):
 
         return grouped
 
-    def _generate_rule_category_section(self, category: str, rules: dict[str, Any]) -> HelpSection:
+    def _generate_rule_category_section(
+        self, category: str, rules: dict[str, Any]
+    ) -> HelpSection:
         """Generate help section for a rule category."""
         content_lines = [f"**{category} Transformations**\n"]
 

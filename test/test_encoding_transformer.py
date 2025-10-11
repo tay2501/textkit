@@ -9,7 +9,9 @@ import pytest
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from textkit.text_core.transformers.encoding_transformer import EncodingTransformer  # noqa: E402
+from textkit.text_core.transformers.encoding_transformer import (
+    EncodingTransformer,  # noqa: E402
+)
 
 
 class TestEncodingTransformer:
@@ -23,42 +25,54 @@ class TestEncodingTransformer:
         """Test Shift_JIS to UTF-8 conversion using iconv."""
         # Japanese text "こんにちは" (Hello)
         input_text = "こんにちは"
-        result = self.transformer.transform(input_text, "iconv", ["-f", "shift_jis", "-t", "utf-8"])
+        result = self.transformer.transform(
+            input_text, "iconv", ["-f", "shift_jis", "-t", "utf-8"]
+        )
         assert isinstance(result, str)
         assert len(result) > 0
 
     def test_iconv_utf8_to_sjis(self):
         """Test UTF-8 to Shift_JIS conversion using iconv."""
         input_text = "こんにちは"
-        result = self.transformer.transform(input_text, "iconv", ["-f", "utf-8", "-t", "shift_jis"])
+        result = self.transformer.transform(
+            input_text, "iconv", ["-f", "utf-8", "-t", "shift_jis"]
+        )
         assert isinstance(result, str)
         assert len(result) > 0
 
     def test_iconv_eucjp_to_utf8(self):
         """Test EUC-JP to UTF-8 conversion using iconv."""
         input_text = "こんにちは"
-        result = self.transformer.transform(input_text, "iconv", ["-f", "euc-jp", "-t", "utf-8"])
+        result = self.transformer.transform(
+            input_text, "iconv", ["-f", "euc-jp", "-t", "utf-8"]
+        )
         assert isinstance(result, str)
         assert len(result) > 0
 
     def test_iconv_utf8_to_eucjp(self):
         """Test UTF-8 to EUC-JP conversion using iconv."""
         input_text = "こんにちは"
-        result = self.transformer.transform(input_text, "iconv", ["-f", "utf-8", "-t", "euc-jp"])
+        result = self.transformer.transform(
+            input_text, "iconv", ["-f", "utf-8", "-t", "euc-jp"]
+        )
         assert isinstance(result, str)
         assert len(result) > 0
 
     def test_iconv_latin1_to_utf8(self):
         """Test Latin-1 to UTF-8 conversion using iconv."""
         input_text = "café"
-        result = self.transformer.transform(input_text, "iconv", ["-f", "iso-8859-1", "-t", "utf-8"])
+        result = self.transformer.transform(
+            input_text, "iconv", ["-f", "iso-8859-1", "-t", "utf-8"]
+        )
         assert isinstance(result, str)
         assert "café" in result or "caf" in result
 
     def test_iconv_utf8_to_latin1(self):
         """Test UTF-8 to Latin-1 conversion using iconv."""
         input_text = "café"
-        result = self.transformer.transform(input_text, "iconv", ["-f", "utf-8", "-t", "iso-8859-1"])
+        result = self.transformer.transform(
+            input_text, "iconv", ["-f", "utf-8", "-t", "iso-8859-1"]
+        )
         assert isinstance(result, str)
         assert len(result) > 0
 
@@ -71,20 +85,26 @@ class TestEncodingTransformer:
     def test_iconv_basic_conversion(self):
         """Test iconv-style conversion with explicit encodings."""
         input_text = "Hello, World!"
-        result = self.transformer.transform(input_text, "iconv", ["-f", "utf-8", "-t", "utf-8"])
+        result = self.transformer.transform(
+            input_text, "iconv", ["-f", "utf-8", "-t", "utf-8"]
+        )
         assert result == input_text
 
     def test_iconv_with_auto_detection(self):
         """Test iconv with auto-detection."""
         input_text = "Hello, World!"
-        result = self.transformer.transform(input_text, "iconv", ["-f", "auto", "-t", "utf-8"])
+        result = self.transformer.transform(
+            input_text, "iconv", ["-f", "auto", "-t", "utf-8"]
+        )
         assert isinstance(result, str)
         assert len(result) > 0
 
     def test_iconv_utf8_to_ascii(self):
         """Test conversion from UTF-8 to ASCII encoding using iconv."""
         input_text = "Hello"
-        result = self.transformer.transform(input_text, "iconv", ["-f", "utf-8", "-t", "ascii"])
+        result = self.transformer.transform(
+            input_text, "iconv", ["-f", "utf-8", "-t", "ascii"]
+        )
         assert result == input_text
 
     def test_detect_encoding(self):
@@ -107,20 +127,26 @@ class TestEncodingTransformer:
         """Test strict error handling mode."""
         # This should work without errors for valid input
         input_text = "Hello"
-        result = self.transformer._convert_encoding(input_text, "utf-8", "ascii", "strict")
+        result = self.transformer._convert_encoding(
+            input_text, "utf-8", "ascii", "strict"
+        )
         assert result == input_text
 
     def test_error_handling_replace(self):
         """Test replace error handling mode."""
         input_text = "Hello, 世界"  # Contains non-ASCII characters
-        result = self.transformer._convert_encoding(input_text, "utf-8", "ascii", "replace")
+        result = self.transformer._convert_encoding(
+            input_text, "utf-8", "ascii", "replace"
+        )
         assert isinstance(result, str)
         assert "Hello" in result
 
     def test_error_handling_ignore(self):
         """Test ignore error handling mode."""
         input_text = "Hello, 世界"  # Contains non-ASCII characters
-        result = self.transformer._convert_encoding(input_text, "utf-8", "ascii", "ignore")
+        result = self.transformer._convert_encoding(
+            input_text, "utf-8", "ascii", "ignore"
+        )
         assert isinstance(result, str)
         assert "Hello" in result
 
@@ -138,16 +164,16 @@ class TestEncodingTransformer:
     def test_ascii_text(self):
         """Test handling of pure ASCII text."""
         input_text = "Hello, World!"
-        result = self.transformer.transform(input_text, "iconv", ["-f", "shift_jis", "-t", "utf-8"])
+        result = self.transformer.transform(
+            input_text, "iconv", ["-f", "shift_jis", "-t", "utf-8"]
+        )
         assert isinstance(result, str)
         assert len(result) > 0
 
     def test_get_rules(self):
         """Test that all expected rules are available."""
         rules = self.transformer.get_rules()
-        expected_rules = {
-            "iconv", "to-utf8", "detect-encoding"
-        }
+        expected_rules = {"iconv", "to-utf8", "detect-encoding"}
         assert set(rules.keys()) == expected_rules
 
     def test_supports_rule(self):
@@ -175,6 +201,7 @@ class TestEncodingTransformer:
     def test_unsupported_rule(self):
         """Test error handling for unsupported rules."""
         from textkit.exceptions import TransformationError
+
         with pytest.raises(TransformationError):
             self.transformer.transform("test", "unsupported-rule")
 
@@ -183,8 +210,12 @@ class TestEncodingTransformer:
         original_text = "こんにちは世界"
 
         # Convert to Shift_JIS and back using iconv
-        sjis_result = self.transformer.transform(original_text, "iconv", ["-f", "utf-8", "-t", "shift_jis"])
-        back_to_utf8 = self.transformer.transform(sjis_result, "iconv", ["-f", "shift_jis", "-t", "utf-8"])
+        sjis_result = self.transformer.transform(
+            original_text, "iconv", ["-f", "utf-8", "-t", "shift_jis"]
+        )
+        back_to_utf8 = self.transformer.transform(
+            sjis_result, "iconv", ["-f", "shift_jis", "-t", "utf-8"]
+        )
 
         # The result should be similar (encoding conversion may introduce minor differences)
         assert isinstance(back_to_utf8, str)
@@ -202,7 +233,9 @@ class TestEncodingTransformer:
         input_text = "Hello, 世界"
 
         # Test with replace mode using --error flag
-        result = self.transformer.transform(input_text, "iconv", ["-f", "utf-8", "-t", "ascii", "--error", "replace"])
+        result = self.transformer.transform(
+            input_text, "iconv", ["-f", "utf-8", "-t", "ascii", "--error", "replace"]
+        )
         assert isinstance(result, str)
         assert "Hello" in result
 
@@ -231,7 +264,7 @@ class TestEncodingTransformer:
         result = self.transformer.transform(input_text, "detect-encoding")
         assert "Detected encoding:" in result
         # Should include confidence score if charset-normalizer is available
-        if hasattr(self.transformer, '_detect_encoding_advanced'):
+        if hasattr(self.transformer, "_detect_encoding_advanced"):
             # Test passes regardless of availability of charset-normalizer
             assert isinstance(result, str)
 
@@ -243,7 +276,7 @@ class TestEncodingTransformer:
         # Test encoding detection with advanced method
         test_data = b"Hello, World!"
         encoding = transformer._detect_encoding_advanced(test_data)
-        assert encoding in ['utf-8', 'ascii']
+        assert encoding in ["utf-8", "ascii"]
 
     def test_encoding_detection_with_confidence(self):
         """Test encoding detection returns confidence when available."""

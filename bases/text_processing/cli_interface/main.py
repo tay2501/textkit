@@ -111,7 +111,10 @@ Examples:
 
         # Positional arguments for transformation rule and parameters
         parser.add_argument(
-            "rule", nargs="?", default=None, help="Transformation rule (e.g., /t/l, /u, help)"
+            "rule",
+            nargs="?",
+            default=None,
+            help="Transformation rule (e.g., /t/l, /u, help)",
         )
         parser.add_argument(
             "args",
@@ -168,8 +171,10 @@ Examples:
                                 continue
 
                             # Apply transformation
-                            result_text = self.transformation_engine.apply_transformations(
-                                input_text, user_input
+                            result_text = (
+                                self.transformation_engine.apply_transformations(
+                                    input_text, user_input
+                                )
                             )
 
                             # Handle output based on mode
@@ -184,7 +189,9 @@ Examples:
                                     if len(result_text) > 100
                                     else result_text
                                 )
-                                logger.info(f"Result copied to clipboard: '{display_text}'")
+                                logger.info(
+                                    f"Result copied to clipboard: '{display_text}'"
+                                )
 
                         except (ValidationError, Exception) as e:
                             error_type = (
@@ -219,10 +226,14 @@ Examples:
             rule = rule.replace("//", "/")
 
         # Combine rule with arguments if provided (e.g., "/S '+'" becomes "/S '+'")
-        combined_rule = f"{rule} {' '.join(repr(arg) for arg in rule_args)}" if rule_args else rule
+        combined_rule = (
+            f"{rule} {' '.join(repr(arg) for arg in rule_args)}" if rule_args else rule
+        )
 
         input_text = self.io_manager.get_input_text()
-        result = self.transformation_engine.apply_transformations(input_text, combined_rule)
+        result = self.transformation_engine.apply_transformations(
+            input_text, combined_rule
+        )
 
         if self.silent_mode:
             # Silent mode: only output the transformation result, no clipboard copying
@@ -253,7 +264,9 @@ Examples:
 
         logger.info("\nUsage:")
         logger.info("  python String_Multitool.py                 - Interactive mode")
-        logger.info("  python String_Multitool.py /rule           - Apply rule to clipboard")
+        logger.info(
+            "  python String_Multitool.py /rule           - Apply rule to clipboard"
+        )
         logger.info("  python String_Multitool.py help            - Show this help")
         logger.info("\nIn interactive mode, type 'commands' for available commands.")
 

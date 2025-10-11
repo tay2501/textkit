@@ -27,26 +27,50 @@ def transform_text(
 
     @app.command("transform")
     def _transform_text_impl(
-        rules: Annotated[str, typer.Argument(help="Transformation rules (e.g., '/t/l' for trim+lowercase)")] = None,
-        text: Annotated[str | None, typer.Option("--text", "-t", help="Input text (deprecated, use -i)")] = None,
-        input_text: Annotated[str | None, typer.Option("--input", "-i", help="Input text")] = None,
-        from_clipboard: Annotated[bool, typer.Option("--from-clipboard", help="Read input from clipboard")] = False,
-        output: Annotated[str | None, typer.Option("--output", "-o", help="Output folder path")] = None,
-        to_clipboard: Annotated[bool, typer.Option("--to-clipboard", help="Write output to clipboard")] = False,
-        clipboard: Annotated[bool, typer.Option("--clipboard/--no-clipboard", help="(Deprecated) Copy result to clipboard")] = None,
-        show_rules: Annotated[bool, typer.Option("--show-rules", help="Show available rules and exit")] = False,
+        rules: Annotated[
+            str,
+            typer.Argument(
+                help="Transformation rules (e.g., '/t/l' for trim+lowercase)"
+            ),
+        ] = None,
+        text: Annotated[
+            str | None,
+            typer.Option("--text", "-t", help="Input text (deprecated, use -i)"),
+        ] = None,
+        input_text: Annotated[
+            str | None, typer.Option("--input", "-i", help="Input text")
+        ] = None,
+        from_clipboard: Annotated[
+            bool, typer.Option("--from-clipboard", help="Read input from clipboard")
+        ] = False,
+        output: Annotated[
+            str | None, typer.Option("--output", "-o", help="Output folder path")
+        ] = None,
+        to_clipboard: Annotated[
+            bool, typer.Option("--to-clipboard", help="Write output to clipboard")
+        ] = False,
+        clipboard: Annotated[
+            bool,
+            typer.Option(
+                "--clipboard/--no-clipboard",
+                help="(Deprecated) Copy result to clipboard",
+            ),
+        ] = None,
+        show_rules: Annotated[
+            bool, typer.Option("--show-rules", help="Show available rules and exit")
+        ] = False,
     ) -> None:
         """Apply **transformation rules** to input text.
 
         [yellow]⚠️  DEPRECATED: Use 'textkit text transform' instead[/yellow]
-        
+
         This command is maintained for backward compatibility.
         Please migrate to the new hierarchical command structure:
-        
+
         ```bash
         # Old (deprecated)
         textkit transform '/t/l' -i "text"
-        
+
         # New (recommended)
         textkit text transform '/t/l' -i "text"
         textkit text t '/t/l' -i "text"  # Short alias
@@ -82,14 +106,18 @@ def transform_text(
         - For encoding: Use Unix iconv syntax with -f (from) and -t (to) flags
         """
         # Display deprecation warning
-        console.print("[yellow]Warning: 'textkit transform' is deprecated. Use 'textkit text transform' instead.[/yellow]")
+        console.print(
+            "[yellow]Warning: 'textkit transform' is deprecated. Use 'textkit text transform' instead.[/yellow]"
+        )
 
         if show_rules:
             _show_available_rules(get_app_func)
             return
 
         if rules is None:
-            console.print("[red]Error: RULES argument is required when not using --show-rules[/red]")
+            console.print(
+                "[red]Error: RULES argument is required when not using --show-rules[/red]"
+            )
             raise typer.Exit(1)
 
         # Handle input options priority: -i > --text > --from-clipboard > pipe/stdin
@@ -97,7 +125,9 @@ def transform_text(
         if input_text is not None:
             final_input_text = input_text
         elif text is not None:
-            console.print("[yellow]Warning: --text/-t is deprecated. Use --input/-i instead.[/yellow]")
+            console.print(
+                "[yellow]Warning: --text/-t is deprecated. Use --input/-i instead.[/yellow]"
+            )
             final_input_text = text
         elif from_clipboard:
             try:
@@ -108,16 +138,21 @@ def transform_text(
                 raise typer.Exit(1)
         else:
             import sys
+
             if not sys.stdin.isatty():
                 final_input_text = sys.stdin.read()
             else:
-                console.print("[yellow]Warning: No input specified. Use -i, --from-clipboard, or pipe input.[/yellow]")
+                console.print(
+                    "[yellow]Warning: No input specified. Use -i, --from-clipboard, or pipe input.[/yellow]"
+                )
                 raise typer.Exit(1)
 
         # Handle clipboard output options
         final_clipboard_flag = to_clipboard
         if clipboard is not None:
-            console.print("[yellow]Warning: --clipboard/--no-clipboard is deprecated. Use --to-clipboard instead.[/yellow]")
+            console.print(
+                "[yellow]Warning: --clipboard/--no-clipboard is deprecated. Use --to-clipboard instead.[/yellow]"
+            )
             final_clipboard_flag = clipboard
 
         # Normalize rule argument to handle Windows path expansion
@@ -125,11 +160,15 @@ def transform_text(
 
         try:
             app_instance = get_app_func()
-            result = app_instance.apply_transformation(final_input_text, normalized_rules)
+            result = app_instance.apply_transformation(
+                final_input_text, normalized_rules
+            )
 
             # Use enhanced output manager
             output_manager = OutputManager(app_instance)
-            output_manager.handle_output(result, output_folder=output, clipboard=final_clipboard_flag)
+            output_manager.handle_output(
+                result, output_folder=output, clipboard=final_clipboard_flag
+            )
 
         except Exception as e:
             handle_cli_error_func(e, "text transformation")
@@ -152,6 +191,8 @@ def _show_available_rules(get_app_func: callable) -> None:
                 console.print(f"    [dim]Example: {example}[/dim]")
             console.print()
 
-        console.print("[dim]Tip: Combine rules like '/t/l/p' to apply multiple transformations[/dim]")
+        console.print(
+            "[dim]Tip: Combine rules like '/t/l/p' to apply multiple transformations[/dim]"
+        )
     except Exception as e:
         console.print(f"[red]Error loading rules: {e}[/red]")

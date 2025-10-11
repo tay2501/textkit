@@ -35,7 +35,9 @@ async def test_async_engine_basic_transformation():
 
     # Test with more complex rule
     result = await async_engine.transform_async("test 123 test", '/r "test" "replaced"')
-    assert result == "replaced 123 replaced", f"Expected 'replaced 123 replaced', got '{result}'"
+    assert result == "replaced 123 replaced", (
+        f"Expected 'replaced 123 replaced', got '{result}'"
+    )
 
     print("OK Async engine basic transformation test passed")
 
@@ -54,13 +56,13 @@ async def test_async_engine_streaming():
     # Test streaming transformation
     stream = await async_engine.transform_async(large_text, "/u", enable_streaming=True)
 
-    if hasattr(stream, '__aiter__'):
+    if hasattr(stream, "__aiter__"):
         # It's a streaming response
         result_chunks = []
         async for chunk in stream:
             result_chunks.append(chunk)
 
-        result = ''.join(result_chunks)
+        result = "".join(result_chunks)
         expected = large_text.upper()
         assert result == expected, "Streaming transformation result mismatch"
     else:
@@ -79,11 +81,7 @@ async def test_async_engine_batch_processing():
     async_engine = AsyncTextTransformationEngine()
 
     # Test batch processing
-    requests = [
-        ("hello", "/u"),
-        ("world", "/u"),
-        ("test", "/r/t/T/")
-    ]
+    requests = [("hello", "/u"), ("world", "/u"), ("test", "/r/t/T/")]
 
     results = await async_engine.transform_batch_async(requests)
 
@@ -125,7 +123,7 @@ async def test_streaming_basic_functionality():
     async for chunk in streamer.stream_transform(test_text, "/u"):
         results.append(chunk)
 
-    result = ''.join(results)
+    result = "".join(results)
     assert result == test_text.upper(), "Streaming transformation failed"
 
     print("OK Async text streamer test passed")
@@ -167,9 +165,7 @@ async def test_performance_monitoring():
         return "test_result"
 
     result = await monitor.measure_operation(
-        "test_operation",
-        test_operation,
-        data_size=100
+        "test_operation", test_operation, data_size=100
     )
 
     assert result == "test_result", "Measured operation result incorrect"
@@ -203,16 +199,10 @@ async def test_async_benchmark():
         return text * multiplier
 
     # Benchmark with multiple test cases
-    test_cases = [
-        (("hello",), {"multiplier": 1}),
-        (("world",), {"multiplier": 2})
-    ]
+    test_cases = [(("hello",), {"multiplier": 1}), (("world",), {"multiplier": 2})]
 
     results = await benchmark.benchmark_function(
-        sample_function,
-        test_cases,
-        iterations=5,
-        warmup_iterations=2
+        sample_function, test_cases, iterations=5, warmup_iterations=2
     )
 
     assert results["function_name"] == "sample_function"
@@ -246,7 +236,7 @@ async def test_async_io_manager():
         batch_data = {
             Path(temp_dir) / "file1.txt": "Content 1",
             Path(temp_dir) / "file2.txt": "Content 2",
-            Path(temp_dir) / "file3.txt": "Content 3"
+            Path(temp_dir) / "file3.txt": "Content 3",
         }
 
         batch_results = await io_manager.batch_write_files(batch_data)
@@ -283,7 +273,7 @@ async def test_streaming_file_operations():
 
         # Create test content
         lines = [f"Line {i}\n" for i in range(100)]
-        test_content = ''.join(lines)
+        test_content = "".join(lines)
 
         # Write content normally first
         await io_manager.write_file_async(test_file, test_content)
@@ -293,7 +283,7 @@ async def test_streaming_file_operations():
         async for chunk in io_manager.read_file_streaming(test_file, chunk_size=100):
             chunks.append(chunk)
 
-        streamed_content = ''.join(chunks)
+        streamed_content = "".join(chunks)
         assert streamed_content == test_content, "Streamed content mismatch"
 
         # Test streaming write
@@ -303,8 +293,7 @@ async def test_streaming_file_operations():
 
         output_file = Path(temp_dir) / "stream_output.txt"
         write_result = await io_manager.write_file_streaming(
-            output_file,
-            content_generator()
+            output_file, content_generator()
         )
 
         assert write_result.success, "Streaming write failed"
@@ -350,16 +339,16 @@ async def test_integrated_async_workflow():
 
         # Measure the entire workflow
         write_result = await monitor.measure_operation(
-            "integrated_workflow",
-            integrated_workflow,
-            data_size=len(input_text)
+            "integrated_workflow", integrated_workflow, data_size=len(input_text)
         )
 
         assert write_result.success, "Integrated workflow failed"
 
         # Verify result
         output_content = await io_manager.read_file_async(output_file)
-        assert output_content == input_text.upper(), "Integrated workflow output mismatch"
+        assert output_content == input_text.upper(), (
+            "Integrated workflow output mismatch"
+        )
 
         # Check performance stats
         workflow_stats = monitor.get_stats("integrated_workflow")
@@ -383,10 +372,7 @@ async def test_concurrent_operations():
         return task_id, result
 
     # Run multiple transformations concurrently
-    tasks = [
-        create_transformation_task("test", "/u", i)
-        for i in range(10)
-    ]
+    tasks = [create_transformation_task("test", "/u", i) for i in range(10)]
 
     results = await asyncio.gather(*tasks)
 
@@ -394,7 +380,9 @@ async def test_concurrent_operations():
     assert len(results) == 10
     for task_id, result in results:
         expected = f"TEST_{task_id}"
-        assert result == expected, f"Task {task_id} failed: expected {expected}, got {result}"
+        assert result == expected, (
+            f"Task {task_id} failed: expected {expected}, got {result}"
+        )
 
     print("OK Concurrent operations test passed")
 
@@ -442,7 +430,7 @@ async def run_all_tests():
         test_streaming_file_operations,
         test_integrated_async_workflow,
         test_concurrent_operations,
-        test_error_handling
+        test_error_handling,
     ]
 
     passed_tests = 0
@@ -456,6 +444,7 @@ async def run_all_tests():
             print(f"FAILED {test_func.__name__}: {e}")
             failed_tests += 1
             import traceback
+
             traceback.print_exc()
 
     print("\n=== Test Results ===")

@@ -12,7 +12,7 @@ from typing import Any, TypeVar
 from textkit.common_utils import safe_execute, with_error_context
 from textkit.exceptions import TransformationError, ValidationError
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class ErrorHandlingMixin:
@@ -23,12 +23,7 @@ class ErrorHandlingMixin:
     """
 
     def safe_transform(
-        self,
-        operation: Callable[..., str],
-        text: str,
-        rule_name: str,
-        *args,
-        **kwargs
+        self, operation: Callable[..., str], text: str, rule_name: str, *args, **kwargs
     ) -> str:
         """Safely execute a transformation operation with error handling.
 
@@ -50,13 +45,13 @@ class ErrorHandlingMixin:
             text,
             *args,
             default_return=text,
-            logger=getattr(self, 'logger', None),
+            logger=getattr(self, "logger", None),
             context={
                 "rule_name": rule_name,
                 "input_length": len(text),
-                "transformer": self.__class__.__name__
+                "transformer": self.__class__.__name__,
             },
-            **kwargs
+            **kwargs,
         )
 
         if error:
@@ -69,7 +64,7 @@ class ErrorHandlingMixin:
         error: Exception,
         rule_name: str,
         text: str,
-        additional_context: dict[str, Any] | None = None
+        additional_context: dict[str, Any] | None = None,
     ) -> TransformationError:
         """Wrap an exception as a TransformationError with context.
 
@@ -90,7 +85,7 @@ class ErrorHandlingMixin:
             wrapped = TransformationError(
                 f"Transformation '{rule_name}' failed: {error}",
                 operation="transformation",
-                cause=error
+                cause=error,
             )
 
         # Add standard context
@@ -109,7 +104,7 @@ class ErrorHandlingMixin:
         self,
         rule_name: str,
         text: str,
-        additional_context: dict[str, Any] | None = None
+        additional_context: dict[str, Any] | None = None,
     ):
         """Context manager for transformation operations.
 
@@ -125,20 +120,15 @@ class ErrorHandlingMixin:
             "rule_name": rule_name,
             "input_length": len(text),
             "transformer": self.__class__.__name__,
-            **(additional_context or {})
+            **(additional_context or {}),
         }
 
         return with_error_context(
-            f"transform_{rule_name}",
-            getattr(self, 'logger', None),
-            context
+            f"transform_{rule_name}", getattr(self, "logger", None), context
         )
 
     def validate_transformation_result(
-        self,
-        result: Any,
-        rule_name: str,
-        expected_type: type = str
+        self, result: Any, rule_name: str, expected_type: type = str
     ) -> Any:
         """Validate the result of a transformation.
 
@@ -154,13 +144,16 @@ class ErrorHandlingMixin:
             TransformationError: If validation fails
         """
         if not isinstance(result, expected_type):
-            raise TransformationError(
-                f"Transformation '{rule_name}' returned invalid type: {type(result).__name__}",
-                operation="result_validation"
-            ).add_context("rule_name", rule_name)\
-             .add_context("expected_type", expected_type.__name__)\
-             .add_context("actual_type", type(result).__name__)\
-             .add_context("transformer", self.__class__.__name__)
+            raise (
+                TransformationError(
+                    f"Transformation '{rule_name}' returned invalid type: {type(result).__name__}",
+                    operation="result_validation",
+                )
+                .add_context("rule_name", rule_name)
+                .add_context("expected_type", expected_type.__name__)
+                .add_context("actual_type", type(result).__name__)
+                .add_context("transformer", self.__class__.__name__)
+            )
 
         return result
 
@@ -174,6 +167,7 @@ class ErrorHandlingMixin:
         Returns:
             Decorator function
         """
+
         def decorator(func: Callable[..., T]) -> Callable[..., T]:
             @functools.wraps(func)
             def wrapper(self, *args, **kwargs) -> T:
@@ -186,15 +180,18 @@ class ErrorHandlingMixin:
                     raise
                 except Exception as e:
                     # Wrap unknown exceptions
-                    if hasattr(self, '_wrap_transformation_error'):
+                    if hasattr(self, "_wrap_transformation_error"):
                         text = args[0] if args and isinstance(args[0], str) else ""
-                        raise self._wrap_transformation_error(e, effective_rule_name, text)
+                        raise self._wrap_transformation_error(
+                            e, effective_rule_name, text
+                        )
                     else:
                         raise TransformationError(
                             f"Transformation '{effective_rule_name}' failed: {e}",
                             operation="transformation",
-                            cause=e
+                            cause=e,
                         ).add_context("rule_name", effective_rule_name)
 
             return wrapper
+
         return decorator

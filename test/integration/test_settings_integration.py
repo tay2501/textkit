@@ -44,12 +44,12 @@ def test_environment_variable_override():
     """Test environment variable configuration override."""
     # Set environment variables
     test_env = {
-        'TEXTKIT_APP_NAME': 'TestApp',
-        'TEXTKIT_DEBUG_MODE': 'true',
-        'TEXTKIT_LOG_LEVEL': 'DEBUG',
-        'TEXTKIT_MAX_TEXT_LENGTH': '5000000',
-        'TEXTKIT_SECURITY__RSA_KEY_SIZE': '2048',
-        'TEXTKIT_HOTKEY__ENABLED': 'true'
+        "TEXTKIT_APP_NAME": "TestApp",
+        "TEXTKIT_DEBUG_MODE": "true",
+        "TEXTKIT_LOG_LEVEL": "DEBUG",
+        "TEXTKIT_MAX_TEXT_LENGTH": "5000000",
+        "TEXTKIT_SECURITY__RSA_KEY_SIZE": "2048",
+        "TEXTKIT_HOTKEY__ENABLED": "true",
     }
 
     # Temporarily set environment variables
@@ -110,12 +110,12 @@ def test_validation_errors():
         SecurityConfig(rsa_key_size=1024)  # Too small
 
     # Test invalid log level via environment
-    os.environ['TEXTKIT_LOG_LEVEL'] = 'INVALID'
+    os.environ["TEXTKIT_LOG_LEVEL"] = "INVALID"
     try:
         with pytest.raises(PydanticValidationError):
             ApplicationSettings()
     finally:
-        os.environ.pop('TEXTKIT_LOG_LEVEL', None)
+        os.environ.pop("TEXTKIT_LOG_LEVEL", None)
 
     # Test invalid hotkey format
     with pytest.raises(PydanticValidationError):
@@ -125,12 +125,14 @@ def test_validation_errors():
 def test_dot_env_file_loading():
     """Test .env file loading functionality."""
     with tempfile.TemporaryDirectory() as temp_dir:
-        env_file = Path(temp_dir) / '.env'
-        env_file.write_text("""
+        env_file = Path(temp_dir) / ".env"
+        env_file.write_text(
+            """
 TEXTKIT_APP_NAME=EnvFileApp
 TEXTKIT_DEBUG_MODE=true
 TEXTKIT_SECURITY__RSA_KEY_SIZE=2048
-        """.strip())
+        """.strip()
+        )
 
         # Change to temp directory to test .env loading
         original_cwd = os.getcwd()
@@ -172,8 +174,8 @@ def test_dependency_injection_container():
 def test_global_settings_functions():
     """Test global settings convenience functions."""
     # Set test environment
-    os.environ['TEXTKIT_DEBUG_MODE'] = 'true'
-    os.environ['TEXTKIT_MAX_TEXT_LENGTH'] = '12345'
+    os.environ["TEXTKIT_DEBUG_MODE"] = "true"
+    os.environ["TEXTKIT_MAX_TEXT_LENGTH"] = "12345"
 
     try:
         # Test global functions
@@ -184,8 +186,8 @@ def test_global_settings_functions():
 
     finally:
         # Clean up
-        os.environ.pop('TEXTKIT_DEBUG_MODE', None)
-        os.environ.pop('TEXTKIT_MAX_TEXT_LENGTH', None)
+        os.environ.pop("TEXTKIT_DEBUG_MODE", None)
+        os.environ.pop("TEXTKIT_MAX_TEXT_LENGTH", None)
 
 
 def test_dependency_injection_decorator():
@@ -276,4 +278,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Test failed: {e}")
         import traceback
+
         traceback.print_exc()

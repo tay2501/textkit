@@ -5,7 +5,6 @@ Simplified character encoding transformer that leverages
 the enhanced base transformer and mixins for clean, maintainable code.
 """
 
-
 from textkit.exceptions import EncodingTransformationError
 
 from ..types import TransformationRule, TransformationRuleType
@@ -14,6 +13,7 @@ from .mixins import ErrorHandlingMixin, LoggingMixin, PerformanceMixin
 
 try:
     from charset_normalizer import from_bytes
+
     CHARSET_NORMALIZER_AVAILABLE = True
 except ImportError:
     CHARSET_NORMALIZER_AVAILABLE = False
@@ -21,7 +21,7 @@ except ImportError:
 
 class EncodingTransformer(EnhancedBaseTransformer):
     """Character encoding transformer with iconv-like interface.
-    
+
     Provides character encoding conversions similar to Unix 'iconv' command,
     supporting conversion between different character encodings with various
     error handling modes. Uses charset-normalizer for superior performance
@@ -31,19 +31,34 @@ class EncodingTransformer(EnhancedBaseTransformer):
     # Common encoding aliases for better compatibility
     ENCODING_ALIASES = {
         # Japanese encodings
-        'sjis': 'shift_jis', 'shift-jis': 'shift_jis', 'cp932': 'shift_jis',
-        'eucjp': 'euc-jp', 'euc_jp': 'euc-jp', 'iso-2022-jp': 'iso2022_jp',
+        "sjis": "shift_jis",
+        "shift-jis": "shift_jis",
+        "cp932": "shift_jis",
+        "eucjp": "euc-jp",
+        "euc_jp": "euc-jp",
+        "iso-2022-jp": "iso2022_jp",
         # Unicode encodings
-        'utf8': 'utf-8', 'utf16': 'utf-16', 'utf32': 'utf-32',
+        "utf8": "utf-8",
+        "utf16": "utf-16",
+        "utf32": "utf-32",
         # Western encodings
-        'latin1': 'iso-8859-1', 'latin-1': 'iso-8859-1',
-        'ascii': 'ascii', 'cp1252': 'windows-1252', 'windows1252': 'windows-1252',
+        "latin1": "iso-8859-1",
+        "latin-1": "iso-8859-1",
+        "ascii": "ascii",
+        "cp1252": "windows-1252",
+        "windows1252": "windows-1252",
         # Chinese encodings
-        'gb2312': 'gb2312', 'gbk': 'gbk', 'gb18030': 'gb18030', 'big5': 'big5',
+        "gb2312": "gb2312",
+        "gbk": "gbk",
+        "gb18030": "gb18030",
+        "big5": "big5",
         # Korean encodings
-        'euckr': 'euc-kr', 'euc_kr': 'euc-kr',
+        "euckr": "euc-kr",
+        "euc_kr": "euc-kr",
         # Russian encodings
-        'koi8r': 'koi8-r', 'koi8_r': 'koi8-r', 'cp1251': 'windows-1251'
+        "koi8r": "koi8-r",
+        "koi8_r": "koi8-r",
+        "cp1251": "windows-1251",
     }
 
     def __init__(self):
@@ -55,13 +70,15 @@ class EncodingTransformer(EnhancedBaseTransformer):
         super().__init__()
 
         # Initialize logger from LoggingMixin if not already set
-        if not hasattr(self, 'logger'):
+        if not hasattr(self, "logger"):
             import structlog
+
             self.logger = structlog.get_logger(self.__class__.__name__)
 
         # Initialize PerformanceMixin stats if not already set
-        if not hasattr(self, '_performance_stats'):
+        if not hasattr(self, "_performance_stats"):
             from collections import defaultdict, deque
+
             self._performance_stats = defaultdict(list)
             self._recent_operations = deque(maxlen=100)
             self._operation_count = defaultdict(int)
@@ -106,25 +123,25 @@ class EncodingTransformer(EnhancedBaseTransformer):
         text: str,
         from_encoding: str = "auto",
         to_encoding: str = "utf-8",
-        error_mode: str = "strict"
+        error_mode: str = "strict",
     ) -> str:
         """Public interface for encoding conversion.
-        
+
         This is the recommended public API for encoding conversion operations.
         Use this method instead of the internal _convert_encoding method.
-        
+
         Args:
             text: Input text to convert
             from_encoding: Source character encoding (or 'auto' for detection)
             to_encoding: Target character encoding
             error_mode: Error handling mode ('strict', 'ignore', 'replace', 'backslashreplace')
-            
+
         Returns:
             Converted text string
-            
+
         Raises:
             EncodingTransformationError: If encoding conversion fails
-            
+
         Example:
             >>> transformer = EncodingTransformer()
             >>> result = transformer.convert("日本語", "shift_jis", "utf-8")
@@ -135,35 +152,35 @@ class EncodingTransformer(EnhancedBaseTransformer):
 
     def detect_encoding(self, text: str) -> str:
         """Detect the character encoding of the given text.
-        
+
         Args:
             text: Input text to analyze
-            
+
         Returns:
             Detected encoding name (e.g., 'utf-8', 'shift_jis')
-            
+
         Example:
             >>> transformer = EncodingTransformer()
             >>> encoding = transformer.detect_encoding("日本語")
             >>> print(encoding)  # 'utf-8'
         """
         try:
-            data = text.encode('latin-1')
+            data = text.encode("latin-1")
             return self._detect_encoding_advanced(data)
         except (UnicodeError, LookupError):
-            return 'utf-8'  # Fallback to UTF-8
+            return "utf-8"  # Fallback to UTF-8
 
     def to_utf8(self, text: str) -> str:
         """Convert text to UTF-8 with automatic encoding detection.
-        
+
         Convenience method for the common use case of converting to UTF-8.
-        
+
         Args:
             text: Input text to convert
-            
+
         Returns:
             UTF-8 encoded text string
-            
+
         Example:
             >>> transformer = EncodingTransformer()
             >>> result = transformer.to_utf8("日本語 text")
@@ -171,10 +188,7 @@ class EncodingTransformer(EnhancedBaseTransformer):
         return self.convert(text, "auto", "utf-8")
 
     def _apply_with_args(
-        self,
-        text: str,
-        rule: TransformationRule,
-        args: list[str]
+        self, text: str, rule: TransformationRule, args: list[str]
     ) -> str:
         """Apply transformation with argument parsing."""
         if rule.name == "iconv":
@@ -193,10 +207,14 @@ class EncodingTransformer(EnhancedBaseTransformer):
         i = 0
         while i < len(args):
             if args[i] == "-f" and i + 1 < len(args):
-                source_encoding = self.validate_encoding_parameter(args[i + 1], allow_auto=True)
+                source_encoding = self.validate_encoding_parameter(
+                    args[i + 1], allow_auto=True
+                )
                 i += 2
             elif args[i] == "-t" and i + 1 < len(args):
-                target_encoding = self.validate_encoding_parameter(args[i + 1], allow_auto=False)
+                target_encoding = self.validate_encoding_parameter(
+                    args[i + 1], allow_auto=False
+                )
                 i += 2
             elif args[i] == "--error" and i + 1 < len(args):
                 error_mode = args[i + 1]
@@ -204,7 +222,9 @@ class EncodingTransformer(EnhancedBaseTransformer):
             else:
                 i += 1
 
-        return self._convert_encoding(text, source_encoding, target_encoding, error_mode)
+        return self._convert_encoding(
+            text, source_encoding, target_encoding, error_mode
+        )
 
     @ErrorHandlingMixin.error_handler("to-utf8")
     @LoggingMixin.logged_transformation("to-utf8")
@@ -217,14 +237,14 @@ class EncodingTransformer(EnhancedBaseTransformer):
     def _detect_encoding_transform(self, text: str) -> str:
         """Detect and return character encoding information."""
         try:
-            data = text.encode('latin-1')
+            data = text.encode("latin-1")
             detected = self._detect_encoding_advanced(data)
 
             if CHARSET_NORMALIZER_AVAILABLE:
                 try:
                     result = from_bytes(data).best()
                     if result:
-                        confidence = getattr(result, 'coherence', 0) / 100.0
+                        confidence = getattr(result, "coherence", 0) / 100.0
                         return f"Detected encoding: {detected} (confidence: {confidence:.2f})"
                 except Exception:
                     pass
@@ -234,32 +254,39 @@ class EncodingTransformer(EnhancedBaseTransformer):
             return "Detected encoding: utf-8 (already decoded)"
 
     @ErrorHandlingMixin.error_handler("iconv")
-    def _iconv_transform(self, text: str, source_encoding: str = "auto",
-                        target_encoding: str = "utf-8", error_mode: str = "strict") -> str:
+    def _iconv_transform(
+        self,
+        text: str,
+        source_encoding: str = "auto",
+        target_encoding: str = "utf-8",
+        error_mode: str = "strict",
+    ) -> str:
         """Core iconv transformation logic."""
-        return self._convert_encoding(text, source_encoding, target_encoding, error_mode)
+        return self._convert_encoding(
+            text, source_encoding, target_encoding, error_mode
+        )
 
     def _convert_encoding(
         self,
         text: str,
         source_encoding: str,
         target_encoding: str,
-        error_mode: str = "strict"
+        error_mode: str = "strict",
     ) -> str:
         """Core encoding conversion with enhanced error handling.
-        
+
         This method is used by both internal transformations and external
         callers (like iconv_cmd.py).
-        
+
         Args:
             text: Input text to convert
             source_encoding: Source character encoding (or 'auto' for detection)
             target_encoding: Target character encoding
             error_mode: Error handling mode ('strict', 'ignore', 'replace')
-            
+
         Returns:
             Converted text string
-            
+
         Raises:
             EncodingTransformationError: If encoding conversion fails
         """
@@ -271,7 +298,7 @@ class EncodingTransformer(EnhancedBaseTransformer):
             # Handle auto-detection
             if source_encoding == "auto":
                 try:
-                    data = text.encode('latin-1')
+                    data = text.encode("latin-1")
                     source_encoding = self._detect_encoding_advanced(data)
                     text = data.decode(source_encoding, errors=error_mode)
                 except (UnicodeError, LookupError):
@@ -290,25 +317,25 @@ class EncodingTransformer(EnhancedBaseTransformer):
                 f"Encoding conversion failed: {e}",
                 source_encoding=source_encoding,
                 target_encoding=target_encoding,
-                operation="encoding_conversion"
+                operation="encoding_conversion",
             ) from e
 
     def _normalize_encoding_name(self, encoding: str) -> str:
         """Normalize encoding name using aliases."""
-        if not encoding or encoding.lower() == 'auto':
+        if not encoding or encoding.lower() == "auto":
             return encoding
 
-        normalized = encoding.lower().replace('-', '_').replace(' ', '_')
-        return self.ENCODING_ALIASES.get(normalized, normalized.replace('_', '-'))
+        normalized = encoding.lower().replace("-", "_").replace(" ", "_")
+        return self.ENCODING_ALIASES.get(normalized, normalized.replace("_", "-"))
 
     def _detect_encoding_advanced(self, data: bytes) -> str:
         """Advanced encoding detection using charset-normalizer.
-        
+
         Leverages charset-normalizer's superior detection algorithm
         instead of manual fallback logic.
         """
         if not CHARSET_NORMALIZER_AVAILABLE:
-            return 'utf-8'  # Fallback if library not available
+            return "utf-8"  # Fallback if library not available
 
         try:
             result = from_bytes(data).best()
@@ -317,4 +344,4 @@ class EncodingTransformer(EnhancedBaseTransformer):
         except Exception:
             pass
 
-        return 'utf-8'  # Final fallback  # Final fallback  # Final fallback
+        return "utf-8"  # Final fallback  # Final fallback  # Final fallback

@@ -12,6 +12,7 @@ from .abstractions import ApplicationServiceInterface
 
 class ComponentInitializationError(Exception):
     """Exception raised when component initialization fails."""
+
     pass
 
 

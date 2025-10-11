@@ -58,6 +58,7 @@ class CommandPattern(ABC):
 @dataclass
 class PatternInfo:
     """Information about a registered command pattern."""
+
     name: str
     description: str
     pattern: CommandPattern
@@ -76,11 +77,7 @@ class CommandRegistry:
         self._patterns: list[PatternInfo] = []
 
     def register_pattern(
-        self,
-        name: str,
-        description: str,
-        pattern: CommandPattern,
-        priority: int = 0
+        self, name: str, description: str, pattern: CommandPattern, priority: int = 0
     ) -> None:
         """Register a command pattern.
 
@@ -91,10 +88,7 @@ class CommandRegistry:
             priority: Pattern priority (higher = checked first)
         """
         pattern_info = PatternInfo(
-            name=name,
-            description=description,
-            pattern=pattern,
-            priority=priority
+            name=name, description=description, pattern=pattern, priority=priority
         )
 
         # Insert pattern in priority order
@@ -136,7 +130,4 @@ class CommandRegistry:
         Returns:
             Dictionary mapping pattern names to help text
         """
-        return {
-            pattern.name: pattern.pattern.get_help()
-            for pattern in self._patterns
-        }
+        return {pattern.name: pattern.pattern.get_help() for pattern in self._patterns}

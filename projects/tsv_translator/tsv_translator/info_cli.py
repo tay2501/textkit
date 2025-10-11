@@ -10,7 +10,7 @@ from .analyzer import TSVAnalyzer
 
 def format_size(size_bytes: int) -> str:
     """Format file size in human readable format."""
-    for unit in ['B', 'KB', 'MB', 'GB']:
+    for unit in ["B", "KB", "MB", "GB"]:
         if size_bytes < 1024.0:
             return f"{size_bytes:.1f}{unit}"
         size_bytes /= 1024.0
@@ -39,17 +39,21 @@ def print_headers(headers: list[str]) -> None:
 def print_columns(columns: list[dict[str, Any]]) -> None:
     """Print detailed column information."""
     print("\nColumn Details:")
-    print(f"{'#':<3} {'Name':<20} {'Type':<10} {'Non-Empty':<10} {'Empty':<7} {'Unique':<8} {'Samples'}")
+    print(
+        f"{'#':<3} {'Name':<20} {'Type':<10} {'Non-Empty':<10} {'Empty':<7} {'Unique':<8} {'Samples'}"
+    )
     print("-" * 80)
 
     for col in columns:
-        samples = ", ".join(col['sample_values'][:3])
-        if len(col['sample_values']) > 3:
+        samples = ", ".join(col["sample_values"][:3])
+        if len(col["sample_values"]) > 3:
             samples += "..."
 
-        print(f"{col['index']:<3} {col['name']:<20} {col['data_type']:<10} "
-              f"{col['non_empty_count']:<10} {col['empty_count']:<7} "
-              f"{col['unique_count']:<8} {samples}")
+        print(
+            f"{col['index']:<3} {col['name']:<20} {col['data_type']:<10} "
+            f"{col['non_empty_count']:<10} {col['empty_count']:<7} "
+            f"{col['unique_count']:<8} {samples}"
+        )
 
 
 def print_preview(preview_data: list[list[str]], headers: list[str] = None) -> None:
@@ -72,8 +76,9 @@ def print_preview(preview_data: list[list[str]], headers: list[str] = None) -> N
     max_cols = max(len(row) for row in all_rows) if all_rows else 0
 
     for col_idx in range(max_cols):
-        max_width = max(len(str(row[col_idx]) if col_idx < len(row) else '')
-                       for row in all_rows)
+        max_width = max(
+            len(str(row[col_idx]) if col_idx < len(row) else "") for row in all_rows
+        )
         col_widths.append(min(max_width, 20))  # Cap at 20 characters
 
     # Print header if available
@@ -81,7 +86,7 @@ def print_preview(preview_data: list[list[str]], headers: list[str] = None) -> N
         header_row = []
         for i, header in enumerate(headers):
             if i < len(col_widths):
-                header_row.append(header[:col_widths[i]].ljust(col_widths[i]))
+                header_row.append(header[: col_widths[i]].ljust(col_widths[i]))
         print("  " + " | ".join(header_row))
         print("  " + "-+-".join("-" * w for w in col_widths))
 
@@ -90,7 +95,7 @@ def print_preview(preview_data: list[list[str]], headers: list[str] = None) -> N
         formatted_row = []
         for i, cell in enumerate(row):
             if i < len(col_widths):
-                cell_str = str(cell)[:col_widths[i]]
+                cell_str = str(cell)[: col_widths[i]]
                 formatted_row.append(cell_str.ljust(col_widths[i]))
         print("  " + " | ".join(formatted_row))
 
@@ -102,12 +107,12 @@ def print_statistics(stats: dict[str, Any]) -> None:
     print(f"Empty cells: {stats.get('empty_cells', 0)}")
     print(f"Total cells: {stats.get('total_cells', 0)}")
 
-    if 'data_type_distribution' in stats:
+    if "data_type_distribution" in stats:
         print("\nData type distribution:")
-        for data_type, count in stats['data_type_distribution'].items():
+        for data_type, count in stats["data_type_distribution"].items():
             print(f"  {data_type}: {count}")
 
-    avg_unique = stats.get('avg_unique_values_per_column', 0)
+    avg_unique = stats.get("avg_unique_values_per_column", 0)
     print(f"\nAverage unique values per column: {avg_unique:.1f}")
 
 
@@ -124,29 +129,43 @@ Examples:
   tsv-info -p -n 10 data.tsv           # Preview first 10 lines
   tsv-info -d ',' data.csv             # Analyze CSV file
   tsv-info --no-header data.tsv        # File without headers
-        """
+        """,
     )
 
-    parser.add_argument('file', help='Path to TSV file')
-    parser.add_argument('--header', action='store_true',
-                       help='Show header information')
-    parser.add_argument('-c', '--columns', action='store_true',
-                       help='Show column details and data types')
-    parser.add_argument('-s', '--stats', action='store_true',
-                       help='Show file statistics')
-    parser.add_argument('-p', '--preview', action='store_true',
-                       help='Show content preview')
-    parser.add_argument('-n', '--lines', type=int, default=5,
-                       help='Number of lines to preview (default: 5)')
-    parser.add_argument('-d', '--delimiter', default='\t',
-                       help='Field delimiter (default: tab)')
-    parser.add_argument('--encoding', default='utf-8',
-                       help='File encoding (default: utf-8)')
-    parser.add_argument('--no-header', action='store_true',
-                       help='Treat first line as data, not header')
-    parser.add_argument('-v', '--verbose', action='store_true',
-                       help='Show detailed information')
-    parser.add_argument('--version', action='version', version='0.1.0')
+    parser.add_argument("file", help="Path to TSV file")
+    parser.add_argument("--header", action="store_true", help="Show header information")
+    parser.add_argument(
+        "-c",
+        "--columns",
+        action="store_true",
+        help="Show column details and data types",
+    )
+    parser.add_argument(
+        "-s", "--stats", action="store_true", help="Show file statistics"
+    )
+    parser.add_argument(
+        "-p", "--preview", action="store_true", help="Show content preview"
+    )
+    parser.add_argument(
+        "-n",
+        "--lines",
+        type=int,
+        default=5,
+        help="Number of lines to preview (default: 5)",
+    )
+    parser.add_argument(
+        "-d", "--delimiter", default="\t", help="Field delimiter (default: tab)"
+    )
+    parser.add_argument(
+        "--encoding", default="utf-8", help="File encoding (default: utf-8)"
+    )
+    parser.add_argument(
+        "--no-header", action="store_true", help="Treat first line as data, not header"
+    )
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Show detailed information"
+    )
+    parser.add_argument("--version", action="version", version="0.1.0")
 
     args = parser.parse_args()
 
@@ -162,7 +181,7 @@ Examples:
             file_path=file_path,
             delimiter=args.delimiter,
             encoding=args.encoding,
-            has_header=not args.no_header
+            has_header=not args.no_header,
         )
 
         # Default behavior: show basic info and preview

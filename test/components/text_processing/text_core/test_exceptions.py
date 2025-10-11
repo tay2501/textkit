@@ -51,9 +51,11 @@ class TestValidationError:
 
     def test_validation_error_method_chaining(self):
         """Test method chaining for ValidationError."""
-        error = ValidationError("Test error")\
-            .add_context("field", "email")\
+        error = (
+            ValidationError("Test error")
+            .add_context("field", "email")
             .add_context("reason", "invalid_format")
+        )
 
         assert error.context["field"] == "email"
         assert error.context["reason"] == "invalid_format"
@@ -79,9 +81,11 @@ class TestTransformationError:
 
     def test_transformation_error_add_context(self):
         """Test adding context to TransformationError."""
-        error = TransformationError("Failed")\
-            .add_context("input_length", 100)\
+        error = (
+            TransformationError("Failed")
+            .add_context("input_length", 100)
             .add_context("rule", "uppercase")
+        )
 
         assert error.context["input_length"] == 100
         assert error.context["rule"] == "uppercase"
@@ -96,9 +100,7 @@ class TestTransformationError:
     def test_transformation_error_str_representation(self):
         """Test string representation includes context and operation."""
         error = TransformationError(
-            "Transform failed",
-            operation="uppercase",
-            context={"input": "test"}
+            "Transform failed", operation="uppercase", context={"input": "test"}
         )
 
         error_str = str(error)

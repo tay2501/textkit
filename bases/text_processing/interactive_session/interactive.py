@@ -44,13 +44,17 @@ class InteractiveSession:
         # EAFP: Try to use the dependencies, catch if they're invalid
         try:
             self.io_manager: IOManagerProtocol = io_manager
-            self.transformation_engine: TransformationEngineProtocol = transformation_engine
+            self.transformation_engine: TransformationEngineProtocol = (
+                transformation_engine
+            )
 
             # Validate by checking essential methods exist
             if not hasattr(self.io_manager, "get_input_text"):
                 raise AttributeError("IO manager missing get_input_text method")
             if not hasattr(self.transformation_engine, "get_available_rules"):
-                raise AttributeError("Transformation engine missing get_available_rules method")
+                raise AttributeError(
+                    "Transformation engine missing get_available_rules method"
+                )
         except (AttributeError, TypeError) as e:
             raise ValidationError(f"Invalid dependency: {e}") from e
         self.current_text: str = ""
@@ -307,7 +311,9 @@ class CommandProcessor:
                 return self._handle_help_command()
 
             if command in ["quit", "q", "exit"]:
-                return CommandResult(success=True, message="Goodbye!", should_continue=False)
+                return CommandResult(
+                    success=True, message="Goodbye!", should_continue=False
+                )
 
             # Handle clipboard commands
             if command in ["refresh", "reload", "replace"]:
@@ -332,14 +338,18 @@ class CommandProcessor:
             )
 
         except Exception as e:
-            return CommandResult(success=False, message=f"Command execution failed: {e}")
+            return CommandResult(
+                success=False, message=f"Command execution failed: {e}"
+            )
 
     def _handle_refresh_command(self) -> CommandResult:
         """Handle clipboard refresh command."""
         try:
             new_content: str = self.session.refresh_from_clipboard()
             char_count: int = len(new_content)
-            display_text: str = new_content[:50] + "..." if len(new_content) > 50 else new_content
+            display_text: str = (
+                new_content[:50] + "..." if len(new_content) > 50 else new_content
+            )
 
             return CommandResult(
                 success=True,
@@ -365,9 +375,7 @@ class CommandProcessor:
                 clipboard_length: int = len(current_clipboard)
 
                 # Show if clipboard differs from session text
-                clipboard_info: str = (
-                    f"   Current clipboard: '{clipboard_display}' ({clipboard_length} chars)"
-                )
+                clipboard_info: str = f"   Current clipboard: '{clipboard_display}' ({clipboard_length} chars)"
                 # if session_different:
                 #     clipboard_info += " [DIFFERENT FROM SESSION]"
 
@@ -392,16 +400,22 @@ class CommandProcessor:
             return CommandResult(success=True, message="\n".join(lines))
 
         except Exception as e:
-            return CommandResult(success=False, message=f"[ERROR] Failed to get status: {e}")
+            return CommandResult(
+                success=False, message=f"[ERROR] Failed to get status: {e}"
+            )
 
     def _handle_clear_command(self) -> CommandResult:
         """Handle clear command."""
         try:
             self.session.clear_working_text()
-            return CommandResult(success=True, message="[SUCCESS] Working text cleared.")
+            return CommandResult(
+                success=True, message="[SUCCESS] Working text cleared."
+            )
 
         except Exception as e:
-            return CommandResult(success=False, message=f"[ERROR] Failed to clear text: {e}")
+            return CommandResult(
+                success=False, message=f"[ERROR] Failed to clear text: {e}"
+            )
 
     def _handle_copy_command(self) -> CommandResult:
         """Handle copy command."""

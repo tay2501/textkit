@@ -10,8 +10,13 @@ from typing import Any
 class TSVAnalyzer:
     """Analyze TSV files and extract information."""
 
-    def __init__(self, file_path: str | Path, delimiter: str = '\t',
-                 encoding: str = 'utf-8', has_header: bool = True):
+    def __init__(
+        self,
+        file_path: str | Path,
+        delimiter: str = "\t",
+        encoding: str = "utf-8",
+        has_header: bool = True,
+    ):
         """Initialize TSV analyzer.
 
         Args:
@@ -33,14 +38,17 @@ class TSVAnalyzer:
             return
 
         try:
-            with open(self.file_path, encoding=self.encoding, newline='') as file:
+            with open(self.file_path, encoding=self.encoding, newline="") as file:
                 reader = csv.reader(file, delimiter=self.delimiter)
                 self._data = list(reader)
 
             if self.has_header and self._data:
                 self._headers = self._data[0]
             else:
-                self._headers = [f"col_{i+1}" for i in range(len(self._data[0]) if self._data else 0)]
+                self._headers = [
+                    f"col_{i + 1}"
+                    for i in range(len(self._data[0]) if self._data else 0)
+                ]
 
         except Exception as e:
             raise RuntimeError(f"Failed to load TSV file: {e}") from e
@@ -51,26 +59,28 @@ class TSVAnalyzer:
 
         if not self._data:
             return {
-                'file_path': str(self.file_path),
-                'file_size': self.file_path.stat().st_size if self.file_path.exists() else 0,
-                'rows': 0,
-                'columns': 0,
-                'has_header': self.has_header,
-                'delimiter': repr(self.delimiter),
-                'encoding': self.encoding
+                "file_path": str(self.file_path),
+                "file_size": self.file_path.stat().st_size
+                if self.file_path.exists()
+                else 0,
+                "rows": 0,
+                "columns": 0,
+                "has_header": self.has_header,
+                "delimiter": repr(self.delimiter),
+                "encoding": self.encoding,
             }
 
         data_rows = len(self._data) - (1 if self.has_header else 0)
 
         return {
-            'file_path': str(self.file_path),
-            'file_size': self.file_path.stat().st_size,
-            'total_rows': len(self._data),
-            'data_rows': data_rows,
-            'columns': len(self._data[0]) if self._data else 0,
-            'has_header': self.has_header,
-            'delimiter': repr(self.delimiter),
-            'encoding': self.encoding
+            "file_path": str(self.file_path),
+            "file_size": self.file_path.stat().st_size,
+            "total_rows": len(self._data),
+            "data_rows": data_rows,
+            "columns": len(self._data[0]) if self._data else 0,
+            "has_header": self.has_header,
+            "delimiter": repr(self.delimiter),
+            "encoding": self.encoding,
         }
 
     def get_headers(self) -> list[str]:
@@ -83,36 +93,39 @@ class TSVAnalyzer:
         # Remove empty values for analysis
         non_empty = [v.strip() for v in values if v.strip()]
         if not non_empty:
-            return 'empty'
+            return "empty"
 
         # Check for integer
-        int_count = sum(1 for v in non_empty if re.match(r'^-?\d+$', v))
+        int_count = sum(1 for v in non_empty if re.match(r"^-?\d+$", v))
         if int_count == len(non_empty):
-            return 'integer'
+            return "integer"
 
         # Check for float
-        float_count = sum(1 for v in non_empty if re.match(r'^-?\d*\.\d+$', v))
+        float_count = sum(1 for v in non_empty if re.match(r"^-?\d*\.\d+$", v))
         if float_count + int_count == len(non_empty):
-            return 'numeric'
+            return "numeric"
 
         # Check for boolean
-        bool_values = {'true', 'false', '1', '0', 'yes', 'no', 'y', 'n'}
+        bool_values = {"true", "false", "1", "0", "yes", "no", "y", "n"}
         bool_count = sum(1 for v in non_empty if v.lower() in bool_values)
         if bool_count == len(non_empty):
-            return 'boolean'
+            return "boolean"
 
         # Check for date-like patterns
         date_patterns = [
-            r'\d{4}-\d{2}-\d{2}',  # YYYY-MM-DD
-            r'\d{2}/\d{2}/\d{4}',  # MM/DD/YYYY
-            r'\d{2}-\d{2}-\d{4}',  # MM-DD-YYYY
+            r"\d{4}-\d{2}-\d{2}",  # YYYY-MM-DD
+            r"\d{2}/\d{2}/\d{4}",  # MM/DD/YYYY
+            r"\d{2}-\d{2}-\d{4}",  # MM-DD-YYYY
         ]
-        date_count = sum(1 for v in non_empty
-                        if any(re.match(pattern, v) for pattern in date_patterns))
+        date_count = sum(
+            1
+            for v in non_empty
+            if any(re.match(pattern, v) for pattern in date_patterns)
+        )
         if date_count == len(non_empty):
-            return 'date'
+            return "date"
 
-        return 'text'
+        return "text"
 
     def get_column_details(self) -> list[dict[str, Any]]:
         """Get detailed information about each column."""
@@ -128,10 +141,16 @@ class TSVAnalyzer:
         num_cols = len(self._data[0]) if self._data else 0
 
         for col_idx in range(num_cols):
-            header = self._headers[col_idx] if col_idx < len(self._headers) else f"col_{col_idx+1}"
+            header = (
+                self._headers[col_idx]
+                if col_idx < len(self._headers)
+                else f"col_{col_idx + 1}"
+            )
 
             # Extract column values
-            col_values = [row[col_idx] if col_idx < len(row) else '' for row in data_rows]
+            col_values = [
+                row[col_idx] if col_idx < len(row) else "" for row in data_rows
+            ]
 
             # Analyze column
             non_empty_count = sum(1 for v in col_values if v.strip())
@@ -141,15 +160,17 @@ class TSVAnalyzer:
             # Get sample values (first few non-empty)
             samples = [v.strip() for v in col_values if v.strip()][:5]
 
-            columns.append({
-                'index': col_idx + 1,
-                'name': header,
-                'data_type': self._detect_data_type(col_values),
-                'non_empty_count': non_empty_count,
-                'empty_count': empty_count,
-                'unique_count': len(unique_values),
-                'sample_values': samples
-            })
+            columns.append(
+                {
+                    "index": col_idx + 1,
+                    "name": header,
+                    "data_type": self._detect_data_type(col_values),
+                    "non_empty_count": non_empty_count,
+                    "empty_count": empty_count,
+                    "unique_count": len(unique_values),
+                    "sample_values": samples,
+                }
+            )
 
         return columns
 
@@ -171,19 +192,24 @@ class TSVAnalyzer:
             return basic_info
 
         # Data type distribution
-        type_counts = Counter(col['data_type'] for col in columns)
+        type_counts = Counter(col["data_type"] for col in columns)
 
         # Empty data analysis
-        total_cells = basic_info['data_rows'] * basic_info['columns']
-        empty_cells = sum(col['empty_count'] for col in columns)
+        total_cells = basic_info["data_rows"] * basic_info["columns"]
+        empty_cells = sum(col["empty_count"] for col in columns)
 
         stats = {
             **basic_info,
-            'data_completeness': (total_cells - empty_cells) / total_cells * 100 if total_cells > 0 else 0,
-            'empty_cells': empty_cells,
-            'total_cells': total_cells,
-            'data_type_distribution': dict(type_counts),
-            'avg_unique_values_per_column': sum(col['unique_count'] for col in columns) / len(columns) if columns else 0
+            "data_completeness": (total_cells - empty_cells) / total_cells * 100
+            if total_cells > 0
+            else 0,
+            "empty_cells": empty_cells,
+            "total_cells": total_cells,
+            "data_type_distribution": dict(type_counts),
+            "avg_unique_values_per_column": sum(col["unique_count"] for col in columns)
+            / len(columns)
+            if columns
+            else 0,
         }
 
         return stats

@@ -22,7 +22,7 @@ class TransformationError(BaseTextProcessingError):
         rule_name: str | None = None,
         input_length: int | None = None,
         processing_stage: str | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Initialize transformation error.
 
@@ -51,7 +51,7 @@ class TransformationTimeoutError(TransformationError):
         message: str,
         timeout_seconds: float,
         elapsed_seconds: float | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Initialize transformation timeout error.
 
@@ -76,7 +76,7 @@ class TransformationRuleError(TransformationError):
         rule_name: str,
         rule_args: list[str] | None = None,
         available_rules: list[str] | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Initialize transformation rule error.
 
@@ -105,7 +105,7 @@ class EncodingTransformationError(TransformationError):
         target_encoding: str | None = None,
         error_position: int | None = None,
         encoding_confidence: float | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Initialize encoding transformation error.
 
@@ -138,7 +138,7 @@ class CryptoTransformationError(TransformationError):
         crypto_operation: str | None = None,
         algorithm: str | None = None,
         key_info: dict[str, Any] | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Initialize crypto transformation error.
 
@@ -158,7 +158,8 @@ class CryptoTransformationError(TransformationError):
         if key_info:
             # Ensure no sensitive key data is included
             safe_key_info = {
-                k: v for k, v in key_info.items()
-                if k.lower() not in ('key', 'secret', 'password', 'passphrase')
+                k: v
+                for k, v in key_info.items()
+                if k.lower() not in ("key", "secret", "password", "passphrase")
             }
             self.add_context("key_info", safe_key_info)

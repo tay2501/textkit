@@ -27,6 +27,7 @@ logger = structlog.get_logger(__name__)
 @dataclass
 class FileOperationResult:
     """Result of an async file operation."""
+
     success: bool
     file_path: Path
     operation: str
@@ -42,7 +43,7 @@ class AsyncIOManager:
         self,
         settings: ApplicationSettings | None = None,
         buffer_size: int = 1024 * 64,  # 64KB buffer
-        max_concurrent_ops: int = 10
+        max_concurrent_ops: int = 10,
     ) -> None:
         """Initialize async I/O manager.
 
@@ -61,25 +62,25 @@ class AsyncIOManager:
 
         # Performance tracking
         self._operation_stats = {
-            'read_operations': 0,
-            'write_operations': 0,
-            'total_bytes_read': 0,
-            'total_bytes_written': 0,
-            'total_read_time': 0.0,
-            'total_write_time': 0.0
+            "read_operations": 0,
+            "write_operations": 0,
+            "total_bytes_read": 0,
+            "total_bytes_written": 0,
+            "total_read_time": 0.0,
+            "total_write_time": 0.0,
         }
 
         logger.info(
             "async_io_manager_initialized",
             buffer_size=buffer_size,
-            max_concurrent_ops=max_concurrent_ops
+            max_concurrent_ops=max_concurrent_ops,
         )
 
     async def read_file_async(
         self,
         file_path: str | Path,
-        encoding: str = 'utf-8',
-        chunk_size: int | None = None
+        encoding: str = "utf-8",
+        chunk_size: int | None = None,
     ) -> str:
         """Read file asynchronously with optimized buffering.
 
@@ -107,15 +108,15 @@ class AsyncIOManager:
                 duration = time.perf_counter() - start_time
                 data_size = len(content.encode(encoding))
 
-                self._operation_stats['read_operations'] += 1
-                self._operation_stats['total_bytes_read'] += data_size
-                self._operation_stats['total_read_time'] += duration
+                self._operation_stats["read_operations"] += 1
+                self._operation_stats["total_bytes_read"] += data_size
+                self._operation_stats["total_read_time"] += duration
 
                 logger.debug(
                     "file_read_completed",
                     file_path=str(file_path),
                     size_bytes=data_size,
-                    duration_ms=duration * 1000
+                    duration_ms=duration * 1000,
                 )
 
                 return content
@@ -123,14 +124,16 @@ class AsyncIOManager:
             except Exception as e:
                 error_msg = f"Failed to read file {file_path}: {e}"
                 logger.error("file_read_failed", file_path=str(file_path), error=str(e))
-                raise FileOperationError(error_msg, {"file_path": str(file_path)}) from e
+                raise FileOperationError(
+                    error_msg, {"file_path": str(file_path)}
+                ) from e
 
     async def write_file_async(
         self,
         file_path: str | Path,
         content: str,
-        encoding: str = 'utf-8',
-        create_dirs: bool = True
+        encoding: str = "utf-8",
+        create_dirs: bool = True,
     ) -> FileOperationResult:
         """Write file asynchronously with directory creation.
 
@@ -155,22 +158,24 @@ class AsyncIOManager:
                 if create_dirs and not file_path.parent.exists():
                     file_path.parent.mkdir(parents=True, exist_ok=True)
 
-                async with aiofiles.open(file_path, mode='w', encoding=encoding) as file:
+                async with aiofiles.open(
+                    file_path, mode="w", encoding=encoding
+                ) as file:
                     await file.write(content)
 
                 # Update statistics
                 duration = time.perf_counter() - start_time
                 data_size = len(content.encode(encoding))
 
-                self._operation_stats['write_operations'] += 1
-                self._operation_stats['total_bytes_written'] += data_size
-                self._operation_stats['total_write_time'] += duration
+                self._operation_stats["write_operations"] += 1
+                self._operation_stats["total_bytes_written"] += data_size
+                self._operation_stats["total_write_time"] += duration
 
                 logger.debug(
                     "file_write_completed",
                     file_path=str(file_path),
                     size_bytes=data_size,
-                    duration_ms=duration * 1000
+                    duration_ms=duration * 1000,
                 )
 
                 return FileOperationResult(
@@ -178,19 +183,23 @@ class AsyncIOManager:
                     file_path=file_path,
                     operation="write",
                     data_size=data_size,
-                    duration=duration
+                    duration=duration,
                 )
 
             except Exception as e:
                 error_msg = f"Failed to write file {file_path}: {e}"
-                logger.error("file_write_failed", file_path=str(file_path), error=str(e))
-                raise FileOperationError(error_msg, {"file_path": str(file_path)}) from e
+                logger.error(
+                    "file_write_failed", file_path=str(file_path), error=str(e)
+                )
+                raise FileOperationError(
+                    error_msg, {"file_path": str(file_path)}
+                ) from e
 
     async def read_file_streaming(
         self,
         file_path: str | Path,
-        encoding: str = 'utf-8',
-        chunk_size: int | None = None
+        encoding: str = "utf-8",
+        chunk_size: int | None = None,
     ) -> AsyncIterator[str]:
         """Read file as async stream for memory-efficient processing.
 
@@ -218,20 +227,24 @@ class AsyncIOManager:
                 logger.debug(
                     "file_streaming_completed",
                     file_path=str(file_path),
-                    chunk_size=chunk_size
+                    chunk_size=chunk_size,
                 )
 
             except Exception as e:
                 error_msg = f"Failed to stream file {file_path}: {e}"
-                logger.error("file_streaming_failed", file_path=str(file_path), error=str(e))
-                raise FileOperationError(error_msg, {"file_path": str(file_path)}) from e
+                logger.error(
+                    "file_streaming_failed", file_path=str(file_path), error=str(e)
+                )
+                raise FileOperationError(
+                    error_msg, {"file_path": str(file_path)}
+                ) from e
 
     async def write_file_streaming(
         self,
         file_path: str | Path,
         content_stream: AsyncIterator[str],
-        encoding: str = 'utf-8',
-        create_dirs: bool = True
+        encoding: str = "utf-8",
+        create_dirs: bool = True,
     ) -> FileOperationResult:
         """Write file from async stream.
 
@@ -254,7 +267,9 @@ class AsyncIOManager:
                 if create_dirs and not file_path.parent.exists():
                     file_path.parent.mkdir(parents=True, exist_ok=True)
 
-                async with aiofiles.open(file_path, mode='w', encoding=encoding) as file:
+                async with aiofiles.open(
+                    file_path, mode="w", encoding=encoding
+                ) as file:
                     async for chunk in content_stream:
                         await file.write(chunk)
                         total_size += len(chunk.encode(encoding))
@@ -262,15 +277,15 @@ class AsyncIOManager:
                 duration = time.perf_counter() - start_time
 
                 # Update statistics
-                self._operation_stats['write_operations'] += 1
-                self._operation_stats['total_bytes_written'] += total_size
-                self._operation_stats['total_write_time'] += duration
+                self._operation_stats["write_operations"] += 1
+                self._operation_stats["total_bytes_written"] += total_size
+                self._operation_stats["total_write_time"] += duration
 
                 logger.debug(
                     "file_streaming_write_completed",
                     file_path=str(file_path),
                     size_bytes=total_size,
-                    duration_ms=duration * 1000
+                    duration_ms=duration * 1000,
                 )
 
                 return FileOperationResult(
@@ -278,18 +293,22 @@ class AsyncIOManager:
                     file_path=file_path,
                     operation="stream_write",
                     data_size=total_size,
-                    duration=duration
+                    duration=duration,
                 )
 
             except Exception as e:
                 error_msg = f"Failed to stream write file {file_path}: {e}"
-                logger.error("file_streaming_write_failed", file_path=str(file_path), error=str(e))
-                raise FileOperationError(error_msg, {"file_path": str(file_path)}) from e
+                logger.error(
+                    "file_streaming_write_failed",
+                    file_path=str(file_path),
+                    error=str(e),
+                )
+                raise FileOperationError(
+                    error_msg, {"file_path": str(file_path)}
+                ) from e
 
     async def batch_read_files(
-        self,
-        file_paths: list[str | Path],
-        encoding: str = 'utf-8'
+        self, file_paths: list[str | Path], encoding: str = "utf-8"
     ) -> dict[Path, str | Exception]:
         """Read multiple files concurrently.
 
@@ -325,12 +344,14 @@ class AsyncIOManager:
             path, content_or_exception = result
             result_dict[path] = content_or_exception
 
-        successful_reads = sum(1 for content in result_dict.values() if not isinstance(content, Exception))
+        successful_reads = sum(
+            1 for content in result_dict.values() if not isinstance(content, Exception)
+        )
         logger.info(
             "batch_read_completed",
             total_files=len(file_paths),
             successful_reads=successful_reads,
-            failed_reads=len(file_paths) - successful_reads
+            failed_reads=len(file_paths) - successful_reads,
         )
 
         return result_dict
@@ -338,8 +359,8 @@ class AsyncIOManager:
     async def batch_write_files(
         self,
         file_data: dict[str | Path, str],
-        encoding: str = 'utf-8',
-        create_dirs: bool = True
+        encoding: str = "utf-8",
+        create_dirs: bool = True,
     ) -> dict[Path, FileOperationResult]:
         """Write multiple files concurrently.
 
@@ -353,21 +374,27 @@ class AsyncIOManager:
         """
         logger.info("batch_write_starting", file_count=len(file_data))
 
-        async def write_single_file(path: str | Path, content: str) -> tuple[Path, FileOperationResult]:
+        async def write_single_file(
+            path: str | Path, content: str
+        ) -> tuple[Path, FileOperationResult]:
             path = Path(path)
             try:
-                result = await self.write_file_async(path, content, encoding, create_dirs)
+                result = await self.write_file_async(
+                    path, content, encoding, create_dirs
+                )
                 return path, result
             except Exception as e:
                 return path, FileOperationResult(
                     success=False,
                     file_path=path,
                     operation="write",
-                    error_message=str(e)
+                    error_message=str(e),
                 )
 
         # Execute all writes concurrently
-        tasks = [write_single_file(path, content) for path, content in file_data.items()]
+        tasks = [
+            write_single_file(path, content) for path, content in file_data.items()
+        ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         # Build result dictionary
@@ -385,15 +412,13 @@ class AsyncIOManager:
             "batch_write_completed",
             total_files=len(file_data),
             successful_writes=successful_writes,
-            failed_writes=len(file_data) - successful_writes
+            failed_writes=len(file_data) - successful_writes,
         )
 
         return result_dict
 
     async def read_stdin_async(
-        self,
-        timeout: float | None = None,
-        chunk_size: int | None = None
+        self, timeout: float | None = None, chunk_size: int | None = None
     ) -> str:
         """Read from stdin asynchronously with timeout.
 
@@ -415,6 +440,7 @@ class AsyncIOManager:
 
             async def read_stdin():
                 import sys
+
                 return await loop.run_in_executor(None, sys.stdin.read)
 
             if timeout:
@@ -443,6 +469,7 @@ class AsyncIOManager:
 
             async def write_stdout():
                 import sys
+
                 sys.stdout.write(content)
                 sys.stdout.flush()
 
@@ -463,29 +490,36 @@ class AsyncIOManager:
         stats = self._operation_stats.copy()
 
         # Calculate derived metrics
-        total_read_time = stats['total_read_time']
-        total_write_time = stats['total_write_time']
+        total_read_time = stats["total_read_time"]
+        total_write_time = stats["total_write_time"]
 
-        stats.update({
-            'average_read_speed_bytes_per_sec': (
-                stats['total_bytes_read'] / total_read_time
-                if total_read_time > 0 else 0
-            ),
-            'average_write_speed_bytes_per_sec': (
-                stats['total_bytes_written'] / total_write_time
-                if total_write_time > 0 else 0
-            ),
-            'average_read_time_ms': (
-                total_read_time / stats['read_operations'] * 1000
-                if stats['read_operations'] > 0 else 0
-            ),
-            'average_write_time_ms': (
-                total_write_time / stats['write_operations'] * 1000
-                if stats['write_operations'] > 0 else 0
-            ),
-            'total_operations': stats['read_operations'] + stats['write_operations'],
-            'active_operations': len(self._active_operations)
-        })
+        stats.update(
+            {
+                "average_read_speed_bytes_per_sec": (
+                    stats["total_bytes_read"] / total_read_time
+                    if total_read_time > 0
+                    else 0
+                ),
+                "average_write_speed_bytes_per_sec": (
+                    stats["total_bytes_written"] / total_write_time
+                    if total_write_time > 0
+                    else 0
+                ),
+                "average_read_time_ms": (
+                    total_read_time / stats["read_operations"] * 1000
+                    if stats["read_operations"] > 0
+                    else 0
+                ),
+                "average_write_time_ms": (
+                    total_write_time / stats["write_operations"] * 1000
+                    if stats["write_operations"] > 0
+                    else 0
+                ),
+                "total_operations": stats["read_operations"]
+                + stats["write_operations"],
+                "active_operations": len(self._active_operations),
+            }
+        )
 
         return stats
 
@@ -493,23 +527,24 @@ class AsyncIOManager:
         """Clean up async I/O manager resources."""
         # Cancel any active operations
         if self._active_operations:
-            logger.info("cancelling_active_operations", count=len(self._active_operations))
+            logger.info(
+                "cancelling_active_operations", count=len(self._active_operations)
+            )
 
             for operation_id, task in self._active_operations.items():
                 task.cancel()
 
             # Wait for cancellation to complete
-            await asyncio.gather(*self._active_operations.values(), return_exceptions=True)
+            await asyncio.gather(
+                *self._active_operations.values(), return_exceptions=True
+            )
             self._active_operations.clear()
 
         logger.info("async_io_manager_cleanup_completed")
 
 
 # Convenience functions for backward compatibility
-async def read_file_async(
-    file_path: str | Path,
-    encoding: str = 'utf-8'
-) -> str:
+async def read_file_async(file_path: str | Path, encoding: str = "utf-8") -> str:
     """Convenience function for async file reading.
 
     Args:
@@ -524,9 +559,7 @@ async def read_file_async(
 
 
 async def write_file_async(
-    file_path: str | Path,
-    content: str,
-    encoding: str = 'utf-8'
+    file_path: str | Path, content: str, encoding: str = "utf-8"
 ) -> FileOperationResult:
     """Convenience function for async file writing.
 

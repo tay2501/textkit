@@ -60,7 +60,7 @@ class DependencyResolutionError(Exception):
 
 # Export DI-specific exceptions
 __all__ = [
-    'ServiceNotFoundError',
-    'CircularDependencyError',
-    'DependencyResolutionError',
+    "ServiceNotFoundError",
+    "CircularDependencyError",
+    "DependencyResolutionError",
 ]

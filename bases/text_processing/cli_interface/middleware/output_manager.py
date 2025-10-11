@@ -90,7 +90,9 @@ class OutputManager:
 
                 # Check if file exists and prompt for overwrite
                 if file_path.exists():
-                    overwrite = typer.confirm(f"File '{file_path}' already exists. Overwrite?")
+                    overwrite = typer.confirm(
+                        f"File '{file_path}' already exists. Overwrite?"
+                    )
                     if not overwrite:
                         console.print("[yellow]Operation cancelled.[/yellow]")
                         return None
@@ -105,7 +107,7 @@ class OutputManager:
 
             # Write result to file preserving encoding
             # Use UTF-8 as default but preserve line endings from original text
-            file_path.write_text(result, encoding='utf-8', newline='')
+            file_path.write_text(result, encoding="utf-8", newline="")
 
             return f"file: {file_path}"
 
@@ -113,7 +115,9 @@ class OutputManager:
             self._safe_print_error(f"Failed to write to file: {file_error}", "yellow")
             return None
 
-    def _show_completion_message(self, outputs_performed: list[str], result: str) -> None:
+    def _show_completion_message(
+        self, outputs_performed: list[str], result: str
+    ) -> None:
         """Show completion message with output summary and preview.
 
         Args:
@@ -125,7 +129,9 @@ class OutputManager:
             output_list = " and ".join(outputs_performed)
             console.print(f"[green]Success: Result saved to {output_list}[/green]")
         else:
-            console.print("[cyan]Result processed (no output destinations specified)[/cyan]")
+            console.print(
+                "[cyan]Result processed (no output destinations specified)[/cyan]"
+            )
 
         # Show preview regardless of output destinations
         preview = result[:100] + "..." if len(result) > 100 else result
@@ -166,9 +172,13 @@ def output_result_simple(
     if should_output:
         try:
             app_instance.io_manager.set_output_text(result)
-            console.print("[green]Success: Result copied to clipboard and printed[/green]")
+            console.print(
+                "[green]Success: Result copied to clipboard and printed[/green]"
+            )
         except Exception:
-            console.print("[yellow]Warning: Result printed (clipboard unavailable)[/yellow]")
+            console.print(
+                "[yellow]Warning: Result printed (clipboard unavailable)[/yellow]"
+            )
 
     # Show preview
     preview = result[:100] + "..." if len(result) > 100 else result

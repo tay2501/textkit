@@ -18,7 +18,7 @@ class WidthConverter:
             Text with full-width characters converted to half-width
         """
         # NFKC normalization converts full-width ASCII to half-width
-        return unicodedata.normalize('NFKC', text)
+        return unicodedata.normalize("NFKC", text)
 
     def to_full_width(self, text: str) -> str:
         """Convert half-width characters to full-width characters.
@@ -36,11 +36,11 @@ class WidthConverter:
             if 0x0021 <= code <= 0x007E:
                 result.append(chr(code - 0x0021 + 0xFF01))
             # Convert half-width space to full-width space
-            elif char == ' ':
-                result.append('\u3000')
+            elif char == " ":
+                result.append("\u3000")
             else:
                 result.append(char)
-        return ''.join(result)
+        return "".join(result)
 
     def convert_width(self, text: str, direction: str) -> str:
         """Convert character width based on direction.
@@ -55,9 +55,9 @@ class WidthConverter:
         Raises:
             ValueError: If direction is not 'fh' or 'hf'
         """
-        if direction == 'fh':
+        if direction == "fh":
             return self.to_half_width(text)
-        elif direction == 'hf':
+        elif direction == "hf":
             return self.to_full_width(text)
         else:
             raise ValueError(f"Invalid direction: {direction}. Use 'fh' or 'hf'.")

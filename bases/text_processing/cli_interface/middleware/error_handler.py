@@ -15,7 +15,7 @@ import typer
 from rich.console import Console
 
 # Type variable for decorated function return type
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class ErrorHandler:
@@ -47,7 +47,9 @@ class ErrorHandler:
         self.console.print(f"[red]{error_message}[/red]")
         raise typer.Exit(1)
 
-    def with_error_handling(self, operation: str) -> Callable[[Callable[..., T]], Callable[..., T]]:
+    def with_error_handling(
+        self, operation: str
+    ) -> Callable[[Callable[..., T]], Callable[..., T]]:
         """Decorator for automatic error handling in CLI commands.
 
         Args:
@@ -56,6 +58,7 @@ class ErrorHandler:
         Returns:
             Decorator function that wraps command with error handling
         """
+
         def decorator(func: Callable[..., T]) -> Callable[..., T]:
             @wraps(func)
             def wrapper(*args: Any, **kwargs: Any) -> T:
@@ -68,6 +71,7 @@ class ErrorHandler:
                     raise  # pragma: no cover
 
             return wrapper
+
         return decorator
 
     def _format_error_message(self, error: Exception, operation: str) -> str:

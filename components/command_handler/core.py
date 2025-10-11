@@ -19,6 +19,7 @@ class CommandContext:
     This dataclass encapsulates all context information needed
     for command execution, promoting loose coupling.
     """
+
     command_name: str
     arguments: dict[str, Any]
     options: dict[str, Any]
@@ -98,9 +99,11 @@ class CommandProcessor:
 
 class CommandNotFoundError(Exception):
     """Raised when a command is not found in the registry."""
+
     pass
 
 
 class CommandExecutionError(Exception):
     """Raised when command execution fails."""
+
     pass

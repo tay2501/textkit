@@ -25,27 +25,32 @@ class TextTransformationRequest(BaseModel):
     model_config = ConfigDict(
         str_strip_whitespace=True,
         validate_assignment=True,
-        extra='forbid',
-        frozen=False  # Allow mutation for processing
+        extra="forbid",
+        frozen=False,  # Allow mutation for processing
     )
 
-    text: Annotated[str, Field(
-        min_length=0,  # Allow empty text for edge cases
-        max_length=10_000_000,  # 10MB text limit
-        description="Input text to be transformed"
-    )]
+    text: Annotated[
+        str,
+        Field(
+            min_length=0,  # Allow empty text for edge cases
+            max_length=10_000_000,  # 10MB text limit
+            description="Input text to be transformed",
+        ),
+    ]
 
-    rule_string: Annotated[str, Field(
-        min_length=1,
-        description="Transformation rule string (must start with / or -)"
-    )]
+    rule_string: Annotated[
+        str,
+        Field(
+            min_length=1,
+            description="Transformation rule string (must start with / or -)",
+        ),
+    ]
 
     config_override: dict[str, Any] | None = Field(
-        default=None,
-        description="Optional configuration overrides"
+        default=None, description="Optional configuration overrides"
     )
 
-    @field_validator('rule_string', mode='after')
+    @field_validator("rule_string", mode="after")
     @classmethod
     def validate_rule_format(cls, v: str, info: ValidationInfo) -> str:
         """Enhanced validation for rule string format with Windows compatibility."""
@@ -56,7 +61,7 @@ class TextTransformationRequest(BaseModel):
 
         # Windows compatibility: Allow rules without leading slash for better shell compatibility
         # Accept patterns: /rule, -flag, rule-name, or full Windows paths
-        if not re.match(r'^([/-]|[a-zA-Z]|[A-Za-z]:[\\\\/])', v):
+        if not re.match(r"^([/-]|[a-zA-Z]|[A-Za-z]:[\\\\/])", v):
             raise ValueError(f"Invalid rule string format, got: {v}")
 
         # Check for balanced quotes if present
@@ -71,19 +76,17 @@ class TextTransformationRequest(BaseModel):
 
         # Log rule validation for monitoring
         logger.debug(
-            "rule_validation_passed",
-            rule_string=v,
-            validation_context=info.data
+            "rule_validation_passed", rule_string=v, validation_context=info.data
         )
 
         return v
 
-    @field_validator('text', mode='after')
+    @field_validator("text", mode="after")
     @classmethod
     def validate_text_content(cls, v: str, info: ValidationInfo) -> str:
         """Validate text content for potential issues."""
         # Check for extremely long lines that might cause performance issues
-        lines = v.split('\n')
+        lines = v.split("\n")
         max_line_length = 100_000  # 100k chars per line
 
         for i, line in enumerate(lines):
@@ -92,7 +95,7 @@ class TextTransformationRequest(BaseModel):
                     "very_long_line_detected",
                     line_number=i + 1,
                     line_length=len(line),
-                    max_allowed=max_line_length
+                    max_allowed=max_line_length,
                 )
 
         return v
@@ -103,72 +106,53 @@ class TextTransformationResponse(BaseModel):
 
     model_config = ConfigDict(
         frozen=True,  # Immutable response
-        extra='forbid'
+        extra="forbid",
     )
 
-    transformed_text: str = Field(
-        description="The transformed text result"
-    )
+    transformed_text: str = Field(description="The transformed text result")
 
-    applied_rules: list[str] = Field(
-        description="List of rules that were applied"
-    )
+    applied_rules: list[str] = Field(description="List of rules that were applied")
 
     processing_time_ms: float = Field(
-        ge=0.0,
-        description="Processing time in milliseconds"
+        ge=0.0, description="Processing time in milliseconds"
     )
 
     warnings: list[str] | None = Field(
-        default=None,
-        description="Any warnings generated during processing"
+        default=None, description="Any warnings generated during processing"
     )
 
 
 class RuleValidationRequest(BaseModel):
     """Pydantic model for rule validation requests."""
 
-    model_config = ConfigDict(
-        str_strip_whitespace=True,
-        extra='forbid'
-    )
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
-    rule_string: Annotated[str, Field(
-        min_length=1,
-        description="Rule string to validate"
-    )]
+    rule_string: Annotated[
+        str, Field(min_length=1, description="Rule string to validate")
+    ]
 
     strict_mode: bool = Field(
-        default=True,
-        description="Whether to use strict validation"
+        default=True, description="Whether to use strict validation"
     )
 
 
 class RuleValidationResponse(BaseModel):
     """Pydantic model for rule validation responses."""
 
-    model_config = ConfigDict(
-        frozen=True,
-        extra='forbid'
-    )
+    model_config = ConfigDict(frozen=True, extra="forbid")
 
-    is_valid: bool = Field(
-        description="Whether the rule string is valid"
-    )
+    is_valid: bool = Field(description="Whether the rule string is valid")
 
     parsed_rules: list[tuple[str, list[str]]] | None = Field(
-        default=None,
-        description="Parsed rules if validation succeeded"
+        default=None, description="Parsed rules if validation succeeded"
     )
 
     error_message: str | None = Field(
-        default=None,
-        description="Error message if validation failed"
+        default=None, description="Error message if validation failed"
     )
 
     suggestions: list[str] | None = Field(
-        default=None,
-        description="Suggestions for fixing invalid rules"
+        default=None, description="Suggestions for fixing invalid rules"
     )
 
 
@@ -178,43 +162,39 @@ class ConfigurationModel(BaseModel):
     model_config = ConfigDict(
         str_strip_whitespace=True,
         validate_assignment=True,
-        extra='allow'  # Allow additional config fields
+        extra="allow",  # Allow additional config fields
     )
 
-    debug_mode: bool = Field(
-        default=False,
-        description="Enable debug mode"
-    )
+    debug_mode: bool = Field(default=False, description="Enable debug mode")
 
-    max_text_length: Annotated[int, Field(
-        gt=0,
-        le=100_000_000,  # 100MB limit
-        description="Maximum allowed text length"
-    )] = 10_000_000
+    max_text_length: Annotated[
+        int,
+        Field(
+            gt=0,
+            le=100_000_000,  # 100MB limit
+            description="Maximum allowed text length",
+        ),
+    ] = 10_000_000
 
     auto_clipboard_monitoring: bool = Field(
-        default=False,
-        description="Enable automatic clipboard monitoring"
+        default=False, description="Enable automatic clipboard monitoring"
     )
 
-    clipboard_check_interval: Annotated[float, Field(
-        ge=0.1,
-        le=10.0,
-        description="Clipboard check interval in seconds"
-    )] = 1.0
+    clipboard_check_interval: Annotated[
+        float, Field(ge=0.1, le=10.0, description="Clipboard check interval in seconds")
+    ] = 1.0
 
     enable_crypto: bool = Field(
-        default=True,
-        description="Enable cryptographic features"
+        default=True, description="Enable cryptographic features"
     )
 
     log_level: str = Field(
         default="INFO",
-        pattern=r'^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$',
-        description="Logging level"
+        pattern=r"^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$",
+        description="Logging level",
     )
 
-    @field_validator('max_text_length', mode='after')
+    @field_validator("max_text_length", mode="after")
     @classmethod
     def validate_memory_implications(cls, v: int) -> int:
         """Validate text length against memory constraints."""
@@ -225,7 +205,7 @@ class ConfigurationModel(BaseModel):
             logger.warning(
                 "high_memory_configuration",
                 max_text_length=v,
-                estimated_memory_mb=estimated_memory_mb
+                estimated_memory_mb=estimated_memory_mb,
             )
 
         return v

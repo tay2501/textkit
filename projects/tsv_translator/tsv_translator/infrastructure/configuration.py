@@ -17,14 +17,16 @@ class Configuration:
     """Application configuration with default values."""
 
     # File handling
-    default_encoding: str = 'utf-8'
-    fallback_encodings: list[str] = field(default_factory=lambda: ['cp932', 'shift_jis', 'iso-8859-1'])
+    default_encoding: str = "utf-8"
+    fallback_encodings: list[str] = field(
+        default_factory=lambda: ["cp932", "shift_jis", "iso-8859-1"]
+    )
     max_file_size: int = 100_000_000  # 100MB
     preview_lines: int = 5
 
     # Logging
-    log_level: str = 'INFO'
-    log_format: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    log_level: str = "INFO"
+    log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     enable_console_logging: bool = True
     enable_file_logging: bool = False
     log_file_path: str | None = None
@@ -56,7 +58,9 @@ class Configuration:
             raise ConfigurationError("preview_lines must be at least 1")
 
         if not (0.0 <= self.data_type_confidence_threshold <= 1.0):
-            raise ConfigurationError("data_type_confidence_threshold must be between 0.0 and 1.0")
+            raise ConfigurationError(
+                "data_type_confidence_threshold must be between 0.0 and 1.0"
+            )
 
         if not (0.0 <= self.empty_threshold <= 1.0):
             raise ConfigurationError("empty_threshold must be between 0.0 and 1.0")
@@ -64,11 +68,11 @@ class Configuration:
         if self.chunk_size <= 0:
             raise ConfigurationError("chunk_size must be positive")
 
-        if self.log_level not in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
+        if self.log_level not in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]:
             raise ConfigurationError(f"Invalid log_level: {self.log_level}")
 
     @classmethod
-    def from_dict(cls, config_dict: dict[str, Any]) -> 'Configuration':
+    def from_dict(cls, config_dict: dict[str, Any]) -> "Configuration":
         """Create configuration from dictionary.
 
         Args:
@@ -86,10 +90,12 @@ class Configuration:
             filtered_dict = {k: v for k, v in config_dict.items() if k in known_fields}
             return cls(**filtered_dict)
         except Exception as e:
-            raise ConfigurationError(f"Failed to create configuration from dict: {e}") from e
+            raise ConfigurationError(
+                f"Failed to create configuration from dict: {e}"
+            ) from e
 
     @classmethod
-    def from_env(cls, prefix: str = 'TSV_TRANSLATOR_') -> 'Configuration':
+    def from_env(cls, prefix: str = "TSV_TRANSLATOR_") -> "Configuration":
         """Create configuration from environment variables.
 
         Args:
@@ -105,22 +111,28 @@ class Configuration:
 
         # Map environment variables to configuration fields
         env_mapping = {
-            f'{prefix}DEFAULT_ENCODING': 'default_encoding',
-            f'{prefix}MAX_FILE_SIZE': ('max_file_size', int),
-            f'{prefix}PREVIEW_LINES': ('preview_lines', int),
-            f'{prefix}LOG_LEVEL': 'log_level',
-            f'{prefix}LOG_FORMAT': 'log_format',
-            f'{prefix}ENABLE_CONSOLE_LOGGING': ('enable_console_logging', bool),
-            f'{prefix}ENABLE_FILE_LOGGING': ('enable_file_logging', bool),
-            f'{prefix}LOG_FILE_PATH': 'log_file_path',
-            f'{prefix}MAX_UNIQUE_VALUES_PREVIEW': ('max_unique_values_preview', int),
-            f'{prefix}DATA_TYPE_CONFIDENCE_THRESHOLD': ('data_type_confidence_threshold', float),
-            f'{prefix}EMPTY_THRESHOLD': ('empty_threshold', float),
-            f'{prefix}ENABLE_KATAKANA_CONVERSION': ('enable_katakana_conversion', bool),
-            f'{prefix}ENABLE_PUNCTUATION_CONVERSION': ('enable_punctuation_conversion', bool),
-            f'{prefix}ENABLE_SYMBOL_CONVERSION': ('enable_symbol_conversion', bool),
-            f'{prefix}CHUNK_SIZE': ('chunk_size', int),
-            f'{prefix}MAX_MEMORY_USAGE': ('max_memory_usage', int),
+            f"{prefix}DEFAULT_ENCODING": "default_encoding",
+            f"{prefix}MAX_FILE_SIZE": ("max_file_size", int),
+            f"{prefix}PREVIEW_LINES": ("preview_lines", int),
+            f"{prefix}LOG_LEVEL": "log_level",
+            f"{prefix}LOG_FORMAT": "log_format",
+            f"{prefix}ENABLE_CONSOLE_LOGGING": ("enable_console_logging", bool),
+            f"{prefix}ENABLE_FILE_LOGGING": ("enable_file_logging", bool),
+            f"{prefix}LOG_FILE_PATH": "log_file_path",
+            f"{prefix}MAX_UNIQUE_VALUES_PREVIEW": ("max_unique_values_preview", int),
+            f"{prefix}DATA_TYPE_CONFIDENCE_THRESHOLD": (
+                "data_type_confidence_threshold",
+                float,
+            ),
+            f"{prefix}EMPTY_THRESHOLD": ("empty_threshold", float),
+            f"{prefix}ENABLE_KATAKANA_CONVERSION": ("enable_katakana_conversion", bool),
+            f"{prefix}ENABLE_PUNCTUATION_CONVERSION": (
+                "enable_punctuation_conversion",
+                bool,
+            ),
+            f"{prefix}ENABLE_SYMBOL_CONVERSION": ("enable_symbol_conversion", bool),
+            f"{prefix}CHUNK_SIZE": ("chunk_size", int),
+            f"{prefix}MAX_MEMORY_USAGE": ("max_memory_usage", int),
         }
 
         for env_var, field_info in env_mapping.items():
@@ -130,14 +142,19 @@ class Configuration:
                     field_name, field_type = field_info
                     try:
                         if field_type is bool:
-                            config_dict[field_name] = value.lower() in ('true', '1', 'yes', 'on')
+                            config_dict[field_name] = value.lower() in (
+                                "true",
+                                "1",
+                                "yes",
+                                "on",
+                            )
                         else:
                             config_dict[field_name] = field_type(value)
                     except (ValueError, TypeError) as e:
                         raise ConfigurationError(
                             f"Invalid value for {env_var}: {value}",
                             config_key=env_var,
-                            config_value=value
+                            config_value=value,
                         ) from e
                 else:
                     config_dict[field_info] = value
@@ -155,7 +172,7 @@ class Configuration:
             for field in self.__dataclass_fields__.values()
         }
 
-    def update(self, **kwargs: Any) -> 'Configuration':
+    def update(self, **kwargs: Any) -> "Configuration":
         """Create new configuration with updated values.
 
         Args:
@@ -213,14 +230,15 @@ class ConfigurationManager:
 
         try:
             import json
-            with open(path, encoding='utf-8') as f:
+
+            with open(path, encoding="utf-8") as f:
                 config_dict = json.load(f)
             self._config = Configuration.from_dict(config_dict)
         except Exception as e:
             raise ConfigurationError(
                 f"Failed to load configuration from {file_path}: {e}",
                 config_key="file_path",
-                config_value=str(file_path)
+                config_value=str(file_path),
             ) from e
 
     def save_to_file(self, file_path: str | Path) -> None:
@@ -235,16 +253,17 @@ class ConfigurationManager:
         path = Path(file_path)
         try:
             import json
-            with open(path, 'w', encoding='utf-8') as f:
+
+            with open(path, "w", encoding="utf-8") as f:
                 json.dump(self._config.to_dict(), f, indent=2)
         except Exception as e:
             raise ConfigurationError(
                 f"Failed to save configuration to {file_path}: {e}",
                 config_key="file_path",
-                config_value=str(file_path)
+                config_value=str(file_path),
             ) from e
 
-    def load_from_env(self, prefix: str = 'TSV_TRANSLATOR_') -> None:
+    def load_from_env(self, prefix: str = "TSV_TRANSLATOR_") -> None:
         """Load configuration from environment variables.
 
         Args:

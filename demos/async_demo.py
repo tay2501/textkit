@@ -35,14 +35,16 @@ async def demonstrate_basic_async_transformation():
     transformations = [
         ("test 123", "/u"),
         ("LOWER CASE", "/l"),
-        ("replace this", "/r/this/that/")
+        ("replace this", "/r/this/that/"),
     ]
 
     print("\nBatch transformations:")
     batch_results = await async_engine.transform_batch_async(transformations)
 
-    for i, ((text, rule), result) in enumerate(zip(transformations, batch_results, strict=False)):
-        print(f"  {i+1}. '{text}' with '{rule}' -> '{result}'")
+    for i, ((text, rule), result) in enumerate(
+        zip(transformations, batch_results, strict=False)
+    ):
+        print(f"  {i + 1}. '{text}' with '{rule}' -> '{result}'")
 
     print()
 
@@ -61,12 +63,10 @@ async def demonstrate_streaming_processing():
 
     # Process with streaming enabled
     stream_result = await async_engine.transform_async(
-        large_text,
-        "/u",
-        enable_streaming=True
+        large_text, "/u", enable_streaming=True
     )
 
-    if hasattr(stream_result, '__aiter__'):
+    if hasattr(stream_result, "__aiter__"):
         # Stream processing
         chunks_processed = 0
         result_parts = []
@@ -75,15 +75,15 @@ async def demonstrate_streaming_processing():
             result_parts.append(chunk)
             chunks_processed += 1
 
-        _ = ''.join(result_parts)
+        _ = "".join(result_parts)
         print(f"Processed in {chunks_processed} chunks")
     else:
         # Direct processing (for smaller text)
         print("Processed directly (text was small)")
 
     processing_time = time.perf_counter() - start_time
-    print(f"Processing time: {processing_time*1000:.2f}ms")
-    print(f"Throughput: {len(large_text)/processing_time:.0f} chars/second")
+    print(f"Processing time: {processing_time * 1000:.2f}ms")
+    print(f"Throughput: {len(large_text) / processing_time:.0f} chars/second")
     print()
 
 
@@ -97,7 +97,7 @@ async def demonstrate_chunked_processing():
     test_texts = [
         ("Small text", "small " * 10),
         ("Medium text", "medium " * 100),
-        ("Large text", "large " * 1000)
+        ("Large text", "large " * 1000),
     ]
 
     for name, text in test_texts:
@@ -105,14 +105,16 @@ async def demonstrate_chunked_processing():
         _ = await processor.process_chunks(text, "/u")
         processing_time = time.perf_counter() - start_time
 
-        print(f"{name}: {len(text)} chars -> {processing_time*1000:.2f}ms")
+        print(f"{name}: {len(text)} chars -> {processing_time * 1000:.2f}ms")
 
     # Show performance info
     perf_info = processor.get_performance_info()
     print(f"\nOptimal chunk size: {perf_info['optimal_chunk_size']:,} bytes")
     print(f"Performance samples: {perf_info['performance_samples']}")
-    if perf_info['average_throughput_chars_per_sec'] > 0:
-        print(f"Average throughput: {perf_info['average_throughput_chars_per_sec']:,.0f} chars/sec")
+    if perf_info["average_throughput_chars_per_sec"] > 0:
+        print(
+            f"Average throughput: {perf_info['average_throughput_chars_per_sec']:,.0f} chars/sec"
+        )
 
     print()
 
@@ -125,21 +127,24 @@ async def demonstrate_performance_monitoring():
     async_engine = AsyncTextTransformationEngine()
 
     # Set performance alert thresholds
-    monitor.set_alert_threshold("text_transformation", max_duration=0.1, min_throughput=10000)
+    monitor.set_alert_threshold(
+        "text_transformation", max_duration=0.1, min_throughput=10000
+    )
 
     # Test different operations
     operations = [
         ("Short text", "hello", "/u"),
         ("Medium text", "test " * 100, "/u"),
-        ("Long text", "performance " * 500, "/r/performance/PERF/")
+        ("Long text", "performance " * 500, "/r/performance/PERF/"),
     ]
 
     for name, text, rule in operations:
         result = await monitor.measure_operation(
             "text_transformation",
             async_engine.transform_async,
-            text, rule,
-            data_size=len(text)
+            text,
+            rule,
+            data_size=len(text),
         )
         print(f"Processed: {name} -> {len(result)} chars")
 
@@ -157,7 +162,9 @@ async def demonstrate_performance_monitoring():
     print("\nSystem Overview:")
     print(f"- Uptime: {overview['uptime_seconds']:.1f}s")
     print(f"- Total data processed: {overview['total_data_processed_bytes']:,} bytes")
-    print(f"- System throughput: {overview['average_system_throughput_bytes_per_sec']:,.0f} bytes/sec")
+    print(
+        f"- System throughput: {overview['average_system_throughput_bytes_per_sec']:,.0f} bytes/sec"
+    )
 
     print()
 
@@ -175,7 +182,7 @@ async def demonstrate_async_io():
         test_files = {
             temp_path / "file1.txt": "First file content\nWith multiple lines",
             temp_path / "file2.txt": "Second file content\nAlso with multiple lines",
-            temp_path / "file3.txt": "Third file content\nAnd some more text"
+            temp_path / "file3.txt": "Third file content\nAnd some more text",
         }
 
         print("Writing files concurrently...")
@@ -185,8 +192,12 @@ async def demonstrate_async_io():
         write_results = await io_manager.batch_write_files(test_files)
         write_time = time.perf_counter() - start_time
 
-        successful_writes = sum(1 for result in write_results.values() if result.success)
-        print(f"Wrote {successful_writes}/{len(test_files)} files in {write_time*1000:.2f}ms")
+        successful_writes = sum(
+            1 for result in write_results.values() if result.success
+        )
+        print(
+            f"Wrote {successful_writes}/{len(test_files)} files in {write_time * 1000:.2f}ms"
+        )
 
         # Batch read files
         print("Reading files concurrently...")
@@ -196,17 +207,24 @@ async def demonstrate_async_io():
         read_results = await io_manager.batch_read_files(file_paths)
         read_time = time.perf_counter() - start_time
 
-        successful_reads = sum(1 for content in read_results.values()
-                              if not isinstance(content, Exception))
-        print(f"Read {successful_reads}/{len(file_paths)} files in {read_time*1000:.2f}ms")
+        successful_reads = sum(
+            1 for content in read_results.values() if not isinstance(content, Exception)
+        )
+        print(
+            f"Read {successful_reads}/{len(file_paths)} files in {read_time * 1000:.2f}ms"
+        )
 
         # Show I/O statistics
         stats = io_manager.get_io_statistics()
         print("\nI/O Statistics:")
         print(f"- Read operations: {stats['read_operations']}")
         print(f"- Write operations: {stats['write_operations']}")
-        print(f"- Read speed: {stats['average_read_speed_bytes_per_sec']:,.0f} bytes/sec")
-        print(f"- Write speed: {stats['average_write_speed_bytes_per_sec']:,.0f} bytes/sec")
+        print(
+            f"- Read speed: {stats['average_read_speed_bytes_per_sec']:,.0f} bytes/sec"
+        )
+        print(
+            f"- Write speed: {stats['average_write_speed_bytes_per_sec']:,.0f} bytes/sec"
+        )
 
     print()
 
@@ -235,23 +253,23 @@ async def demonstrate_benchmarking():
     test_cases = [
         (("hello",), {"rule": "/u"}),
         (("world",), {"rule": "/u"}),
-        (("benchmark test",), {"rule": "/r/test/TEST/"})
+        (("benchmark test",), {"rule": "/r/test/TEST/"}),
     ]
 
     print("Benchmarking transformation functions...")
 
     # Compare functions
     comparison = await benchmark.compare_functions(
-        [sync_style_transform, optimized_transform],
-        test_cases,
-        iterations=20
+        [sync_style_transform, optimized_transform], test_cases, iterations=20
     )
 
     print("\nBenchmark Results:")
     print(f"Fastest function: {comparison['comparison']['fastest_function']}")
-    print(f"Speed improvement: {comparison['comparison']['speed_improvement_factor']:.2f}x")
+    print(
+        f"Speed improvement: {comparison['comparison']['speed_improvement_factor']:.2f}x"
+    )
 
-    for perf in comparison['comparison']['relative_performance']:
+    for perf in comparison["comparison"]["relative_performance"]:
         print(f"- {perf['function']}: {perf['relative_speed']:.2f}x relative speed")
 
     print()
@@ -274,20 +292,17 @@ async def demonstrate_concurrent_operations():
     start_time = time.perf_counter()
 
     # Create tasks with different delays
-    tasks = [
-        concurrent_task(i, 0.01 + (i % 3) * 0.005)
-        for i in range(10)
-    ]
+    tasks = [concurrent_task(i, 0.01 + (i % 3) * 0.005) for i in range(10)]
 
     # Execute all tasks concurrently
     results = await asyncio.gather(*tasks)
     total_time = time.perf_counter() - start_time
 
-    print(f"Completed {len(results)} tasks in {total_time*1000:.2f}ms")
+    print(f"Completed {len(results)} tasks in {total_time * 1000:.2f}ms")
 
     # Show results
     for task_id, result, delay in sorted(results):
-        print(f"  Task {task_id}: '{result}' (simulated delay: {delay*1000:.1f}ms)")
+        print(f"  Task {task_id}: '{result}' (simulated delay: {delay * 1000:.1f}ms)")
 
     # Calculate efficiency
     total_simulated_time = sum(delay for _, _, delay in results)
@@ -339,20 +354,20 @@ The result will demonstrate the integrated workflow."""
         start_time = time.perf_counter()
 
         write_result = await monitor.measure_operation(
-            "integrated_workflow",
-            integrated_workflow,
-            data_size=len(sample_text)
+            "integrated_workflow", integrated_workflow, data_size=len(sample_text)
         )
 
         total_time = time.perf_counter() - start_time
 
-        print(f"\nWorkflow completed in {total_time*1000:.2f}ms")
+        print(f"\nWorkflow completed in {total_time * 1000:.2f}ms")
         print(f"Input size: {len(sample_text)} characters")
         print(f"Output size: {write_result.data_size} characters")
 
         # Show workflow stats
         workflow_stats = monitor.get_stats("integrated_workflow")
-        print(f"Workflow throughput: {workflow_stats['throughput_bytes_per_sec']:,.0f} bytes/sec")
+        print(
+            f"Workflow throughput: {workflow_stats['throughput_bytes_per_sec']:,.0f} bytes/sec"
+        )
 
     print()
 
@@ -369,7 +384,7 @@ async def main():
         demonstrate_async_io,
         demonstrate_benchmarking,
         demonstrate_concurrent_operations,
-        demonstrate_integrated_workflow
+        demonstrate_integrated_workflow,
     ]
 
     for demo in demonstrations:
@@ -378,6 +393,7 @@ async def main():
         except Exception as e:
             print(f"Demo failed: {e}")
             import traceback
+
             traceback.print_exc()
             print()
 

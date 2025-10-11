@@ -10,6 +10,7 @@ from textkit.text_core.transformers.encoding_transformer import EncodingTransfor
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
+
 def demo_encoding_transformations():
     """Demonstrate encoding transformation capabilities."""
     transformer = EncodingTransformer()
@@ -49,7 +50,9 @@ def demo_encoding_transformations():
 
         # With error handling
         mixed_text = "Hello, 世界"
-        ascii_result = transformer.transform(mixed_text, "iconv", ["utf-8", "ascii", "replace"])
+        ascii_result = transformer.transform(
+            mixed_text, "iconv", ["utf-8", "ascii", "replace"]
+        )
         print(f"iconv with replace mode: {repr(ascii_result)}")
 
     except Exception as e:
@@ -99,6 +102,7 @@ def demo_encoding_transformations():
     encodings = EncodingTransformer.list_supported_encodings()
     print(f"Total encodings: {len(encodings)}")
     print("Common encodings:", encodings[:20])
+
 
 if __name__ == "__main__":
     demo_encoding_transformations()

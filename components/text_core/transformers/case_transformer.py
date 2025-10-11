@@ -37,11 +37,11 @@ class CaseTransformer(BaseTransformer):
 
     def _to_pascal_case(self, text: str) -> str:
         """Convert text to PascalCase."""
-        return "".join(word.capitalize() for word in re.findall(r'\w+', text))
+        return "".join(word.capitalize() for word in re.findall(r"\w+", text))
 
     def _to_camel_case(self, text: str) -> str:
         """Convert text to camelCase."""
-        words = re.findall(r'\w+', text)
+        words = re.findall(r"\w+", text)
         if not words:
             return text
         return words[0].lower() + "".join(word.capitalize() for word in words[1:])
@@ -49,7 +49,7 @@ class CaseTransformer(BaseTransformer):
     def _to_snake_case(self, text: str) -> str:
         """Convert text to snake_case."""
         # Handle camelCase and PascalCase
-        text = re.sub(r'([a-z])([A-Z])', r'\1_\2', text)
+        text = re.sub(r"([a-z])([A-Z])", r"\1_\2", text)
         # Replace spaces and other separators with underscores
-        text = re.sub(r'[\s\-\.]+', '_', text)
+        text = re.sub(r"[\s\-\.]+", "_", text)
         return text.lower()

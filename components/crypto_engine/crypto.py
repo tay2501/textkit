@@ -31,7 +31,10 @@ except ImportError:
 CRYPTOGRAPHY_AVAILABLE: Final[bool] = _cryptography_available
 
 if TYPE_CHECKING:
-    from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
+    from cryptography.hazmat.primitives.asymmetric.rsa import (
+        RSAPrivateKey,
+        RSAPublicKey,
+    )
 else:
     RSAPrivateKey = Any
     RSAPublicKey = Any
@@ -67,7 +70,9 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             self.config_manager: ConfigManagerProtocol = config_manager
             self.rsa_config: dict[str, Any] = security_config["rsa_encryption"]
             self.key_directory: Path = Path(self.rsa_config["key_directory"])
-            self.private_key_path: Path = self.key_directory / self.rsa_config["private_key_file"]
+            self.private_key_path: Path = (
+                self.key_directory / self.rsa_config["private_key_file"]
+            )
             self.public_key_path: Path = (
                 self.key_directory / f"{self.rsa_config['private_key_file']}.pub"
             )
@@ -104,9 +109,7 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
 
             # Encrypt data with AES-GCM (no manual padding needed)
             cipher = Cipher(
-                algorithms.AES(aes_key),
-                modes.GCM(nonce),
-                backend=default_backend()
+                algorithms.AES(aes_key), modes.GCM(nonce), backend=default_backend()
             )
             encryptor = cipher.encryptor()
 
@@ -180,7 +183,7 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             cipher = Cipher(
                 algorithms.AES(aes_key),
                 modes.GCM(nonce, tag),
-                backend=default_backend()
+                backend=default_backend(),
             )
             decryptor = cipher.decryptor()
             text_bytes = decryptor.update(encrypted_data) + decryptor.finalize()
@@ -255,7 +258,9 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
                 f"Key generation failed: {e}", {"key_size": self.rsa_config["key_size"]}
             ) from e
 
-    def _save_key_pair(self, private_key: RSAPrivateKey, public_key: RSAPublicKey) -> None:
+    def _save_key_pair(
+        self, private_key: RSAPrivateKey, public_key: RSAPublicKey
+    ) -> None:
         """Save key pair to files with secure permissions."""
         try:
             # Serialize keys
@@ -279,8 +284,12 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
 
             # Set secure file permissions using pathlib
             try:
-                self.private_key_path.chmod(int(self.rsa_config["private_key_permissions"], 8))
-                self.public_key_path.chmod(int(self.rsa_config["public_key_permissions"], 8))
+                self.private_key_path.chmod(
+                    int(self.rsa_config["private_key_permissions"], 8)
+                )
+                self.public_key_path.chmod(
+                    int(self.rsa_config["public_key_permissions"], 8)
+                )
             except OSError:
                 # Windows doesn't support chmod the same way
                 pass
@@ -376,9 +385,7 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
 
             # Encrypt data with AES-GCM (no manual padding needed)
             cipher = Cipher(
-                algorithms.AES(aes_key),
-                modes.GCM(nonce),
-                backend=default_backend()
+                algorithms.AES(aes_key), modes.GCM(nonce), backend=default_backend()
             )
             encryptor = cipher.encryptor()
             encrypted_data = encryptor.update(data) + encryptor.finalize()
@@ -444,7 +451,7 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             cipher = Cipher(
                 algorithms.AES(aes_key),
                 modes.GCM(nonce, tag),
-                backend=default_backend()
+                backend=default_backend(),
             )
             decryptor = cipher.decryptor()
             return decryptor.update(encrypted_payload) + decryptor.finalize()
@@ -452,7 +459,10 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
         except Exception as e:
             raise CryptographyError(
                 f"Bytes decryption failed: {e}",
-                {"encrypted_length": len(encrypted_data), "error_type": type(e).__name__},
+                {
+                    "encrypted_length": len(encrypted_data),
+                    "error_type": type(e).__name__,
+                },
             ) from e
 
     def configure(self, config: dict[str, Any]) -> None:
@@ -472,4 +482,4 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
         Returns:
             Current configuration data
         """
-        return getattr(self, '_config', {})
+        return getattr(self, "_config", {})

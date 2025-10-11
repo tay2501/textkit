@@ -6,7 +6,11 @@ from unittest.mock import patch
 
 import pytest
 from textkit.config_manager import core
-from textkit.config_manager.core import ConfigDict, ConfigurationError, ConfigurationManager
+from textkit.config_manager.core import (
+    ConfigDict,
+    ConfigurationError,
+    ConfigurationManager,
+)
 
 
 class TestConfigurationManager:
@@ -127,7 +131,7 @@ class TestConfigurationManager:
         custom_config = {
             "version": "2.0",
             "custom_setting": "test_value",
-            "nested": {"key": "value"}
+            "nested": {"key": "value"},
         }
 
         config_file = temp_dir / "transformation_rules.json"
@@ -166,7 +170,7 @@ class TestConfigurationManager:
 
     def test_save_json_file_error(self, config_manager):
         """Test saving JSON file with permission error."""
-        with patch('builtins.open', side_effect=PermissionError("Access denied")):
+        with patch("builtins.open", side_effect=PermissionError("Access denied")):
             with pytest.raises(ConfigurationError) as exc_info:
                 config_manager._save_json_file("test.json", {"test": "data"})
             assert "Failed to save test.json" in str(exc_info.value)
@@ -272,7 +276,13 @@ class TestConfigurationManager:
 
         # Check RSA config structure
         rsa = default_security["rsa"]
-        required_rsa_keys = ["key_size", "public_exponent", "aes_key_size", "aes_iv_size", "key_directory"]
+        required_rsa_keys = [
+            "key_size",
+            "public_exponent",
+            "aes_key_size",
+            "aes_iv_size",
+            "key_directory",
+        ]
         for key in required_rsa_keys:
             assert key in rsa
 
@@ -302,7 +312,7 @@ class TestConfigurationManager:
         config_file = temp_dir / "test.json"
         config_file.write_text("{}", encoding="utf-8")
 
-        with patch('builtins.open', side_effect=PermissionError("Read denied")):
+        with patch("builtins.open", side_effect=PermissionError("Read denied")):
             with pytest.raises(ConfigurationError) as exc_info:
                 config_manager._load_json_file("test.json")
             assert "Failed to load test.json" in str(exc_info.value)
@@ -331,16 +341,16 @@ class TestConfigurationManager:
         try:
             config_manager.load_transformation_rules()
         except ConfigurationError as e:
-            assert hasattr(e, 'context')
-            assert 'file_path' in e.context
-            assert 'json_error' in e.context
+            assert hasattr(e, "context")
+            assert "file_path" in e.context
+            assert "json_error" in e.context
 
         # Test validation error context
         try:
             config_manager.validate_config("not a dict", "test.json")
         except ConfigurationError as e:
-            assert hasattr(e, 'context')
-            assert 'config_type' in e.context
+            assert hasattr(e, "context")
+            assert "config_type" in e.context
 
     def test_config_dict_type_alias(self):
         """Test that ConfigDict type alias works correctly."""
@@ -370,7 +380,9 @@ class TestConfigurationManager:
         dummy_file = temp_dir / "dummy_file.txt"
         dummy_file.write_text("test")
 
-        with patch('pathlib.Path.mkdir', side_effect=PermissionError("Cannot create directory")):
+        with patch(
+            "pathlib.Path.mkdir", side_effect=PermissionError("Cannot create directory")
+        ):
             # Should raise error during initialization
             with pytest.raises(PermissionError):
                 ConfigurationManager(config_dir=dummy_file)
@@ -381,7 +393,7 @@ class TestConfigurationManager:
             "version": "1.0",
             "unicode_text": "Hello 世界 🌍",
             "special_chars": "éñüñ",
-            "emoji": "🚀💻🎉"
+            "emoji": "🚀💻🎉",
         }
 
         # Save and load unicode content

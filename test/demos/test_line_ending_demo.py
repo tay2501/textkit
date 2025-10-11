@@ -10,6 +10,7 @@ from textkit.text_core.transformers.line_ending_transformer import LineEndingTra
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
+
 def demo_line_ending_transformations():
     """Demonstrate line ending transformation capabilities."""
     transformer = LineEndingTransformer()
@@ -51,6 +52,7 @@ def demo_line_ending_transformations():
     rules = transformer.get_rules()
     for rule_name, rule in rules.items():
         print(f"  {rule_name}: {rule.description}")
+
 
 if __name__ == "__main__":
     demo_line_ending_transformations()

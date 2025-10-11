@@ -189,9 +189,7 @@ class TestTransformationError:
         transformation_type = "full_to_half"
         input_length = 100
         error = TransformationError(
-            message,
-            transformation_type=transformation_type,
-            input_length=input_length
+            message, transformation_type=transformation_type, input_length=input_length
         )
 
         assert error.transformation_type == transformation_type
@@ -226,9 +224,7 @@ class TestConfigurationError:
         config_key = "log_level"
         config_value = "INVALID"
         error = ConfigurationError(
-            message,
-            config_key=config_key,
-            config_value=config_value
+            message, config_key=config_key, config_value=config_value
         )
 
         assert error.config_key == config_key
@@ -261,7 +257,7 @@ class TestValidationError:
             message,
             field_name=field_name,
             field_value=field_value,
-            expected_type=expected_type
+            expected_type=expected_type,
         )
 
         assert error.field_name == field_name

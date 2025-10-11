@@ -175,7 +175,9 @@ class TransformationBase(ABC):
                     "input_length": len(text) if isinstance(text, str) else 0,
                 }
             )
-            raise TransformationError(f"変換処理に失敗: {e}", self.get_error_context()) from e
+            raise TransformationError(
+                f"変換処理に失敗: {e}", self.get_error_context()
+            ) from e
 
 
 @runtime_checkable
@@ -327,7 +329,7 @@ class ChainableTransformationBase(TransformationBase):
                         }
                     )
                     raise TransformationError(
-                        f"チェイン変換の第{i+1}段階で失敗: {e}",
+                        f"チェイン変換の第{i + 1}段階で失敗: {e}",
                         self.get_error_context(),
                     ) from e
 

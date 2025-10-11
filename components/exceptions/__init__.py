@@ -43,13 +43,11 @@ __all__ = [
     # Base exceptions
     "BaseTextProcessingError",
     "SystemError",
-
     # Validation exceptions
     "ValidationError",
     "ParameterValidationError",
     "DataValidationError",
     "SchemaValidationError",
-
     # Transformation exceptions
     "TransformationError",
     "TransformationTimeoutError",
@@ -57,13 +55,11 @@ __all__ = [
     "EncodingTransformationError",
     "CryptoTransformationError",
     "CryptographyError",  # Backward compatibility alias
-
     # Configuration exceptions
     "ConfigurationError",
     "ConfigurationLoadError",
     "ConfigurationValidationError",
     "ConfigurationNotFoundError",
-
     # IO exceptions
     "IOError",
     "ClipboardError",

@@ -67,7 +67,9 @@ def create_text_subcommand(
         from_clipboard: FromClipboardOption = False,
         output: OutputPathOption = None,
         to_clipboard: ToClipboardOption = False,
-        show_rules: Annotated[bool, typer.Option("--show-rules", help="Show available rules and exit")] = False,
+        show_rules: Annotated[
+            bool, typer.Option("--show-rules", help="Show available rules and exit")
+        ] = False,
     ) -> None:
         """Apply transformation rules to input text.
 
@@ -140,17 +142,22 @@ def create_text_subcommand(
             else:
                 # Fallback to pipe/stdin or error
                 import sys
+
                 if not sys.stdin.isatty():
                     input_text = sys.stdin.read()
                 else:
-                    console.print("[yellow]Warning: No input specified. Use -i, --from-clipboard, or pipe input.[/yellow]")
+                    console.print(
+                        "[yellow]Warning: No input specified. Use -i, --from-clipboard, or pipe input.[/yellow]"
+                    )
                     raise typer.Exit(1)
 
             result = app_instance.apply_transformation(input_text, normalized_rules)
 
             # Handle output with explicit flags
             output_manager = OutputManager(app_instance)
-            output_manager.handle_output(result, output_folder=output, clipboard=to_clipboard)
+            output_manager.handle_output(
+                result, output_folder=output, clipboard=to_clipboard
+            )
 
         except Exception as e:
             handle_cli_error_func(e, "text transformation")
@@ -227,7 +234,9 @@ def create_text_subcommand(
         - Specify input explicitly with `-i` or use `--from-clipboard`
         """
         try:
-            from textkit.text_core.transformers.encoding_transformer import EncodingTransformer
+            from textkit.text_core.transformers.encoding_transformer import (
+                EncodingTransformer,
+            )
 
             app_instance = get_app_func()
 
@@ -241,24 +250,26 @@ def create_text_subcommand(
             else:
                 # Fallback to pipe/stdin or error
                 import sys
+
                 if not sys.stdin.isatty():
                     input_text = sys.stdin.read()
                 else:
-                    console.print("[yellow]Warning: No input specified. Use -i, --from-clipboard, or pipe input.[/yellow]")
+                    console.print(
+                        "[yellow]Warning: No input specified. Use -i, --from-clipboard, or pipe input.[/yellow]"
+                    )
                     raise typer.Exit(1)
 
             # Use EncodingTransformer public API
             encoding_transformer = EncodingTransformer()
             result = encoding_transformer.convert(
-                input_text,
-                from_encoding,
-                to_encoding,
-                error_handling
+                input_text, from_encoding, to_encoding, error_handling
             )
 
             # Handle output with explicit flags
             output_manager = OutputManager(app_instance)
-            output_manager.handle_output(result, output_folder=output, clipboard=to_clipboard)
+            output_manager.handle_output(
+                result, output_folder=output, clipboard=to_clipboard
+            )
 
         except Exception as e:
             handle_cli_error_func(e, "character encoding conversion")
@@ -276,6 +287,7 @@ def _show_available_rules(get_app_func: callable) -> None:
 
         # Group by type
         from collections import defaultdict
+
         grouped = defaultdict(list)
         for rule in rules:
             grouped[rule.rule_type].append(rule)

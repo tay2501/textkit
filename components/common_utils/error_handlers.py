@@ -17,8 +17,8 @@ from textkit.exceptions import (
     ValidationError,
 )
 
-T = TypeVar('T')
-R = TypeVar('R')
+T = TypeVar("T")
+R = TypeVar("R")
 
 
 def safe_execute(
@@ -27,7 +27,7 @@ def safe_execute(
     default_return: T | None = None,
     logger=None,
     context: dict[str, Any] | None = None,
-    **kwargs
+    **kwargs,
 ) -> tuple[T | None, Exception | None]:
     """Execute operation safely following EAFP principles.
 
@@ -48,11 +48,13 @@ def safe_execute(
     except Exception as e:
         if logger:
             log_context = context or {}
-            log_context.update({
-                "operation": getattr(operation, '__name__', str(operation)),
-                "error_type": type(e).__name__,
-                "error_message": str(e),
-            })
+            log_context.update(
+                {
+                    "operation": getattr(operation, "__name__", str(operation)),
+                    "error_type": type(e).__name__,
+                    "error_message": str(e),
+                }
+            )
             logger.error("safe_execution_failed", **log_context)
         return default_return, e
 
@@ -61,7 +63,7 @@ def handle_validation_error(
     validation_func: Callable[[T], R],
     data: T,
     logger=None,
-    context: dict[str, Any] | None = None
+    context: dict[str, Any] | None = None,
 ) -> tuple[R | None, ValidationError | None]:
     """Handle validation with proper EAFP error handling.
 
@@ -79,9 +81,7 @@ def handle_validation_error(
         return validated_data, None
     except Exception as e:
         validation_error = ValidationError(
-            f"Validation failed: {e}",
-            operation="validation",
-            cause=e
+            f"Validation failed: {e}", operation="validation", cause=e
         )
 
         if context:
@@ -93,7 +93,7 @@ def handle_validation_error(
                 "validation_failed",
                 error=str(validation_error),
                 data_type=type(data).__name__,
-                **(context or {})
+                **(context or {}),
             )
 
         return None, validation_error
@@ -104,7 +104,7 @@ def with_error_context(
     operation_name: str,
     logger=None,
     context: dict[str, Any] | None = None,
-    reraise: bool = True
+    reraise: bool = True,
 ):
     """Context manager for enhanced error handling and logging.
 
@@ -121,11 +121,7 @@ def with_error_context(
     operation_context = context or {}
 
     if logger:
-        logger.debug(
-            "operation_started",
-            operation=operation_name,
-            **operation_context
-        )
+        logger.debug("operation_started", operation=operation_name, **operation_context)
 
     try:
         yield
@@ -135,7 +131,7 @@ def with_error_context(
                 "operation_completed",
                 operation=operation_name,
                 elapsed_ms=elapsed_time,
-                **operation_context
+                **operation_context,
             )
     except BaseTextProcessingError as e:
         elapsed_time = (time.perf_counter() - start_time) * 1000
@@ -151,7 +147,7 @@ def with_error_context(
                 error_type=type(e).__name__,
                 error_message=str(e),
                 elapsed_ms=elapsed_time,
-                **operation_context
+                **operation_context,
             )
 
         if reraise:
@@ -161,7 +157,7 @@ def with_error_context(
         wrapped_error = TransformationError(
             f"Unexpected error in {operation_name}: {e}",
             operation=operation_name,
-            cause=e
+            cause=e,
         ).add_context("elapsed_ms", elapsed_time)
 
         for key, value in operation_context.items():
@@ -174,7 +170,7 @@ def with_error_context(
                 error_type=type(e).__name__,
                 error_message=str(e),
                 elapsed_ms=elapsed_time,
-                **operation_context
+                **operation_context,
             )
 
         if reraise:
@@ -186,7 +182,7 @@ def retry_on_failure(
     delay_seconds: float = 0.1,
     backoff_factor: float = 2.0,
     retry_on: tuple[type, ...] | None = None,
-    logger=None
+    logger=None,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Decorator for retrying operations on failure.
 
@@ -225,7 +221,7 @@ def retry_on_failure(
                             attempt=attempt + 1,
                             max_attempts=max_attempts,
                             error=str(e),
-                            next_delay_seconds=current_delay
+                            next_delay_seconds=current_delay,
                         )
 
                     time.sleep(current_delay)
@@ -239,8 +235,9 @@ def retry_on_failure(
                 raise TransformationError(
                     f"Operation failed after {max_attempts} attempts: {last_exception}",
                     operation=f"retry_{func.__name__}",
-                    cause=last_exception
+                    cause=last_exception,
                 ).add_context("max_attempts", max_attempts)
 
         return wrapper
+
     return decorator

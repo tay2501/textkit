@@ -29,7 +29,14 @@ class HashTransformations(TransformationBase):
             config: Optional configuration dictionary
         """
         super().__init__(config or {})
-        self._supported_algorithms = {"sha256", "sha1", "sha512", "md5", "sha224", "sha384"}
+        self._supported_algorithms = {
+            "sha256",
+            "sha1",
+            "sha512",
+            "md5",
+            "sha224",
+            "sha384",
+        }
         self._input_text: str = ""
         self._output_text: str = ""
         self._transformation_rule: str = ""

@@ -53,7 +53,7 @@ class CryptographyManager:
             "key_size": 4096,  # RSA-4096 for maximum security
             "public_exponent": 65537,  # Standard public exponent
             "aes_key_size": 32,  # AES-256 key size (32 bytes)
-            "aes_iv_size": 16,   # AES block size (16 bytes)
+            "aes_iv_size": 16,  # AES block size (16 bytes)
             "key_directory": "rsa",  # Default key directory
         }
 
@@ -88,7 +88,7 @@ class CryptographyManager:
         if not isinstance(text, str):
             raise CryptographyError(
                 f"Input must be str, got {type(text).__name__}",
-                {"input_type": type(text).__name__}
+                {"input_type": type(text).__name__},
             )
 
         try:
@@ -97,7 +97,9 @@ class CryptographyManager:
             aes_iv = secrets.token_bytes(self.rsa_config["aes_iv_size"])
 
             # Encrypt data with AES
-            cipher = Cipher(algorithms.AES(aes_key), modes.CBC(aes_iv), backend=default_backend())
+            cipher = Cipher(
+                algorithms.AES(aes_key), modes.CBC(aes_iv), backend=default_backend()
+            )
             encryptor = cipher.encryptor()
 
             # Pad text to AES block size
@@ -127,10 +129,7 @@ class CryptographyManager:
             context = {"error_type": type(e).__name__}
             if isinstance(text, str):
                 context["text_length"] = len(text)
-            raise CryptographyError(
-                f"Encryption failed: {e}",
-                context
-            ) from e
+            raise CryptographyError(f"Encryption failed: {e}", context) from e
 
     def decrypt_text(self, encrypted_text: str) -> str:
         """Decrypt text using hybrid AES+RSA decryption.
@@ -149,10 +148,16 @@ class CryptographyManager:
             combined_data = base64.b64decode(encrypted_text.encode("ascii"))
 
             # Extract components
-            rsa_key_size_bytes = self.rsa_config["key_size"] // 8  # Convert bits to bytes
+            rsa_key_size_bytes = (
+                self.rsa_config["key_size"] // 8
+            )  # Convert bits to bytes
             encrypted_aes_key = combined_data[:rsa_key_size_bytes]
-            aes_iv = combined_data[rsa_key_size_bytes:rsa_key_size_bytes + self.rsa_config["aes_iv_size"]]
-            encrypted_data = combined_data[rsa_key_size_bytes + self.rsa_config["aes_iv_size"]:]
+            aes_iv = combined_data[
+                rsa_key_size_bytes : rsa_key_size_bytes + self.rsa_config["aes_iv_size"]
+            ]
+            encrypted_data = combined_data[
+                rsa_key_size_bytes + self.rsa_config["aes_iv_size"] :
+            ]
 
             # Decrypt AES key with RSA
             private_key, _ = self.ensure_key_pair()
@@ -166,7 +171,9 @@ class CryptographyManager:
             )
 
             # Decrypt data with AES
-            cipher = Cipher(algorithms.AES(aes_key), modes.CBC(aes_iv), backend=default_backend())
+            cipher = Cipher(
+                algorithms.AES(aes_key), modes.CBC(aes_iv), backend=default_backend()
+            )
             decryptor = cipher.decryptor()
             padded_text = decryptor.update(encrypted_data) + decryptor.finalize()
 
@@ -179,7 +186,10 @@ class CryptographyManager:
         except Exception as e:
             raise CryptographyError(
                 f"Decryption failed: {e}",
-                {"encrypted_length": len(encrypted_text), "error_type": type(e).__name__},
+                {
+                    "encrypted_length": len(encrypted_text),
+                    "error_type": type(e).__name__,
+                },
             ) from e
 
     def ensure_key_pair(self) -> tuple[Any, Any]:
@@ -275,8 +285,10 @@ class CryptographyManager:
         except Exception as e:
             raise CryptographyError(
                 f"Failed to load key pair: {e}",
-                {"private_key_exists": self.private_key_path.exists(),
-                 "public_key_exists": self.public_key_path.exists()},
+                {
+                    "private_key_exists": self.private_key_path.exists(),
+                    "public_key_exists": self.public_key_path.exists(),
+                },
             ) from e
 
     def is_available(self) -> bool:

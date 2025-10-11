@@ -26,7 +26,7 @@ class TestLoggingConfiguration:
 
     def test_configure_logging_development_mode(self):
         """Test logging configuration in development mode (TTY)."""
-        with patch('sys.stderr.isatty', return_value=True):
+        with patch("sys.stderr.isatty", return_value=True):
             configure_logging()
 
             # Check that structlog is configured
@@ -36,8 +36,8 @@ class TestLoggingConfiguration:
             config = structlog.get_config()
 
             # Verify development configuration
-            assert config['context_class'] is dict
-            assert config['cache_logger_on_first_use'] is True
+            assert config["context_class"] is dict
+            assert config["cache_logger_on_first_use"] is True
 
             # Test logging works
             logger = structlog.get_logger("test")
@@ -45,7 +45,7 @@ class TestLoggingConfiguration:
 
     def test_configure_logging_production_mode(self):
         """Test logging configuration in production mode (non-TTY)."""
-        with patch('sys.stderr.isatty', return_value=False):
+        with patch("sys.stderr.isatty", return_value=False):
             configure_logging()
 
             # Check that structlog is configured
@@ -55,8 +55,8 @@ class TestLoggingConfiguration:
             config = structlog.get_config()
 
             # Verify production configuration
-            assert config['context_class'] is dict
-            assert config['cache_logger_on_first_use'] is True
+            assert config["context_class"] is dict
+            assert config["cache_logger_on_first_use"] is True
 
             # Test logging works
             logger = structlog.get_logger("test")
@@ -75,7 +75,7 @@ class TestLoggingConfiguration:
         # Should be the same configuration
         assert first_config == second_config
 
-    @patch('sys.stderr.isatty', return_value=False)
+    @patch("sys.stderr.isatty", return_value=False)
     def test_configure_logging_with_orjson(self, mock_isatty):
         """Test production logging with orjson serializer (LogCapture pattern)."""
         # Configure logging first
@@ -86,7 +86,7 @@ class TestLoggingConfiguration:
         log_output = LogCapture()
         structlog.configure(
             processors=[log_output],
-            cache_logger_on_first_use=False  # Required for testing
+            cache_logger_on_first_use=False,  # Required for testing
         )
 
         logger = structlog.get_logger("test")
@@ -97,7 +97,7 @@ class TestLoggingConfiguration:
         assert log_output.entries[0]["event"] == "test_orjson"
         assert log_output.entries[0]["data"] == {"key": "value"}
 
-    @patch('sys.stderr.isatty', return_value=False)
+    @patch("sys.stderr.isatty", return_value=False)
     def test_configure_logging_without_orjson(self, mock_isatty):
         """Test production logging fallback (LogCapture pattern)."""
         # Configure logging first
@@ -108,7 +108,7 @@ class TestLoggingConfiguration:
         log_output = LogCapture()
         structlog.configure(
             processors=[log_output],
-            cache_logger_on_first_use=False  # Required for testing
+            cache_logger_on_first_use=False,  # Required for testing
         )
 
         logger = structlog.get_logger("test")
@@ -121,36 +121,37 @@ class TestLoggingConfiguration:
 
     def test_get_exception_formatter_with_rich(self):
         """Test exception formatter with Rich available."""
-        with patch.dict('sys.modules', {
-            'rich.traceback': MagicMock(),
-            'rich.console': MagicMock()
-        }):
+        with patch.dict(
+            "sys.modules", {"rich.traceback": MagicMock(), "rich.console": MagicMock()}
+        ):
             formatter = _get_exception_formatter()
             assert formatter is not None
 
     def test_get_exception_formatter_with_better_exceptions(self):
         """Test exception formatter with better-exceptions available."""
-        with patch.dict('sys.modules', {
-            'rich.traceback': None,
-            'rich.console': None,
-            'better_exceptions': MagicMock()
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "rich.traceback": None,
+                "rich.console": None,
+                "better_exceptions": MagicMock(),
+            },
+        ):
             formatter = _get_exception_formatter()
             assert formatter is not None
 
     def test_get_exception_formatter_fallback(self):
         """Test exception formatter fallback when neither Rich nor better-exceptions available."""
-        with patch.dict('sys.modules', {
-            'rich.traceback': None,
-            'rich.console': None,
-            'better_exceptions': None
-        }):
+        with patch.dict(
+            "sys.modules",
+            {"rich.traceback": None, "rich.console": None, "better_exceptions": None},
+        ):
             formatter = _get_exception_formatter()
             assert formatter is None
 
     def test_logging_output_format_development(self, capfd):
         """Test that development logging produces human-readable output."""
-        with patch('sys.stderr.isatty', return_value=True):
+        with patch("sys.stderr.isatty", return_value=True):
             configure_logging()
             logger = structlog.get_logger("test_dev")
             logger.info("development_test", user_id=123)
@@ -209,11 +210,17 @@ class TestLoggingConfiguration:
         configure_logging()
         config = structlog.get_config()
 
-        processors = config.get('processors', [])
+        processors = config.get("processors", [])
         assert len(processors) > 0
 
         # Should have timestamp processor
-        processor_names = [proc.__name__ if hasattr(proc, '__name__') else str(proc) for proc in processors]
+        processor_names = [
+            proc.__name__ if hasattr(proc, "__name__") else str(proc)
+            for proc in processors
+        ]
 
         # Basic checks for expected processors
-        assert any('timestamp' in str(proc).lower() or 'time' in str(proc).lower() for proc in processor_names)
+        assert any(
+            "timestamp" in str(proc).lower() or "time" in str(proc).lower()
+            for proc in processor_names
+        )

@@ -17,7 +17,9 @@ class TransformerProtocol(Protocol):
         """Check if transformer supports given rule."""
         ...
 
-    def transform(self, text: str, rule_name: str, args: list[str] | None = None) -> str:
+    def transform(
+        self, text: str, rule_name: str, args: list[str] | None = None
+    ) -> str:
         """Apply transformation to text."""
         ...
 
@@ -43,7 +45,9 @@ class BaseTransformer(ABC):
         """Check if transformer supports given rule."""
         return rule_name in self._rules
 
-    def transform(self, text: str, rule_name: str, args: list[str] | None = None) -> str:
+    def transform(
+        self, text: str, rule_name: str, args: list[str] | None = None
+    ) -> str:
         """Apply transformation to text.
 
         Args:
@@ -59,7 +63,9 @@ class BaseTransformer(ABC):
             ValueError: If transformation fails
         """
         if not self.supports_rule(rule_name):
-            raise KeyError(f"Rule '{rule_name}' not supported by {self.__class__.__name__}")
+            raise KeyError(
+                f"Rule '{rule_name}' not supported by {self.__class__.__name__}"
+            )
 
         rule = self._rules[rule_name]
 
@@ -71,9 +77,13 @@ class BaseTransformer(ABC):
             else:
                 return rule.function(text)
         except Exception as e:
-            raise ValueError(f"Transformation failed for rule '{rule_name}': {e}") from e
+            raise ValueError(
+                f"Transformation failed for rule '{rule_name}': {e}"
+            ) from e
 
-    def _apply_with_args(self, text: str, rule: TransformationRule, args: list[str]) -> str:
+    def _apply_with_args(
+        self, text: str, rule: TransformationRule, args: list[str]
+    ) -> str:
         """Apply transformation that requires arguments.
 
         Default implementation for rules that need arguments.
@@ -88,6 +98,7 @@ class BaseTransformer(ABC):
     def get_rules_by_type(self, rule_type) -> dict[str, TransformationRule]:
         """Return rules filtered by type."""
         return {
-            name: rule for name, rule in self._rules.items()
+            name: rule
+            for name, rule in self._rules.items()
             if rule.rule_type == rule_type
         }

@@ -7,6 +7,4 @@ mixins for comprehensive functionality.
 
 from .enhanced_base_transformer import EnhancedBaseTransformer
 
-__all__ = [
-    "EnhancedBaseTransformer"
-]
+__all__ = ["EnhancedBaseTransformer"]

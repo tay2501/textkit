@@ -18,7 +18,7 @@ class TSVTranslatorError(Exception):
         self,
         message: str,
         context: dict[str, Any] | None = None,
-        original_error: Exception | None = None
+        original_error: Exception | None = None,
     ):
         """Initialize the exception.
 
@@ -42,6 +42,7 @@ class TSVTranslatorError(Exception):
 
 class FileOperationError(TSVTranslatorError):
     """Exception raised for file operation errors."""
+
     pass
 
 
@@ -58,7 +59,7 @@ class FileNotFoundError(FileOperationError):
         super().__init__(
             f"File not found: {file_path}",
             context={"file_path": file_path},
-            original_error=original_error
+            original_error=original_error,
         )
         self.file_path = file_path
 
@@ -70,7 +71,7 @@ class FileReadError(FileOperationError):
         self,
         file_path: str,
         reason: str = "Unknown error",
-        original_error: Exception | None = None
+        original_error: Exception | None = None,
     ):
         """Initialize the exception.
 
@@ -82,7 +83,7 @@ class FileReadError(FileOperationError):
         super().__init__(
             f"Failed to read file: {file_path}. Reason: {reason}",
             context={"file_path": file_path, "reason": reason},
-            original_error=original_error
+            original_error=original_error,
         )
         self.file_path = file_path
         self.reason = reason
@@ -95,7 +96,7 @@ class FileWriteError(FileOperationError):
         self,
         file_path: str,
         reason: str = "Unknown error",
-        original_error: Exception | None = None
+        original_error: Exception | None = None,
     ):
         """Initialize the exception.
 
@@ -107,7 +108,7 @@ class FileWriteError(FileOperationError):
         super().__init__(
             f"Failed to write file: {file_path}. Reason: {reason}",
             context={"file_path": file_path, "reason": reason},
-            original_error=original_error
+            original_error=original_error,
         )
         self.file_path = file_path
         self.reason = reason
@@ -117,10 +118,7 @@ class EncodingError(FileOperationError):
     """Exception raised for encoding/decoding errors."""
 
     def __init__(
-        self,
-        file_path: str,
-        encoding: str,
-        original_error: Exception | None = None
+        self, file_path: str, encoding: str, original_error: Exception | None = None
     ):
         """Initialize the exception.
 
@@ -132,7 +130,7 @@ class EncodingError(FileOperationError):
         super().__init__(
             f"Encoding error in file: {file_path} with encoding: {encoding}",
             context={"file_path": file_path, "encoding": encoding},
-            original_error=original_error
+            original_error=original_error,
         )
         self.file_path = file_path
         self.encoding = encoding
@@ -140,6 +138,7 @@ class EncodingError(FileOperationError):
 
 class AnalysisError(TSVTranslatorError):
     """Exception raised for TSV analysis errors."""
+
     pass
 
 
@@ -151,7 +150,7 @@ class InvalidDataError(AnalysisError):
         message: str,
         row_number: int | None = None,
         column_number: int | None = None,
-        original_error: Exception | None = None
+        original_error: Exception | None = None,
     ):
         """Initialize the exception.
 
@@ -180,7 +179,7 @@ class TransformationError(TSVTranslatorError):
         message: str,
         transformation_type: str | None = None,
         input_length: int | None = None,
-        original_error: Exception | None = None
+        original_error: Exception | None = None,
     ):
         """Initialize the exception.
 
@@ -209,7 +208,7 @@ class ConfigurationError(TSVTranslatorError):
         message: str,
         config_key: str | None = None,
         config_value: Any | None = None,
-        original_error: Exception | None = None
+        original_error: Exception | None = None,
     ):
         """Initialize the exception.
 
@@ -239,7 +238,7 @@ class ValidationError(TSVTranslatorError):
         field_name: str | None = None,
         field_value: Any | None = None,
         expected_type: str | None = None,
-        original_error: Exception | None = None
+        original_error: Exception | None = None,
     ):
         """Initialize the exception.
 

@@ -15,7 +15,7 @@ from textkit.exceptions import (
     ParameterValidationError,
 )
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def validate_text_input(
@@ -23,7 +23,7 @@ def validate_text_input(
     allow_empty: bool = True,
     max_length: int | None = None,
     min_length: int = 0,
-    parameter_name: str = "text"
+    parameter_name: str = "text",
 ) -> str:
     """Validate text input parameter.
 
@@ -45,7 +45,7 @@ def validate_text_input(
             f"{parameter_name} must be a string",
             parameter_name=parameter_name,
             parameter_value=text,
-            constraints={"expected_type": "str", "actual_type": type(text).__name__}
+            constraints={"expected_type": "str", "actual_type": type(text).__name__},
         )
 
     if not allow_empty and len(text) == 0:
@@ -53,7 +53,7 @@ def validate_text_input(
             f"{parameter_name} cannot be empty",
             parameter_name=parameter_name,
             parameter_value=text,
-            constraints={"allow_empty": allow_empty}
+            constraints={"allow_empty": allow_empty},
         )
 
     if len(text) < min_length:
@@ -61,7 +61,7 @@ def validate_text_input(
             f"{parameter_name} must be at least {min_length} characters long",
             parameter_name=parameter_name,
             parameter_value=text,
-            constraints={"min_length": min_length, "actual_length": len(text)}
+            constraints={"min_length": min_length, "actual_length": len(text)},
         )
 
     if max_length is not None and len(text) > max_length:
@@ -69,16 +69,13 @@ def validate_text_input(
             f"{parameter_name} must be at most {max_length} characters long",
             parameter_name=parameter_name,
             parameter_value=text,
-            constraints={"max_length": max_length, "actual_length": len(text)}
+            constraints={"max_length": max_length, "actual_length": len(text)},
         )
 
     return text
 
 
-def validate_encoding_name(
-    encoding: Any,
-    parameter_name: str = "encoding"
-) -> str:
+def validate_encoding_name(encoding: Any, parameter_name: str = "encoding") -> str:
     """Validate character encoding name.
 
     Args:
@@ -97,22 +94,25 @@ def validate_encoding_name(
             f"{parameter_name} must be a string",
             parameter_name=parameter_name,
             parameter_value=encoding,
-            constraints={"expected_type": "str", "actual_type": type(encoding).__name__}
+            constraints={
+                "expected_type": "str",
+                "actual_type": type(encoding).__name__,
+            },
         )
 
     if not encoding.strip():
         raise ParameterValidationError(
             f"{parameter_name} cannot be empty",
             parameter_name=parameter_name,
-            parameter_value=encoding
+            parameter_value=encoding,
         )
 
     # Special case for 'auto' encoding
-    if encoding.lower() == 'auto':
-        return 'auto'
+    if encoding.lower() == "auto":
+        return "auto"
 
     # Normalize encoding name
-    normalized = encoding.lower().replace('-', '_').replace(' ', '_')
+    normalized = encoding.lower().replace("-", "_").replace(" ", "_")
 
     # Check if encoding is supported
     try:
@@ -120,10 +120,10 @@ def validate_encoding_name(
     except LookupError:
         # Try common aliases
         aliases = {
-            'sjis': 'shift_jis',
-            'eucjp': 'euc_jp',
-            'utf8': 'utf_8',
-            'ascii': 'ascii',
+            "sjis": "shift_jis",
+            "eucjp": "euc_jp",
+            "utf8": "utf_8",
+            "ascii": "ascii",
         }
 
         if normalized in aliases:
@@ -133,11 +133,15 @@ def validate_encoding_name(
             except LookupError:
                 pass
 
-        raise DataValidationError(
-            f"Unsupported encoding: {encoding}",
-            data_type="encoding",
-            validation_rules=["encoding_supported"]
-        ).add_context("encoding", encoding).add_context("normalized", normalized)
+        raise (
+            DataValidationError(
+                f"Unsupported encoding: {encoding}",
+                data_type="encoding",
+                validation_rules=["encoding_supported"],
+            )
+            .add_context("encoding", encoding)
+            .add_context("normalized", normalized)
+        )
 
     return normalized
 
@@ -147,7 +151,7 @@ def validate_file_path(
     must_exist: bool = False,
     must_be_file: bool = False,
     must_be_readable: bool = False,
-    parameter_name: str = "path"
+    parameter_name: str = "path",
 ) -> Path:
     """Validate file path parameter.
 
@@ -173,7 +177,10 @@ def validate_file_path(
             f"{parameter_name} must be a string or Path object",
             parameter_name=parameter_name,
             parameter_value=path,
-            constraints={"expected_types": ["str", "Path"], "actual_type": type(path).__name__}
+            constraints={
+                "expected_types": ["str", "Path"],
+                "actual_type": type(path).__name__,
+            },
         )
 
     if must_exist and not path_obj.exists():
@@ -181,7 +188,7 @@ def validate_file_path(
             f"{parameter_name} does not exist: {path_obj}",
             parameter_name=parameter_name,
             parameter_value=str(path_obj),
-            constraints={"must_exist": must_exist}
+            constraints={"must_exist": must_exist},
         )
 
     if must_be_file and path_obj.exists() and not path_obj.is_file():
@@ -189,20 +196,20 @@ def validate_file_path(
             f"{parameter_name} must be a file, not a directory: {path_obj}",
             parameter_name=parameter_name,
             parameter_value=str(path_obj),
-            constraints={"must_be_file": must_be_file}
+            constraints={"must_be_file": must_be_file},
         )
 
     if must_be_readable and path_obj.exists():
         try:
             # Test readability
-            with path_obj.open('r', encoding='utf-8', errors='ignore'):
+            with path_obj.open("r", encoding="utf-8", errors="ignore"):
                 pass
         except (PermissionError, OSError) as e:
             raise ParameterValidationError(
                 f"{parameter_name} is not readable: {path_obj}",
                 parameter_name=parameter_name,
                 parameter_value=str(path_obj),
-                constraints={"must_be_readable": must_be_readable}
+                constraints={"must_be_readable": must_be_readable},
             ).add_context("os_error", str(e))
 
     return path_obj
@@ -212,7 +219,7 @@ def validate_parameters(
     parameters: dict[str, Any],
     required: list[str] | None = None,
     types: dict[str, type | list[type]] | None = None,
-    validators: dict[str, Callable[[Any], bool]] | None = None
+    validators: dict[str, Callable[[Any], bool]] | None = None,
 ) -> dict[str, Any]:
     """Validate multiple parameters at once.
 
@@ -238,7 +245,7 @@ def validate_parameters(
                 f"Missing required parameters: {', '.join(missing)}",
                 parameter_name="parameters",
                 parameter_value=list(parameters.keys()),
-                constraints={"required": required, "missing": missing}
+                constraints={"required": required, "missing": missing},
             )
 
     # Check parameter types
@@ -255,7 +262,10 @@ def validate_parameters(
                             f"Parameter '{param_name}' must be one of types: {', '.join(type_names)}",
                             parameter_name=param_name,
                             parameter_value=value,
-                            constraints={"expected_types": type_names, "actual_type": type(value).__name__}
+                            constraints={
+                                "expected_types": type_names,
+                                "actual_type": type(value).__name__,
+                            },
                         )
                 else:
                     # Single expected type
@@ -264,7 +274,10 @@ def validate_parameters(
                             f"Parameter '{param_name}' must be of type {expected_type.__name__}",
                             parameter_name=param_name,
                             parameter_value=value,
-                            constraints={"expected_type": expected_type.__name__, "actual_type": type(value).__name__}
+                            constraints={
+                                "expected_type": expected_type.__name__,
+                                "actual_type": type(value).__name__,
+                            },
                         )
 
     # Run custom validators
@@ -278,23 +291,21 @@ def validate_parameters(
                             f"Parameter '{param_name}' failed custom validation",
                             parameter_name=param_name,
                             parameter_value=value,
-                            constraints={"custom_validator": validator.__name__}
+                            constraints={"custom_validator": validator.__name__},
                         )
                 except Exception as e:
                     raise ParameterValidationError(
                         f"Parameter '{param_name}' validation error: {e}",
                         parameter_name=param_name,
                         parameter_value=value,
-                        constraints={"custom_validator": validator.__name__}
+                        constraints={"custom_validator": validator.__name__},
                     ) from e
 
     return validated
 
 
 def type_guard(
-    value: Any,
-    expected_type: type | list[type],
-    allow_none: bool = False
+    value: Any, expected_type: type | list[type], allow_none: bool = False
 ) -> bool:
     """Type guard function for runtime type checking.
 

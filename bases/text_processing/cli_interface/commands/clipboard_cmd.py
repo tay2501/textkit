@@ -60,17 +60,20 @@ def register_clipboard_commands(
             success = app_instance.io_manager.clear_clipboard()
 
             if success:
-                console.print("[green]OK[/green] Clipboard cleared successfully", style="bold")
+                console.print(
+                    "[green]OK[/green] Clipboard cleared successfully", style="bold"
+                )
                 logger.info("clipboard_clear_success")
             else:
-                console.print("[yellow]WARNING[/yellow] Clipboard cleared but verification failed", style="bold")
+                console.print(
+                    "[yellow]WARNING[/yellow] Clipboard cleared but verification failed",
+                    style="bold",
+                )
                 logger.warning("clipboard_clear_verification_failed")
 
         except Exception as e:
             logger.error(
-                "clipboard_clear_error",
-                error=str(e),
-                error_type=type(e).__name__
+                "clipboard_clear_error", error=str(e), error_type=type(e).__name__
             )
             handle_cli_error_func(e, "clipboard clear")
 
@@ -106,9 +109,7 @@ def register_clipboard_commands(
 
         except Exception as e:
             logger.error(
-                "clipboard_get_error",
-                error=str(e),
-                error_type=type(e).__name__
+                "clipboard_get_error", error=str(e), error_type=type(e).__name__
             )
             handle_cli_error_func(e, "clipboard get")
 
@@ -144,18 +145,18 @@ def register_clipboard_commands(
             if success:
                 console.print(
                     f"[green]OK[/green] Copied {len(text)} characters to clipboard",
-                    style="bold"
+                    style="bold",
                 )
                 logger.info("clipboard_set_success", text_length=len(text))
             else:
-                console.print("[yellow]WARNING[/yellow] Failed to copy to clipboard", style="bold")
+                console.print(
+                    "[yellow]WARNING[/yellow] Failed to copy to clipboard", style="bold"
+                )
                 logger.warning("clipboard_set_failed")
 
         except Exception as e:
             logger.error(
-                "clipboard_set_error",
-                error=str(e),
-                error_type=type(e).__name__
+                "clipboard_set_error", error=str(e), error_type=type(e).__name__
             )
             handle_cli_error_func(e, "clipboard set")
 
@@ -182,27 +183,33 @@ def register_clipboard_commands(
             status = app_instance.io_manager.get_io_status()
 
             console.print("\n[bold]Clipboard Status:[/bold]")
-            console.print(f"  Clipboard Available: [{'green' if status['clipboard_available'] else 'red'}]{status['clipboard_available']}[/]")
-            console.print(f"  Pipe Available: [{'green' if status['pipe_available'] else 'yellow'}]{status['pipe_available']}[/]")
+            console.print(
+                f"  Clipboard Available: [{'green' if status['clipboard_available'] else 'red'}]{status['clipboard_available']}[/]"
+            )
+            console.print(
+                f"  Pipe Available: [{'green' if status['pipe_available'] else 'yellow'}]{status['pipe_available']}[/]"
+            )
             console.print(f"  STDIN is TTY: {status['stdin_isatty']}")
             console.print(f"  STDOUT is TTY: {status['stdout_isatty']}")
 
             # Try to get clipboard content length
-            if status['clipboard_available']:
+            if status["clipboard_available"]:
                 try:
                     content = app_instance.io_manager.get_clipboard_text()
-                    console.print(f"  Current Content Length: {len(content)} characters")
+                    console.print(
+                        f"  Current Content Length: {len(content)} characters"
+                    )
                 except Exception:
-                    console.print("  Current Content Length: [dim](unable to read)[/dim]")
+                    console.print(
+                        "  Current Content Length: [dim](unable to read)[/dim]"
+                    )
 
             console.print()
             logger.info("clipboard_status_success", status=status)
 
         except Exception as e:
             logger.error(
-                "clipboard_status_error",
-                error=str(e),
-                error_type=type(e).__name__
+                "clipboard_status_error", error=str(e), error_type=type(e).__name__
             )
             handle_cli_error_func(e, "clipboard status")
 

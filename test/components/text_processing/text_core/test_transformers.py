@@ -147,8 +147,9 @@ class TestStringTransformer:
         with pytest.raises(ValueError, match="requires exactly 2 arguments"):
             self.transformer.transform("test", "r", [])
 
-    @pytest.mark.skip(reason="SQL IN list transformation ('i' rule) not yet implemented")
-
+    @pytest.mark.skip(
+        reason="SQL IN list transformation ('i' rule) not yet implemented"
+    )
     def test_sql_in_list_transformation(self):
         """Test SQL IN list transformation."""
         input_text = "001\n002\nA01\nB02"
@@ -156,8 +157,9 @@ class TestStringTransformer:
         result = self.transformer.transform(input_text, "i")
         assert result == expected
 
-    @pytest.mark.skip(reason="SQL IN list transformation ('i' rule) not yet implemented")
-
+    @pytest.mark.skip(
+        reason="SQL IN list transformation ('i' rule) not yet implemented"
+    )
     def test_sql_in_list_with_empty_lines(self):
         """Test SQL IN list with empty lines."""
         input_text = "001\n\n002\n\nA01\n"
@@ -165,8 +167,9 @@ class TestStringTransformer:
         result = self.transformer.transform(input_text, "i")
         assert result == expected
 
-    @pytest.mark.skip(reason="SQL IN list transformation ('i' rule) not yet implemented")
-
+    @pytest.mark.skip(
+        reason="SQL IN list transformation ('i' rule) not yet implemented"
+    )
     def test_sql_in_list_with_whitespace(self):
         """Test SQL IN list with whitespace around values."""
         input_text = "  001  \n\t002\t\n A01 \n  B02  "
@@ -205,8 +208,9 @@ class TestStringTransformer:
             # If the method isn't directly accessible or handled differently
             pass
 
-    @pytest.mark.skip(reason="SQL IN list transformation ('i' rule) not yet implemented")
-
+    @pytest.mark.skip(
+        reason="SQL IN list transformation ('i' rule) not yet implemented"
+    )
     def test_sql_in_list_performance_optimization(self):
         """Test that optimized implementation produces same results as original."""
         # Test cases to verify optimization didn't break functionality
@@ -222,6 +226,7 @@ class TestStringTransformer:
             result = self.transformer.transform(input_text, "i")
             assert result == expected, f"Failed for input: {input_text!r}"
 
+
 class TestLineEndingTransformer:
     """Test LineEndingTransformer strategy with rlb functionality."""
 
@@ -236,7 +241,9 @@ class TestLineEndingTransformer:
 
     def test_windows_to_unix_transformation(self):
         """Test Windows to Unix line ending conversion."""
-        result = self.transformer.transform("line1\r\nline2\r\nline3", "windows-to-unix")
+        result = self.transformer.transform(
+            "line1\r\nline2\r\nline3", "windows-to-unix"
+        )
         assert result == "line1\nline2\nline3"
 
     def test_normalize_mixed_line_endings(self):
@@ -306,7 +313,7 @@ class TestJsonTransformer:
         assert '"age": 30' in result
         assert '"city": "New York"' in result
         assert '"name": "John"' in result
-        assert result.count('\n') > 0  # Should have newlines
+        assert result.count("\n") > 0  # Should have newlines
 
     def test_format_json_array(self):
         """Test JSON array formatting."""
@@ -314,7 +321,7 @@ class TestJsonTransformer:
         result = self.transformer.transform(compact_json, "json")
 
         # Should be formatted with indentation
-        assert result.count('\n') > 2
+        assert result.count("\n") > 2
 
     def test_invalid_json(self):
         """Test invalid JSON handling."""
@@ -325,13 +332,16 @@ class TestJsonTransformer:
 class TestTransformerProtocol:
     """Test transformer protocol compliance."""
 
-    @pytest.mark.parametrize("transformer_class", [
-        BasicTransformer,
-        CaseTransformer,
-        HashTransformer,
-        StringTransformer,
-        JsonTransformer,
-    ])
+    @pytest.mark.parametrize(
+        "transformer_class",
+        [
+            BasicTransformer,
+            CaseTransformer,
+            HashTransformer,
+            StringTransformer,
+            JsonTransformer,
+        ],
+    )
     def test_protocol_compliance(self, transformer_class):
         """Test that all transformers implement the protocol correctly."""
         transformer = transformer_class()

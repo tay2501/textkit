@@ -25,6 +25,7 @@ logger = structlog.get_logger(__name__)
 
 class PerformanceMetric(NamedTuple):
     """Single performance measurement."""
+
     timestamp: float
     operation: str
     duration: float
@@ -36,12 +37,13 @@ class PerformanceMetric(NamedTuple):
 @dataclass
 class PerformanceStats:
     """Aggregated performance statistics."""
+
     operation: str
     total_operations: int = 0
     successful_operations: int = 0
     total_duration: float = 0.0
     total_data_processed: int = 0
-    min_duration: float = float('inf')
+    min_duration: float = float("inf")
     max_duration: float = 0.0
     recent_durations: deque = field(default_factory=lambda: deque(maxlen=100))
 
@@ -87,7 +89,7 @@ class PerformanceMonitor:
     def __init__(
         self,
         settings: ApplicationSettings | None = None,
-        max_metrics_history: int = 10000
+        max_metrics_history: int = 10000,
     ) -> None:
         """Initialize performance monitor.
 
@@ -116,7 +118,7 @@ class PerformanceMonitor:
         *args,
         data_size: int | None = None,
         metadata: dict[str, Any] | None = None,
-        **kwargs
+        **kwargs,
     ) -> Any:
         """Measure the performance of an async operation.
 
@@ -162,7 +164,7 @@ class PerformanceMonitor:
                 duration=duration,
                 data_size=data_size,
                 success=success,
-                metadata=metadata or {}
+                metadata=metadata or {},
             )
 
             # Store metric
@@ -179,7 +181,7 @@ class PerformanceMonitor:
                 duration_ms=duration * 1000,
                 data_size=data_size,
                 success=success,
-                error=str(error) if error else None
+                error=str(error) if error else None,
             )
 
     def _estimate_data_size(self, args: tuple, kwargs: dict, result: Any) -> int:
@@ -198,15 +200,15 @@ class PerformanceMonitor:
         # Check common string arguments
         for arg in args:
             if isinstance(arg, str):
-                total_size += len(arg.encode('utf-8'))
+                total_size += len(arg.encode("utf-8"))
 
         for value in kwargs.values():
             if isinstance(value, str):
-                total_size += len(value.encode('utf-8'))
+                total_size += len(value.encode("utf-8"))
 
         # Check result size
         if isinstance(result, str):
-            total_size += len(result.encode('utf-8'))
+            total_size += len(result.encode("utf-8"))
 
         return total_size
 
@@ -237,9 +239,7 @@ class PerformanceMonitor:
             stats.recent_durations.append(metric.duration)
 
     async def _check_performance_alerts(
-        self,
-        operation_name: str,
-        metric: PerformanceMetric
+        self, operation_name: str, metric: PerformanceMetric
     ) -> None:
         """Check for performance alerts and log warnings.
 
@@ -253,30 +253,33 @@ class PerformanceMonitor:
         thresholds = self._alert_thresholds[operation_name]
 
         # Check duration threshold
-        if 'max_duration' in thresholds and metric.duration > thresholds['max_duration']:
+        if (
+            "max_duration" in thresholds
+            and metric.duration > thresholds["max_duration"]
+        ):
             logger.warning(
                 "performance_alert_duration",
                 operation=operation_name,
                 actual_duration=metric.duration,
-                threshold=thresholds['max_duration']
+                threshold=thresholds["max_duration"],
             )
 
         # Check throughput threshold
-        if 'min_throughput' in thresholds and metric.data_size > 0:
+        if "min_throughput" in thresholds and metric.data_size > 0:
             throughput = metric.data_size / metric.duration
-            if throughput < thresholds['min_throughput']:
+            if throughput < thresholds["min_throughput"]:
                 logger.warning(
                     "performance_alert_throughput",
                     operation=operation_name,
                     actual_throughput=throughput,
-                    threshold=thresholds['min_throughput']
+                    threshold=thresholds["min_throughput"],
                 )
 
     def set_alert_threshold(
         self,
         operation_name: str,
         max_duration: float | None = None,
-        min_throughput: float | None = None
+        min_throughput: float | None = None,
     ) -> None:
         """Set performance alert thresholds for an operation.
 
@@ -289,16 +292,16 @@ class PerformanceMonitor:
             self._alert_thresholds[operation_name] = {}
 
         if max_duration is not None:
-            self._alert_thresholds[operation_name]['max_duration'] = max_duration
+            self._alert_thresholds[operation_name]["max_duration"] = max_duration
 
         if min_throughput is not None:
-            self._alert_thresholds[operation_name]['min_throughput'] = min_throughput
+            self._alert_thresholds[operation_name]["min_throughput"] = min_throughput
 
         logger.info(
             "alert_threshold_set",
             operation=operation_name,
             max_duration=max_duration,
-            min_throughput=min_throughput
+            min_throughput=min_throughput,
         )
 
     def get_stats(self, operation_name: str | None = None) -> dict[str, Any]:
@@ -322,17 +325,18 @@ class PerformanceMonitor:
                 "success_rate_percent": stats.success_rate,
                 "average_duration_ms": stats.average_duration * 1000,
                 "recent_average_duration_ms": stats.recent_average_duration * 1000,
-                "min_duration_ms": stats.min_duration * 1000 if stats.min_duration != float('inf') else 0,
+                "min_duration_ms": stats.min_duration * 1000
+                if stats.min_duration != float("inf")
+                else 0,
                 "max_duration_ms": stats.max_duration * 1000,
                 "throughput_bytes_per_sec": stats.throughput_per_second,
                 "percentile_95_ms": stats.percentile_95 * 1000,
-                "total_data_processed_bytes": stats.total_data_processed
+                "total_data_processed_bytes": stats.total_data_processed,
             }
 
         # Return all stats
         return {
-            operation: self.get_stats(operation)
-            for operation in self._stats.keys()
+            operation: self.get_stats(operation) for operation in self._stats.keys()
         }
 
     def get_recent_metrics(self, count: int = 100) -> list[dict[str, Any]]:
@@ -352,7 +356,7 @@ class PerformanceMonitor:
                 "duration_ms": metric.duration * 1000,
                 "data_size_bytes": metric.data_size,
                 "success": metric.success,
-                "metadata": metric.metadata
+                "metadata": metric.metadata,
             }
             for metric in recent_metrics
         ]
@@ -381,7 +385,9 @@ class PerformanceMonitor:
             Dictionary with system performance overview
         """
         total_operations = sum(stats.total_operations for stats in self._stats.values())
-        total_successful = sum(stats.successful_operations for stats in self._stats.values())
+        total_successful = sum(
+            stats.successful_operations for stats in self._stats.values()
+        )
         total_duration = sum(stats.total_duration for stats in self._stats.values())
         total_data = sum(stats.total_data_processed for stats in self._stats.values())
 
@@ -391,13 +397,17 @@ class PerformanceMonitor:
             "uptime_seconds": uptime,
             "total_operations": total_operations,
             "successful_operations": total_successful,
-            "overall_success_rate_percent": (total_successful / total_operations * 100) if total_operations > 0 else 0,
+            "overall_success_rate_percent": (total_successful / total_operations * 100)
+            if total_operations > 0
+            else 0,
             "total_processing_time_seconds": total_duration,
             "total_data_processed_bytes": total_data,
-            "average_system_throughput_bytes_per_sec": total_data / uptime if uptime > 0 else 0,
+            "average_system_throughput_bytes_per_sec": total_data / uptime
+            if uptime > 0
+            else 0,
             "operations_tracked": len(self._stats),
             "metrics_stored": len(self._metrics),
-            "monitoring_enabled": self._monitoring_enabled
+            "monitoring_enabled": self._monitoring_enabled,
         }
 
 
@@ -407,7 +417,7 @@ class AsyncBenchmark:
     def __init__(
         self,
         monitor: PerformanceMonitor | None = None,
-        settings: ApplicationSettings | None = None
+        settings: ApplicationSettings | None = None,
     ) -> None:
         """Initialize async benchmark.
 
@@ -423,7 +433,7 @@ class AsyncBenchmark:
         func: Callable,
         test_cases: list[tuple],
         iterations: int = 100,
-        warmup_iterations: int = 10
+        warmup_iterations: int = 10,
     ) -> dict[str, Any]:
         """Benchmark an async function with multiple test cases.
 
@@ -440,14 +450,10 @@ class AsyncBenchmark:
             "benchmark_starting",
             function=func.__name__,
             test_cases=len(test_cases),
-            iterations=iterations
+            iterations=iterations,
         )
 
-        results = {
-            "function_name": func.__name__,
-            "test_cases": [],
-            "summary": {}
-        }
+        results = {"function_name": func.__name__, "test_cases": [], "summary": {}}
 
         all_durations = []
 
@@ -476,7 +482,7 @@ class AsyncBenchmark:
                         "benchmark_iteration_failed",
                         case=case_name,
                         iteration=iteration,
-                        error=str(e)
+                        error=str(e),
                     )
 
                 duration = time.perf_counter() - start_time
@@ -495,9 +501,17 @@ class AsyncBenchmark:
                 "max_duration_ms": max(case_durations) * 1000,
                 "mean_duration_ms": statistics.mean(case_durations) * 1000,
                 "median_duration_ms": statistics.median(case_durations) * 1000,
-                "stdev_duration_ms": statistics.stdev(case_durations) * 1000 if len(case_durations) > 1 else 0,
-                "percentile_95_ms": statistics.quantiles(case_durations, n=20)[18] * 1000 if len(case_durations) > 5 else 0,
-                "percentile_99_ms": statistics.quantiles(case_durations, n=100)[98] * 1000 if len(case_durations) > 10 else 0
+                "stdev_duration_ms": statistics.stdev(case_durations) * 1000
+                if len(case_durations) > 1
+                else 0,
+                "percentile_95_ms": statistics.quantiles(case_durations, n=20)[18]
+                * 1000
+                if len(case_durations) > 5
+                else 0,
+                "percentile_99_ms": statistics.quantiles(case_durations, n=100)[98]
+                * 1000
+                if len(case_durations) > 10
+                else 0,
             }
 
             results["test_cases"].append(case_stats)
@@ -511,25 +525,34 @@ class AsyncBenchmark:
                 "overall_max_duration_ms": max(all_durations) * 1000,
                 "overall_mean_duration_ms": statistics.mean(all_durations) * 1000,
                 "overall_median_duration_ms": statistics.median(all_durations) * 1000,
-                "overall_stdev_duration_ms": statistics.stdev(all_durations) * 1000 if len(all_durations) > 1 else 0,
-                "overall_percentile_95_ms": statistics.quantiles(all_durations, n=20)[18] * 1000 if len(all_durations) > 5 else 0,
-                "overall_percentile_99_ms": statistics.quantiles(all_durations, n=100)[98] * 1000 if len(all_durations) > 10 else 0
+                "overall_stdev_duration_ms": statistics.stdev(all_durations) * 1000
+                if len(all_durations) > 1
+                else 0,
+                "overall_percentile_95_ms": statistics.quantiles(all_durations, n=20)[
+                    18
+                ]
+                * 1000
+                if len(all_durations) > 5
+                else 0,
+                "overall_percentile_99_ms": statistics.quantiles(all_durations, n=100)[
+                    98
+                ]
+                * 1000
+                if len(all_durations) > 10
+                else 0,
             }
 
         logger.info(
             "benchmark_completed",
             function=func.__name__,
             total_duration=sum(all_durations),
-            mean_duration_ms=statistics.mean(all_durations) * 1000
+            mean_duration_ms=statistics.mean(all_durations) * 1000,
         )
 
         return results
 
     async def compare_functions(
-        self,
-        functions: list[Callable],
-        test_cases: list[tuple],
-        iterations: int = 50
+        self, functions: list[Callable], test_cases: list[tuple], iterations: int = 50
     ) -> dict[str, Any]:
         """Compare performance of multiple async functions.
 
@@ -544,13 +567,10 @@ class AsyncBenchmark:
         logger.info(
             "function_comparison_starting",
             functions=[f.__name__ for f in functions],
-            test_cases=len(test_cases)
+            test_cases=len(test_cases),
         )
 
-        results = {
-            "functions": [],
-            "comparison": {}
-        }
+        results = {"functions": [], "comparison": {}}
 
         # Benchmark each function
         for func in functions:
@@ -571,15 +591,18 @@ class AsyncBenchmark:
             results["comparison"] = {
                 "fastest_function": function_names[fastest_index],
                 "slowest_function": function_names[slowest_index],
-                "speed_improvement_factor": mean_durations[slowest_index] / mean_durations[fastest_index],
+                "speed_improvement_factor": mean_durations[slowest_index]
+                / mean_durations[fastest_index],
                 "relative_performance": [
                     {
                         "function": name,
                         "relative_speed": min(mean_durations) / duration,
-                        "slowdown_factor": duration / min(mean_durations)
+                        "slowdown_factor": duration / min(mean_durations),
                     }
-                    for name, duration in zip(function_names, mean_durations, strict=False)
-                ]
+                    for name, duration in zip(
+                        function_names, mean_durations, strict=False
+                    )
+                ],
             }
 
         return results
@@ -590,7 +613,7 @@ class AsyncBenchmark:
         args: tuple,
         kwargs: dict,
         concurrent_calls: list[int] = [1, 5, 10, 20, 50],
-        duration_seconds: float = 10.0
+        duration_seconds: float = 10.0,
     ) -> dict[str, Any]:
         """Perform stress testing with varying concurrency levels.
 
@@ -608,13 +631,13 @@ class AsyncBenchmark:
             "stress_test_starting",
             function=func.__name__,
             concurrency_levels=concurrent_calls,
-            duration_seconds=duration_seconds
+            duration_seconds=duration_seconds,
         )
 
         results = {
             "function_name": func.__name__,
             "stress_phases": [],
-            "recommendations": {}
+            "recommendations": {},
         }
 
         for concurrency in concurrent_calls:
@@ -672,25 +695,39 @@ class AsyncBenchmark:
                 "completed_calls": completed_calls,
                 "successful_calls": successful_calls,
                 "error_count": error_count,
-                "success_rate_percent": (successful_calls / completed_calls * 100) if completed_calls > 0 else 0,
+                "success_rate_percent": (successful_calls / completed_calls * 100)
+                if completed_calls > 0
+                else 0,
                 "calls_per_second": completed_calls / phase_duration,
                 "successful_calls_per_second": successful_calls / phase_duration,
-                "mean_duration_ms": statistics.mean(durations) * 1000 if durations else 0,
-                "median_duration_ms": statistics.median(durations) * 1000 if durations else 0,
+                "mean_duration_ms": statistics.mean(durations) * 1000
+                if durations
+                else 0,
+                "median_duration_ms": statistics.median(durations) * 1000
+                if durations
+                else 0,
                 "max_duration_ms": max(durations) * 1000 if durations else 0,
-                "percentile_95_ms": statistics.quantiles(durations, n=20)[18] * 1000 if len(durations) > 5 else 0
+                "percentile_95_ms": statistics.quantiles(durations, n=20)[18] * 1000
+                if len(durations) > 5
+                else 0,
             }
 
             results["stress_phases"].append(phase_stats)
 
         # Generate recommendations
         if results["stress_phases"]:
-            best_phase = max(results["stress_phases"], key=lambda x: x["successful_calls_per_second"])
+            best_phase = max(
+                results["stress_phases"], key=lambda x: x["successful_calls_per_second"]
+            )
 
             results["recommendations"] = {
                 "optimal_concurrency": best_phase["concurrency_level"],
-                "max_throughput_calls_per_sec": best_phase["successful_calls_per_second"],
-                "performance_degradation_threshold": self._find_degradation_threshold(results["stress_phases"])
+                "max_throughput_calls_per_sec": best_phase[
+                    "successful_calls_per_second"
+                ],
+                "performance_degradation_threshold": self._find_degradation_threshold(
+                    results["stress_phases"]
+                ),
             }
 
         logger.info("stress_test_completed", total_phases=len(results["stress_phases"]))
@@ -712,7 +749,7 @@ class AsyncBenchmark:
         # Look for the first phase where throughput decreases significantly
         for i in range(1, len(phases)):
             current_throughput = phases[i]["successful_calls_per_second"]
-            previous_throughput = phases[i-1]["successful_calls_per_second"]
+            previous_throughput = phases[i - 1]["successful_calls_per_second"]
 
             # If throughput drops by more than 10%
             if current_throughput < previous_throughput * 0.9:

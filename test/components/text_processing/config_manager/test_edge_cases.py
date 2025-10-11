@@ -34,11 +34,11 @@ class TestConfigManagerEdgeCases:
     def test_invalid_config_keys(self):
         """Test handling of invalid configuration keys."""
         invalid_keys = [
-            "",           # Empty key
-            None,         # None key
-            123,          # Numeric key
-            [],           # List key
-            {},           # Dict key
+            "",  # Empty key
+            None,  # None key
+            123,  # Numeric key
+            [],  # List key
+            {},  # Dict key
         ]
 
         for key in invalid_keys:
@@ -48,8 +48,9 @@ class TestConfigManagerEdgeCases:
     def test_config_persistence(self):
         """Test configuration persistence across instances."""
         # Create temporary config file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             import json
+
             config_data = {"test_key": "test_value", "number_key": 42}
             json.dump(config_data, f)
             temp_config_path = f.name
@@ -82,11 +83,11 @@ class TestConfigManagerEdgeCases:
         """Test configuration validation."""
         # Test various configuration scenarios
         test_configs = [
-            {},                                    # Empty config
-            {"valid_key": "valid_value"},         # Simple config
-            {"nested": {"key": "value"}},         # Nested config
-            {"list_value": [1, 2, 3]},           # List values
-            {"mixed": {"str": "test", "num": 42}} # Mixed types
+            {},  # Empty config
+            {"valid_key": "valid_value"},  # Simple config
+            {"nested": {"key": "value"}},  # Nested config
+            {"list_value": [1, 2, 3]},  # List values
+            {"mixed": {"str": "test", "num": 42}},  # Mixed types
         ]
 
         for config in test_configs:
@@ -122,7 +123,7 @@ class TestConfigurationManagerEdgeCases:
         # Test updating configuration
         try:
             # If update methods exist, test them
-            if hasattr(self.config_manager, 'update_setting'):
+            if hasattr(self.config_manager, "update_setting"):
                 self.config_manager.update_setting("test_key", "test_value")
                 result = self.config_manager.get_setting("test_key")
                 assert result == "test_value"
@@ -146,9 +147,13 @@ class TestConfigurationManagerEdgeCases:
         for value in test_values:
             try:
                 # Test setting and getting different types
-                if hasattr(self.config_manager, 'set_setting'):
-                    self.config_manager.set_setting(f"test_{type(value).__name__}", value)
-                    retrieved = self.config_manager.get_setting(f"test_{type(value).__name__}")
+                if hasattr(self.config_manager, "set_setting"):
+                    self.config_manager.set_setting(
+                        f"test_{type(value).__name__}", value
+                    )
+                    retrieved = self.config_manager.get_setting(
+                        f"test_{type(value).__name__}"
+                    )
                     assert retrieved == value
             except Exception:
                 # Some types might not be supported
@@ -175,7 +180,7 @@ class TestConfigIntegration:
     def test_config_environment_variables(self):
         """Test configuration from environment variables."""
         # Test environment variable handling
-        with patch.dict(os.environ, {'TEST_CONFIG_VAR': 'test_value'}):
+        with patch.dict(os.environ, {"TEST_CONFIG_VAR": "test_value"}):
             try:
                 config = ConfigurationManager()
                 # Should be able to read from environment
@@ -190,19 +195,19 @@ class TestConfigIntegration:
         json_config = '{"key": "value", "number": 42}'
 
         # Test YAML configuration (if supported)
-        yaml_config = '''
+        yaml_config = """
         key: value
         number: 42
         nested:
           sub_key: sub_value
-        '''
+        """
 
         # Test INI configuration (if supported)
-        ini_config = '''
+        ini_config = """
         [section1]
         key = value
         number = 42
-        '''
+        """
 
         configs = [
             ("json", json_config),
@@ -211,7 +216,9 @@ class TestConfigIntegration:
         ]
 
         for config_type, config_content in configs:
-            with tempfile.NamedTemporaryFile(mode='w', suffix=f'.{config_type}', delete=False) as f:
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=f".{config_type}", delete=False
+            ) as f:
                 f.write(config_content)
                 temp_path = f.name
 
@@ -276,7 +283,7 @@ class TestConfigPerformance:
         for i in range(1000):
             try:
                 # Attempt to access configuration
-                if hasattr(self.config_manager, 'get_setting'):
+                if hasattr(self.config_manager, "get_setting"):
                     self.config_manager.get_setting(f"key_{i % 10}")
             except Exception:
                 # Expected for non-existent keys
@@ -290,7 +297,7 @@ class TestConfigPerformance:
     def test_config_caching(self):
         """Test configuration caching behavior."""
         # Test that repeated access is efficient
-        if hasattr(self.config_manager, 'get_setting'):
+        if hasattr(self.config_manager, "get_setting"):
             import time
 
             start_time = time.time()
@@ -357,10 +364,10 @@ class TestConfigSecurity:
     def test_config_audit_logging(self):
         """Test configuration audit logging."""
         # Test that configuration access is logged
-        with patch('logging.Logger.info'):
+        with patch("logging.Logger.info"):
             try:
                 manager = ConfigManager()
-                if hasattr(manager, 'get_setting'):
+                if hasattr(manager, "get_setting"):
                     manager.get_setting("audit_test")
             except Exception:
                 pass
@@ -383,7 +390,9 @@ class TestConfigRecovery:
         ]
 
         for corrupted in corrupted_configs:
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".json", delete=False
+            ) as f:
                 f.write(corrupted)
                 temp_path = f.name
 

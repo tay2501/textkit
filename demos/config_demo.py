@@ -42,9 +42,9 @@ def demonstrate_environment_variables():
     print("=== Environment Variables Demo ===")
 
     # Set some environment variables
-    os.environ['TEXTKIT_APP_NAME'] = 'ConfigDemo'
-    os.environ['TEXTKIT_DEBUG_MODE'] = 'true'
-    os.environ['TEXTKIT_LOG_LEVEL'] = 'DEBUG'
+    os.environ["TEXTKIT_APP_NAME"] = "ConfigDemo"
+    os.environ["TEXTKIT_DEBUG_MODE"] = "true"
+    os.environ["TEXTKIT_LOG_LEVEL"] = "DEBUG"
 
     # Reload settings to pick up environment variables
     settings = reload_settings()
@@ -58,7 +58,7 @@ def demonstrate_environment_variables():
     print(f"Max Text Length: {get_max_text_length():,}")
 
     # Clean up environment variables
-    for key in ['TEXTKIT_APP_NAME', 'TEXTKIT_DEBUG_MODE', 'TEXTKIT_LOG_LEVEL']:
+    for key in ["TEXTKIT_APP_NAME", "TEXTKIT_DEBUG_MODE", "TEXTKIT_LOG_LEVEL"]:
         os.environ.pop(key, None)
 
     print()
@@ -127,9 +127,7 @@ def demonstrate_validation():
     try:
         # This should work
         settings = ApplicationSettings(
-            app_name="ValidApp",
-            max_text_length=1000000,
-            log_level="INFO"
+            app_name="ValidApp", max_text_length=1000000, log_level="INFO"
         )
         print(f"Valid settings created: {settings.app_name}")
 
@@ -160,7 +158,7 @@ TEXTKIT_MAX_TEXT_LENGTH=5000000
 TEXTKIT_SECURITY__RSA_KEY_SIZE=2048
 """.strip()
 
-    with open('.env.demo', 'w') as f:
+    with open(".env.demo", "w") as f:
         f.write(env_content)
 
     print("Created .env.demo file with sample configuration")

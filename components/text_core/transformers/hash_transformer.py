@@ -38,15 +38,15 @@ class HashTransformer(BaseTransformer):
 
     def _sha256_hash(self, text: str) -> str:
         """Generate SHA256 hash of the text."""
-        return hashlib.sha256(text.encode('utf-8')).hexdigest()
+        return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
     def _base64_encode(self, text: str) -> str:
         """Encode text to Base64."""
         try:
             # Use UTF-8 encoding for consistency
-            encoded_bytes = text.encode('utf-8')
+            encoded_bytes = text.encode("utf-8")
             base64_bytes = base64.b64encode(encoded_bytes)
-            return base64_bytes.decode('ascii')
+            return base64_bytes.decode("ascii")
         except Exception as e:
             raise ValueError(f"Base64 encoding failed: {e}") from e
 
@@ -54,8 +54,8 @@ class HashTransformer(BaseTransformer):
         """Decode Base64 text."""
         try:
             # Remove any whitespace/newlines and decode
-            clean_text = ''.join(text.split())
+            clean_text = "".join(text.split())
             decoded_bytes = base64.b64decode(clean_text)
-            return decoded_bytes.decode('utf-8')
+            return decoded_bytes.decode("utf-8")
         except Exception as e:
             raise ValueError(f"Base64 decoding failed: {e}") from e

@@ -1,6 +1,9 @@
-# Text Processing Toolkit - Architecture Documentation
+# Architecture Guide - TextKit
 
 ## Overview
+
+TextKitは**Polylithアーキテクチャ**を採用したモノレポ型Pythonプロジェクトです。
+このドキュメントでは、システムの構造、コンポーネント間の関係、データフロー、設計思想を詳細に説明します。
 
 The Text Processing Toolkit is built using the **Polylith Architecture**, a components-first approach that emphasizes modularity, reusability, and maintainability.
 

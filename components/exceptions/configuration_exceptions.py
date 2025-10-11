@@ -22,7 +22,7 @@ class ConfigurationError(BaseTextProcessingError):
         message: str,
         config_source: str | None = None,
         config_key: str | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Initialize configuration error.
 
@@ -49,7 +49,7 @@ class ConfigurationLoadError(ConfigurationError):
         config_path: str | Path | None = None,
         format_type: str | None = None,
         parse_error: str | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Initialize configuration load error.
 
@@ -79,7 +79,7 @@ class ConfigurationValidationError(ConfigurationError):
         invalid_keys: list[str] | None = None,
         missing_keys: list[str] | None = None,
         validation_rules: dict[str, Any] | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Initialize configuration validation error.
 
@@ -108,7 +108,7 @@ class ConfigurationNotFoundError(ConfigurationError):
         message: str,
         search_paths: list[str | Path] | None = None,
         config_name: str | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Initialize configuration not found error.
 

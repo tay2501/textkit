@@ -49,7 +49,9 @@ def create_rules_subcommand(
 
     @rules_app.command("list")
     def list_rules(
-        search: Annotated[str | None, typer.Option("--search", "-s", help="Filter rules by keyword")] = None,
+        search: Annotated[
+            str | None, typer.Option("--search", "-s", help="Filter rules by keyword")
+        ] = None,
     ) -> None:
         """Display available transformation rules with examples.
 
@@ -88,7 +90,11 @@ def create_rules_subcommand(
 
             for rule_key, rule_info in rules.items():
                 # Apply search filter
-                if search and search.lower() not in rule_info.name.lower() and search.lower() not in rule_info.description.lower():
+                if (
+                    search
+                    and search.lower() not in rule_info.name.lower()
+                    and search.lower() not in rule_info.description.lower()
+                ):
                     continue
 
                 table.add_row(
@@ -102,9 +108,15 @@ def create_rules_subcommand(
 
             # Show usage examples
             console.print("\n[bold]Usage Examples:[/bold]")
-            console.print("  [cyan]textkit text transform '/t/l'[/cyan] - Trim and lowercase")
-            console.print("  [cyan]textkit text transform '/u/R'[/cyan] - Uppercase and reverse")
-            console.print("  [cyan]echo 'text' | textkit text transform '/p'[/cyan] - PascalCase from pipe")
+            console.print(
+                "  [cyan]textkit text transform '/t/l'[/cyan] - Trim and lowercase"
+            )
+            console.print(
+                "  [cyan]textkit text transform '/u/R'[/cyan] - Uppercase and reverse"
+            )
+            console.print(
+                "  [cyan]echo 'text' | textkit text transform '/p'[/cyan] - PascalCase from pipe"
+            )
 
         except Exception as e:
             handle_cli_error_func(e, "rules display")
@@ -115,6 +127,7 @@ def create_rules_subcommand(
 # ============================================================================
 # Legacy Command Registration (Backward Compatibility)
 # ============================================================================
+
 
 def register_rules_command(
     app: typer.Typer,
@@ -129,13 +142,17 @@ def register_rules_command(
 
     @app.command("rules", help="[DEPRECATED] Use 'textkit rules list' instead")
     def show_rules(
-        search: Annotated[str | None, typer.Option("--search", "-s", help="Search keyword")] = None,
+        search: Annotated[
+            str | None, typer.Option("--search", "-s", help="Search keyword")
+        ] = None,
     ) -> None:
         """Display available transformation rules with examples.
 
         [yellow]⚠️  DEPRECATED: Use 'textkit rules list' instead[/yellow]
         """
-        console.print("[yellow]Warning: 'textkit rules' is deprecated. Use 'textkit rules list' instead.[/yellow]")
+        console.print(
+            "[yellow]Warning: 'textkit rules' is deprecated. Use 'textkit rules list' instead.[/yellow]"
+        )
         try:
             app_instance = get_app_func()
             rules = app_instance.get_available_rules()
@@ -148,7 +165,11 @@ def register_rules_command(
 
             for rule_key, rule_info in rules.items():
                 # Apply search filter
-                if search and search.lower() not in rule_info.name.lower() and search.lower() not in rule_info.description.lower():
+                if (
+                    search
+                    and search.lower() not in rule_info.name.lower()
+                    and search.lower() not in rule_info.description.lower()
+                ):
                     continue
 
                 table.add_row(
@@ -162,9 +183,15 @@ def register_rules_command(
 
             # Show usage examples
             console.print("\n[bold]Usage Examples:[/bold]")
-            console.print("  [cyan]textkit text transform '/t/l'[/cyan] - Trim and lowercase")
-            console.print("  [cyan]textkit text transform '/u/R'[/cyan] - Uppercase and reverse")
-            console.print("  [cyan]echo 'text' | textkit text transform '/p'[/cyan] - PascalCase from pipe")
+            console.print(
+                "  [cyan]textkit text transform '/t/l'[/cyan] - Trim and lowercase"
+            )
+            console.print(
+                "  [cyan]textkit text transform '/u/R'[/cyan] - Uppercase and reverse"
+            )
+            console.print(
+                "  [cyan]echo 'text' | textkit text transform '/p'[/cyan] - PascalCase from pipe"
+            )
 
         except Exception as e:
             handle_cli_error_func(e, "rules display")
@@ -190,7 +217,11 @@ def show_rules_func(
 
             for rule_key, rule_info in rules.items():
                 # Apply search filter
-                if search and search.lower() not in rule_info.name.lower() and search.lower() not in rule_info.description.lower():
+                if (
+                    search
+                    and search.lower() not in rule_info.name.lower()
+                    and search.lower() not in rule_info.description.lower()
+                ):
                     continue
 
                 table.add_row(
@@ -204,9 +235,15 @@ def show_rules_func(
 
             # Show usage examples
             console.print("\n[bold]Usage Examples:[/bold]")
-            console.print("  [cyan]textkit text transform '/t/l'[/cyan] - Trim and lowercase")
-            console.print("  [cyan]textkit text transform '/u/R'[/cyan] - Uppercase and reverse")
-            console.print("  [cyan]echo 'text' | textkit text transform '/p'[/cyan] - PascalCase from pipe")
+            console.print(
+                "  [cyan]textkit text transform '/t/l'[/cyan] - Trim and lowercase"
+            )
+            console.print(
+                "  [cyan]textkit text transform '/u/R'[/cyan] - Uppercase and reverse"
+            )
+            console.print(
+                "  [cyan]echo 'text' | textkit text transform '/p'[/cyan] - PascalCase from pipe"
+            )
 
         except Exception as e:
             handle_cli_error_func(e, "rules display")

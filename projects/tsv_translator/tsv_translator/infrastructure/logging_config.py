@@ -27,12 +27,12 @@ class StructuredFormatter(logging.Formatter):
             Formatted log message
         """
         # Add extra context if available
-        if hasattr(record, 'context') and record.context:
+        if hasattr(record, "context") and record.context:
             context_str = " | ".join(f"{k}={v}" for k, v in record.context.items())
             record.msg = f"{record.msg} | Context: {context_str}"
 
         # Add operation timing if available
-        if hasattr(record, 'duration'):
+        if hasattr(record, "duration"):
             record.msg = f"{record.msg} | Duration: {record.duration:.3f}s"
 
         return super().format(record)
@@ -115,7 +115,7 @@ class TSVTranslatorLogger:
             **kwargs: Additional context
         """
         context = {**self._context, **kwargs}
-        self.logger.exception(message, extra={'context': context})
+        self.logger.exception(message, extra={"context": context})
 
     def _log(self, level: int, message: str, extra_context: dict[str, Any]) -> None:
         """Internal log method.
@@ -126,7 +126,7 @@ class TSVTranslatorLogger:
             extra_context: Additional context
         """
         context = {**self._context, **extra_context}
-        self.logger.log(level, message, extra={'context': context})
+        self.logger.log(level, message, extra={"context": context})
 
 
 class PerformanceLogger:
@@ -143,9 +143,10 @@ class PerformanceLogger:
         self.operation = operation
         self.start_time: float | None = None
 
-    def __enter__(self) -> 'PerformanceLogger':
+    def __enter__(self) -> "PerformanceLogger":
         """Start timing."""
         import time
+
         self.start_time = time.time()
         self.logger.debug(f"Starting {self.operation}")
         return self
@@ -154,6 +155,7 @@ class PerformanceLogger:
         """End timing and log duration."""
         if self.start_time is not None:
             import time
+
             duration = time.time() - self.start_time
 
             if exc_type is None:
@@ -161,7 +163,7 @@ class PerformanceLogger:
                 self.logger.info(
                     f"Completed {self.operation}",
                     duration=duration,
-                    operation=self.operation
+                    operation=self.operation,
                 )
             else:
                 # Exception occurred
@@ -169,7 +171,7 @@ class PerformanceLogger:
                     f"Failed {self.operation}: {exc_val}",
                     duration=duration,
                     operation=self.operation,
-                    error_type=exc_type.__name__ if exc_type else None
+                    error_type=exc_type.__name__ if exc_type else None,
                 )
 
 
@@ -214,15 +216,15 @@ def setup_logging(config: Configuration | None = None) -> None:
             file_handler = logging.handlers.RotatingFileHandler(
                 log_file_path,
                 maxBytes=10 * 1024 * 1024,  # 10MB
-                backupCount=5
+                backupCount=5,
             )
             file_handler.setFormatter(formatter)
             file_handler.setLevel(getattr(logging, config.log_level))
             root_logger.addHandler(file_handler)
 
         # Set third-party loggers to WARNING to reduce noise
-        logging.getLogger('urllib3').setLevel(logging.WARNING)
-        logging.getLogger('requests').setLevel(logging.WARNING)
+        logging.getLogger("urllib3").setLevel(logging.WARNING)
+        logging.getLogger("requests").setLevel(logging.WARNING)
 
     except Exception as e:
         raise ConfigurationError(f"Failed to setup logging: {e}") from e
@@ -259,7 +261,7 @@ def log_performance(operation: str) -> PerformanceLogger:
 
 
 # Convenience function for quick logging setup
-def quick_setup(log_level: str = 'INFO', enable_file_logging: bool = False) -> None:
+def quick_setup(log_level: str = "INFO", enable_file_logging: bool = False) -> None:
     """Quick logging setup for development/testing.
 
     Args:
@@ -272,6 +274,6 @@ def quick_setup(log_level: str = 'INFO', enable_file_logging: bool = False) -> N
         log_level=log_level,
         enable_console_logging=True,
         enable_file_logging=enable_file_logging,
-        log_file_path='tsv_translator.log' if enable_file_logging else None
+        log_file_path="tsv_translator.log" if enable_file_logging else None,
     )
     setup_logging(config)

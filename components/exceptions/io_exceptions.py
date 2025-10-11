@@ -21,7 +21,7 @@ class IOError(BaseTextProcessingError):
         message: str,
         io_operation: str | None = None,
         resource_path: str | Path | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Initialize I/O error.
 
@@ -47,7 +47,7 @@ class ClipboardError(IOError):
         message: str,
         clipboard_format: str | None = None,
         data_size: int | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Initialize clipboard error.
 
@@ -74,7 +74,7 @@ class FileAccessError(IOError):
         file_path: str | Path,
         access_mode: str | None = None,
         permissions: str | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Initialize file access error.
 
@@ -86,10 +86,7 @@ class FileAccessError(IOError):
             **kwargs: Additional arguments for base class
         """
         super().__init__(
-            message,
-            io_operation="file_access",
-            resource_path=file_path,
-            **kwargs
+            message, io_operation="file_access", resource_path=file_path, **kwargs
         )
 
         if access_mode:

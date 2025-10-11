@@ -83,11 +83,15 @@ class LineEndingTransformer(BaseTransformer):
             ),
         }
 
-    def _apply_with_args(self, text: str, rule: TransformationRule, args: list[str]) -> str:
+    def _apply_with_args(
+        self, text: str, rule: TransformationRule, args: list[str]
+    ) -> str:
         """Apply transformation that requires arguments."""
         if rule.name == "tr":
             if len(args) < 2:
-                raise ValueError("tr transformation requires exactly 2 arguments: source and target patterns")
+                raise ValueError(
+                    "tr transformation requires exactly 2 arguments: source and target patterns"
+                )
             return self._tr_transform(text, args[0], args[1])
         return super()._apply_with_args(text, rule, args)
 
@@ -95,10 +99,10 @@ class LineEndingTransformer(BaseTransformer):
     def _decode_escape_sequences(text: str) -> str:
         """Decode common escape sequences like \\n, \\r, \\t."""
         escape_map = {
-            '\\n': '\n',
-            '\\r': '\r',
-            '\\t': '\t',
-            '\\\\': '\\',
+            "\\n": "\n",
+            "\\r": "\r",
+            "\\t": "\t",
+            "\\\\": "\\",
             '\\"': '"',
             "\\'": "'",
         }
@@ -108,7 +112,9 @@ class LineEndingTransformer(BaseTransformer):
             result = result.replace(escaped, actual)
         return result
 
-    def _tr_transform(self, text: str, source_pattern: str = "\\n", target_pattern: str = "\\r\\n") -> str:
+    def _tr_transform(
+        self, text: str, source_pattern: str = "\\n", target_pattern: str = "\\r\\n"
+    ) -> str:
         """Transform text using tr-like character translation.
 
         Args:
@@ -136,61 +142,61 @@ class LineEndingTransformer(BaseTransformer):
     def _unix_to_windows(text: str) -> str:
         """Convert Unix (LF) to Windows (CRLF) line endings."""
         # Replace LF with CRLF, but avoid double conversion of existing CRLF
-        return re.sub(r'(?<!\r)\n', '\r\n', text)
+        return re.sub(r"(?<!\r)\n", "\r\n", text)
 
     @staticmethod
     def _windows_to_unix(text: str) -> str:
         """Convert Windows (CRLF) to Unix (LF) line endings."""
-        return text.replace('\r\n', '\n')
+        return text.replace("\r\n", "\n")
 
     @staticmethod
     def _unix_to_mac(text: str) -> str:
         """Convert Unix (LF) to Mac Classic (CR) line endings."""
         # Replace standalone LF with CR
-        return re.sub(r'(?<!\r)\n', '\r', text)
+        return re.sub(r"(?<!\r)\n", "\r", text)
 
     @staticmethod
     def _mac_to_unix(text: str) -> str:
         """Convert Mac Classic (CR) to Unix (LF) line endings."""
         # Replace standalone CR with LF
-        return re.sub(r'\r(?!\n)', '\n', text)
+        return re.sub(r"\r(?!\n)", "\n", text)
 
     @staticmethod
     def _windows_to_mac(text: str) -> str:
         """Convert Windows (CRLF) to Mac Classic (CR) line endings."""
-        return text.replace('\r\n', '\r')
+        return text.replace("\r\n", "\r")
 
     @staticmethod
     def _mac_to_windows(text: str) -> str:
         """Convert Mac Classic (CR) to Windows (CRLF) line endings."""
         # Replace standalone CR with CRLF
-        return re.sub(r'\r(?!\n)', '\r\n', text)
+        return re.sub(r"\r(?!\n)", "\r\n", text)
 
     @staticmethod
     def _normalize_line_endings(text: str) -> str:
         """Normalize all line endings to Unix format (LF)."""
         # First convert CRLF to LF, then convert standalone CR to LF
-        text = text.replace('\r\n', '\n')
-        text = text.replace('\r', '\n')
+        text = text.replace("\r\n", "\n")
+        text = text.replace("\r", "\n")
         return text
 
     @staticmethod
     def _remove_line_breaks(text: str) -> str:
         """Remove all line breaks from text.
-        
+
         Removes all types of line endings:
         - Windows CRLF (\\r\\n)
-        - Unix LF (\\n)  
+        - Unix LF (\\n)
         - Mac Classic CR (\\r)
-        
+
         Args:
             text: Input text containing line breaks
-            
+
         Returns:
             Text with all line breaks removed
         """
         # Remove CRLF first, then standalone CR and LF
-        text = text.replace('\r\n', '')
-        text = text.replace('\r', '')
-        text = text.replace('\n', '')
+        text = text.replace("\r\n", "")
+        text = text.replace("\r", "")
+        text = text.replace("\n", "")
         return text
