@@ -5,9 +5,9 @@ Provides foundation classes with enhanced context management
 and structured logging support.
 """
 
-from typing import Any, Dict, Optional, Union
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import Any
 
 
 class BaseTextProcessingError(Exception):
@@ -23,9 +23,9 @@ class BaseTextProcessingError(Exception):
     def __init__(
         self,
         message: str,
-        context: Optional[Dict[str, Any]] = None,
-        operation: Optional[str] = None,
-        cause: Optional[Exception] = None,
+        context: dict[str, Any] | None = None,
+        operation: str | None = None,
+        cause: Exception | None = None,
     ) -> None:
         """Initialize base exception with enhanced context.
 
@@ -40,7 +40,7 @@ class BaseTextProcessingError(Exception):
         self.context = context or {}
         self.operation = operation
         self.cause = cause
-        self.timestamp = datetime.now(timezone.utc)
+        self.timestamp = datetime.now(UTC)
 
     def add_context(self, key: str, value: Any) -> "BaseTextProcessingError":
         """Add context information to the exception.
@@ -55,7 +55,7 @@ class BaseTextProcessingError(Exception):
         self.context[key] = value
         return self
 
-    def get_context(self) -> Dict[str, Any]:
+    def get_context(self) -> dict[str, Any]:
         """Get the full context dictionary.
 
         Returns:
@@ -63,7 +63,7 @@ class BaseTextProcessingError(Exception):
         """
         return self.context.copy()
 
-    def get_structured_data(self) -> Dict[str, Any]:
+    def get_structured_data(self) -> dict[str, Any]:
         """Get structured data for logging systems.
 
         Returns:
@@ -110,7 +110,7 @@ class SystemError(BaseTextProcessingError):
     def __init__(
         self,
         message: str,
-        system_info: Optional[Dict[str, Any]] = None,
+        system_info: dict[str, Any] | None = None,
         **kwargs
     ) -> None:
         """Initialize system error.

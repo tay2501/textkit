@@ -1,8 +1,9 @@
 """Tests for line ending transformation functionality."""
 
-import pytest
 import sys
 from pathlib import Path
+
+import pytest
 from textkit.text_core.transformers.line_ending_transformer import LineEndingTransformer
 
 # Add the project root to sys.path to enable imports

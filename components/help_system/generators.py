@@ -7,7 +7,7 @@ for different types of help content in the application.
 
 from __future__ import annotations
 
-from typing import Dict, Any, List, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .core import HelpGenerator, HelpSection
 
@@ -30,7 +30,7 @@ class DynamicHelpGenerator(HelpGenerator):
         """
         self._transformation_engine = transformation_engine
 
-    def generate_help(self, context: Dict[str, Any] = None) -> List[HelpSection]:
+    def generate_help(self, context: dict[str, Any] = None) -> list[HelpSection]:
         """Generate dynamic help content.
 
         Args:
@@ -52,7 +52,7 @@ class DynamicHelpGenerator(HelpGenerator):
 
         return sections
 
-    def get_supported_topics(self) -> List[str]:
+    def get_supported_topics(self) -> list[str]:
         """Get supported help topics.
 
         Returns:
@@ -93,7 +93,7 @@ class DynamicHelpGenerator(HelpGenerator):
         """
         return HelpSection("Quick Start", content.strip())
 
-    def _generate_examples_section(self, context: Dict[str, Any] = None) -> HelpSection:
+    def _generate_examples_section(self, context: dict[str, Any] = None) -> HelpSection:
         """Generate examples section."""
         examples = [
             "Transform text case: '/u' (uppercase), '/l' (lowercase), '/p' (PascalCase)",
@@ -127,7 +127,7 @@ class RulesHelpGenerator(HelpGenerator):
         """
         self._transformation_engine = transformation_engine
 
-    def generate_help(self, context: Dict[str, Any] = None) -> List[HelpSection]:
+    def generate_help(self, context: dict[str, Any] = None) -> list[HelpSection]:
         """Generate rules help content.
 
         Args:
@@ -153,7 +153,7 @@ class RulesHelpGenerator(HelpGenerator):
 
         return sections
 
-    def get_supported_topics(self) -> List[str]:
+    def get_supported_topics(self) -> list[str]:
         """Get supported help topics.
 
         Returns:
@@ -161,7 +161,7 @@ class RulesHelpGenerator(HelpGenerator):
         """
         return ["rules", "transformations", "commands", "reference"]
 
-    def _group_rules_by_category(self, rules: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    def _group_rules_by_category(self, rules: dict[str, Any]) -> dict[str, dict[str, Any]]:
         """Group rules by category for better organization."""
         categories = {
             "Text Case": ["l", "u", "p", "c", "s"],
@@ -192,7 +192,7 @@ class RulesHelpGenerator(HelpGenerator):
 
         return grouped
 
-    def _generate_rule_category_section(self, category: str, rules: Dict[str, Any]) -> HelpSection:
+    def _generate_rule_category_section(self, category: str, rules: dict[str, Any]) -> HelpSection:
         """Generate help section for a rule category."""
         content_lines = [f"**{category} Transformations**\n"]
 

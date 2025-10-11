@@ -7,8 +7,9 @@ and contexts, ensuring data integrity and proper error handling.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Callable
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 
 from .core import CommandContext
 
@@ -49,9 +50,9 @@ class CommandValidator:
 
     def __init__(self) -> None:
         """Initialize the command validator."""
-        self._argument_rules: Dict[str, List[ValidationRule]] = {}
-        self._option_rules: Dict[str, List[ValidationRule]] = {}
-        self._global_rules: List[ValidationRule] = []
+        self._argument_rules: dict[str, list[ValidationRule]] = {}
+        self._option_rules: dict[str, list[ValidationRule]] = {}
+        self._global_rules: list[ValidationRule] = []
 
     def add_argument_rule(self, argument: str, rule: ValidationRule) -> None:
         """Add validation rule for a specific argument.
@@ -105,7 +106,7 @@ class CommandValidator:
             if not rule.validator(context):
                 raise ValidationError(rule.error_message, "context")
 
-    def _validate_field(self, field_name: str, value: Any, rules: List[ValidationRule]) -> None:
+    def _validate_field(self, field_name: str, value: Any, rules: list[ValidationRule]) -> None:
         """Validate a specific field with given rules.
 
         Args:

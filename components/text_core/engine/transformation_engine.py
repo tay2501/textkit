@@ -5,19 +5,15 @@ Provides main coordination functionality with clear separation of concerns.
 Delegates parsing to RuleParser and execution to TransformationOrchestrator.
 """
 
-from typing import Optional, Dict, Any, Tuple
+from typing import Any
 
-from textkit.exceptions import ValidationError, TransformationError
-from textkit.common_utils import (
-    get_structured_logger,
-    validate_text_input,
-    handle_validation_error,
-    with_error_context
-)
-from ..models import TextTransformationRequest
-from ..parsers import RuleParser
-from ..orchestrators import TransformationOrchestrator
+from textkit.common_utils import get_structured_logger, handle_validation_error, with_error_context
+from textkit.exceptions import TransformationError, ValidationError
+
 from ..factories import TransformationFactory
+from ..models import TextTransformationRequest
+from ..orchestrators import TransformationOrchestrator
+from ..parsers import RuleParser
 
 
 class TransformationEngine:
@@ -33,8 +29,8 @@ class TransformationEngine:
 
     def __init__(
         self,
-        config_manager: Optional[Any] = None,
-        crypto_manager: Optional[Any] = None,
+        config_manager: Any | None = None,
+        crypto_manager: Any | None = None,
     ) -> None:
         """Initialize the simplified transformation engine.
 
@@ -66,7 +62,7 @@ class TransformationEngine:
         self,
         text: str,
         rule_string: str,
-        context: Optional[Dict[str, Any]] = None
+        context: dict[str, Any] | None = None
     ) -> str:
         """Apply transformation rules to text using simplified architecture.
 
@@ -162,7 +158,7 @@ class TransformationEngine:
                 )
                 raise wrapped_error
 
-    def get_available_rules(self) -> Dict[str, Any]:
+    def get_available_rules(self) -> dict[str, Any]:
         """Get dictionary of all available transformation rules."""
         return self.transformation_factory.get_all_rules()
 
@@ -186,7 +182,7 @@ class TransformationEngine:
         """
         return self.transformation_factory
 
-    def get_performance_stats(self) -> Dict[str, Any]:
+    def get_performance_stats(self) -> dict[str, Any]:
         """Get comprehensive performance statistics.
 
         Returns:

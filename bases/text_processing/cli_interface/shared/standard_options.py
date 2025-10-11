@@ -10,8 +10,8 @@ References:
 """
 
 from typing import Annotated
-import typer
 
+import typer
 
 # ============================================================================
 # Input/Output Options

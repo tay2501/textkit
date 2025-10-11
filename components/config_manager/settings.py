@@ -7,13 +7,13 @@ using Pydantic BaseSettings with environment variable support.
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Optional, Any, Annotated
 from enum import Enum
+from pathlib import Path
+from typing import Annotated, Any
 
+import structlog
 from pydantic import Field, computed_field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-import structlog
 
 # Initialize logger
 logger = structlog.get_logger(__name__)
@@ -24,13 +24,13 @@ def configure_logging() -> None:
     
     Uses modern structlog patterns with environment-aware configuration.
     """
-    import sys
     import logging
-    
+    import sys
+
     # Check if already configured to avoid double configuration
     if structlog.is_configured():
         return
-    
+
     # Environment-aware processor selection
     shared_processors = [
         structlog.contextvars.merge_contextvars,
@@ -39,7 +39,7 @@ def configure_logging() -> None:
         structlog.processors.format_exc_info,
         structlog.processors.TimeStamper(fmt="iso", utc=True),
     ]
-    
+
     # Development vs Production configuration
     if sys.stderr.isatty():
         # Development: Pretty console output with colors
@@ -59,14 +59,14 @@ def configure_logging() -> None:
             json_renderer = structlog.processors.JSONRenderer(serializer=orjson.dumps)
         except ImportError:
             json_renderer = structlog.processors.JSONRenderer()
-            
+
         processors = shared_processors + [
             structlog.processors.dict_tracebacks,
             json_renderer,
         ]
         logger_factory = structlog.stdlib.LoggerFactory()
         wrapper_class = structlog.make_filtering_bound_logger(logging.INFO)
-    
+
     # Configure structlog
     structlog.configure(
         processors=processors,
@@ -75,7 +75,7 @@ def configure_logging() -> None:
         context_class=dict,
         cache_logger_on_first_use=True,
     )
-    
+
     # Configure standard library logging
     logging.basicConfig(
         format="%(message)s",
@@ -91,11 +91,11 @@ def _get_exception_formatter() -> Any:
         Exception formatter function or None if none available
     """
     try:
-        from rich.traceback import Traceback
         from rich.console import Console
-        
+        from rich.traceback import Traceback
+
         console = Console(stderr=True)
-        
+
         def rich_formatter(exc_info: Any) -> str:
             """Format exception using rich."""
             try:
@@ -107,9 +107,9 @@ def _get_exception_formatter() -> Any:
                 # Fallback to default formatting
                 import traceback
                 return ''.join(traceback.format_exception(*exc_info))
-        
+
         return rich_formatter
-        
+
     except ImportError:
         try:
             import better_exceptions
@@ -498,7 +498,7 @@ class ApplicationSettings(BaseSettings):
 
 
 # Global settings instance
-_settings: Optional[ApplicationSettings] = None
+_settings: ApplicationSettings | None = None
 
 
 def get_settings(reload: bool = False) -> ApplicationSettings:

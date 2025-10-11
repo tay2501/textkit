@@ -9,10 +9,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 # Type alias for configuration dictionaries
-ConfigDict = Dict[str, Any]
+ConfigDict = dict[str, Any]
 
 
 class ConfigurationError(Exception):
@@ -118,7 +118,7 @@ class ConfigurationManager:
 
         try:
             if file_path.exists():
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     content = json.load(f)
                     self.validate_config(content, filename)
                     return content

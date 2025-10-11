@@ -7,11 +7,10 @@ with the existing codebase.
 
 import pytest
 from pydantic import ValidationError as PydanticValidationError
-
 from textkit.text_core.models import (
+    ConfigurationModel,
     TextTransformationRequest,
     TextTransformationResponse,
-    ConfigurationModel
 )
 from textkit.text_core.types import TransformationRule
 

@@ -7,19 +7,18 @@ all text transformation operations in a modular, extensible way.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
 import structlog
-
-from .exceptions import ValidationError, TransformationError
-from .types import (
-    TransformationRule,
-    ConfigManagerProtocol,
-    CryptoManagerProtocol,
+from textkit.common_utils import (
+    handle_validation_error,
+    safe_execute,
 )
 from textkit.rule_parser.types import RuleParserProtocol
-from textkit.common_utils import (
-    safe_execute,
-    handle_validation_error,
+
+from .exceptions import TransformationError, ValidationError
+from .types import (
+    ConfigManagerProtocol,
+    CryptoManagerProtocol,
+    TransformationRule,
 )
 
 # Initialize logger
@@ -36,9 +35,9 @@ class TextTransformationEngine:
 
     def __init__(
         self,
-        config_manager: Optional["ConfigManagerProtocol"] = None,
-        crypto_manager: Optional["CryptoManagerProtocol"] = None,
-        rule_parser: Optional["RuleParserProtocol"] = None,
+        config_manager: ConfigManagerProtocol | None = None,
+        crypto_manager: CryptoManagerProtocol | None = None,
+        rule_parser: RuleParserProtocol | None = None,
     ) -> None:
         """Initialize the transformation engine.
 
@@ -67,13 +66,13 @@ class TextTransformationEngine:
         except NameError:
             from textkit.rule_parser import RuleParser
             self._rule_parser = RuleParser()
-        
+
         # Use factory to create and manage transformers
         self._transformation_factory = TransformationFactory()
-        self._available_rules: Dict[str, TransformationRule] = {}
+        self._available_rules: dict[str, TransformationRule] = {}
         self._build_available_rules()
 
-    def set_crypto_manager(self, crypto_manager: "CryptoManagerProtocol") -> None:
+    def set_crypto_manager(self, crypto_manager: CryptoManagerProtocol) -> None:
         """Set the crypto manager instance."""
         self.crypto_manager = crypto_manager
 
@@ -94,11 +93,12 @@ class TextTransformationEngine:
             TransformationError: If transformation fails
         """
         import time
+
         from .models import TextTransformationRequest
 
         start_time = time.perf_counter()
         applied_rules = []
-        
+
         # Enhanced validation using EAFP helper
         validation_result, validation_error = handle_validation_error(
             lambda data: TextTransformationRequest(**data),
@@ -106,7 +106,7 @@ class TextTransformationEngine:
             logger,
             {"operation": "request_validation"}
         )
-        
+
         if validation_error:
             logger.error(
                 "transformation_validation_failed",
@@ -115,9 +115,9 @@ class TextTransformationEngine:
                 error=str(validation_error)
             )
             raise validation_error
-            
+
         request = validation_result
-        
+
         try:
             # Parse rules using injected RuleParser
             parsed_rules, parse_error = safe_execute(
@@ -125,15 +125,15 @@ class TextTransformationEngine:
                 request.rule_string,
                 default_return=[]
             )
-            
+
             if parse_error:
                 raise ValidationError(
                     f"Failed to parse rule string: {parse_error}",
                     {"rule_string": request.rule_string}
                 ).add_context("parse_error", str(parse_error))
-                
+
             result = request.text
-            
+
             # Apply rules sequentially with detailed error tracking
             for rule_name, args in parsed_rules:
                 try:
@@ -141,23 +141,23 @@ class TextTransformationEngine:
                         self._apply_single_rule_with_strategy,
                         result, rule_name, args
                     )
-                    
+
                     if transform_error:
                         raise TransformationError(
                             f"Rule '{rule_name}' failed: {transform_error}",
                             operation="rule_application",
                             cause=transform_error
                         ).add_context("rule_name", rule_name).add_context("args", args)
-                        
+
                     applied_rules.append(rule_name)
-                    
+
                     logger.debug(
                         "rule_applied_successfully",
                         rule_name=rule_name,
                         args=args,
                         result_length=len(result)
                     )
-                    
+
                 except (ValidationError, TransformationError):
                     # Re-raise our custom exceptions
                     raise
@@ -168,7 +168,7 @@ class TextTransformationEngine:
                         operation="rule_application",
                         cause=e
                     ).add_context("rule_name", rule_name).add_context("args", args)
-                    
+
                     logger.exception(
                         "unexpected_rule_error",
                         rule_name=rule_name,
@@ -176,9 +176,9 @@ class TextTransformationEngine:
                         error_type=type(e).__name__
                     )
                     raise error
-                    
+
             processing_time = (time.perf_counter() - start_time) * 1000
-            
+
             # Log successful transformation with structured data
             logger.info(
                 "transformation_completed",
@@ -188,9 +188,9 @@ class TextTransformationEngine:
                 output_length=len(result),
                 rule_count=len(applied_rules)
             )
-            
+
             return result
-            
+
         except (ValidationError, TransformationError):
             # Log and re-raise our custom exceptions
             processing_time = (time.perf_counter() - start_time) * 1000
@@ -212,7 +212,7 @@ class TextTransformationEngine:
             ).add_context("rule_string", request.rule_string)\
              .add_context("applied_rules", applied_rules)\
              .add_context("processing_time_ms", processing_time)
-            
+
             logger.exception(
                 "transformation_unexpected_error",
                 applied_rules=applied_rules,
@@ -221,7 +221,7 @@ class TextTransformationEngine:
             )
             raise error
 
-    def _apply_single_rule_with_strategy(self, text: str, rule_name: str, args: List[str]) -> str:
+    def _apply_single_rule_with_strategy(self, text: str, rule_name: str, args: list[str]) -> str:
         """Apply a single transformation rule using appropriate strategy.
 
         Args:
@@ -238,10 +238,10 @@ class TextTransformationEngine:
         try:
             # Find the appropriate transformer strategy for this rule
             transformer = self._transformation_factory.get_transformer_for_rule(rule_name)
-            
+
             # Apply the transformation using the strategy
             return transformer.transform(text, rule_name, args)
-            
+
         except KeyError:
             raise TransformationError(
                 f"Unknown transformation rule: '{rule_name}'",
@@ -253,7 +253,7 @@ class TextTransformationEngine:
                 {"rule_name": rule_name, "args": args}
             ) from e
 
-    def parse_rule_string(self, rule_string: str) -> List[Tuple[str, List[str]]]:
+    def parse_rule_string(self, rule_string: str) -> list[tuple[str, list[str]]]:
         """Parse rule string into individual rules and arguments.
 
         Deprecated: Use injected RuleParser instead.
@@ -270,7 +270,7 @@ class TextTransformationEngine:
         """
         return self._rule_parser.parse(rule_string)
 
-    def get_available_rules(self) -> Dict[str, TransformationRule]:
+    def get_available_rules(self) -> dict[str, TransformationRule]:
         """Get dictionary of all available transformation rules."""
         return self._available_rules.copy()
 

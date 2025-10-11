@@ -10,7 +10,7 @@ from __future__ import annotations
 import base64
 import secrets
 from pathlib import Path
-from typing import Any, Final, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Final
 
 from ..exceptions import ConfigurationError, CryptographyError
 
@@ -22,7 +22,7 @@ try:
     from cryptography.hazmat.backends import default_backend
     from cryptography.hazmat.primitives import hashes, serialization
     from cryptography.hazmat.primitives.asymmetric import padding, rsa
-    from cryptography.hazmat.primitives.ciphers import algorithms, Cipher, modes
+    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
     _cryptography_available = True
 except ImportError:
@@ -109,10 +109,10 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
                 backend=default_backend()
             )
             encryptor = cipher.encryptor()
-            
+
             text_bytes = text.encode("utf-8")
             encrypted_data = encryptor.update(text_bytes) + encryptor.finalize()
-            
+
             # Get authentication tag
             tag = encryptor.tag
 
@@ -382,7 +382,7 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             )
             encryptor = cipher.encryptor()
             encrypted_data = encryptor.update(data) + encryptor.finalize()
-            
+
             # Get authentication tag
             tag = encryptor.tag
 

@@ -9,12 +9,14 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import AsyncIterator, Optional, Union, Dict, Any, List
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
+from typing import Any
+
 import structlog
 
-from ..text_core.core import TextTransformationEngine
 from ..config_manager.settings import ApplicationSettings, get_settings
+from ..text_core.core import TextTransformationEngine
 
 # Initialize logger
 logger = structlog.get_logger(__name__)
@@ -35,9 +37,9 @@ class AsyncTextStreamer:
 
     def __init__(
         self,
-        sync_engine: Optional[TextTransformationEngine] = None,
-        config: Optional[StreamingConfig] = None,
-        settings: Optional[ApplicationSettings] = None
+        sync_engine: TextTransformationEngine | None = None,
+        config: StreamingConfig | None = None,
+        settings: ApplicationSettings | None = None
     ) -> None:
         """Initialize async text streamer.
 
@@ -51,7 +53,7 @@ class AsyncTextStreamer:
         self.settings = settings or get_settings()
 
         # Streaming state
-        self._active_streams: Dict[str, asyncio.Task] = {}
+        self._active_streams: dict[str, asyncio.Task] = {}
         self._stream_semaphore = asyncio.Semaphore(self.config.max_concurrent_streams)
         self._buffer_size = 0
 
@@ -63,9 +65,9 @@ class AsyncTextStreamer:
 
     async def stream_transform(
         self,
-        text_source: Union[str, AsyncIterator[str]],
+        text_source: str | AsyncIterator[str],
         rule_string: str,
-        stream_id: Optional[str] = None
+        stream_id: str | None = None
     ) -> AsyncIterator[str]:
         """Stream text transformation with backpressure handling.
 
@@ -211,7 +213,7 @@ class AsyncTextStreamer:
             return True
         return False
 
-    def get_active_streams(self) -> List[str]:
+    def get_active_streams(self) -> list[str]:
         """Get list of active stream IDs.
 
         Returns:
@@ -219,7 +221,7 @@ class AsyncTextStreamer:
         """
         return list(self._active_streams.keys())
 
-    def get_buffer_info(self) -> Dict[str, Any]:
+    def get_buffer_info(self) -> dict[str, Any]:
         """Get current buffer information.
 
         Returns:
@@ -238,8 +240,8 @@ class ChunkedProcessor:
 
     def __init__(
         self,
-        sync_engine: Optional[TextTransformationEngine] = None,
-        settings: Optional[ApplicationSettings] = None
+        sync_engine: TextTransformationEngine | None = None,
+        settings: ApplicationSettings | None = None
     ) -> None:
         """Initialize chunked processor.
 
@@ -252,7 +254,7 @@ class ChunkedProcessor:
 
         # Adaptive chunk sizing
         self._optimal_chunk_size = 1024 * 64  # Start with 64KB
-        self._chunk_performance_history: List[tuple[int, float]] = []
+        self._chunk_performance_history: list[tuple[int, float]] = []
         self._max_history = 10
 
     async def process_chunks(
@@ -315,7 +317,7 @@ class ChunkedProcessor:
         # Combine results
         return ''.join(result[1] for result in results)
 
-    def _create_optimized_chunks(self, text: str) -> List[str]:
+    def _create_optimized_chunks(self, text: str) -> list[str]:
         """Create optimized text chunks with word boundary awareness.
 
         Args:
@@ -408,7 +410,7 @@ class ChunkedProcessor:
             best_throughput=best_throughput
         )
 
-    def get_performance_info(self) -> Dict[str, Any]:
+    def get_performance_info(self) -> dict[str, Any]:
         """Get chunked processor performance information.
 
         Returns:

@@ -6,12 +6,13 @@ system with environment variables and dependency injection.
 """
 
 import os
+
 from textkit.config_manager.settings import (
     ApplicationSettings,
+    get_max_text_length,
     get_settings,
-    reload_settings,
     is_debug_mode,
-    get_max_text_length
+    reload_settings,
 )
 from textkit.dependency_injection import Container
 
@@ -114,7 +115,7 @@ def demonstrate_dependency_injection():
     # Get the service (dependencies automatically injected)
     demo_service = container[DemoService]
     print(f"Service Info: {demo_service.get_info()}")
-    print(f"Lagom automatically resolved ApplicationSettings dependency")
+    print("Lagom automatically resolved ApplicationSettings dependency")
 
     print()
 

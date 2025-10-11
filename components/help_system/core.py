@@ -7,9 +7,9 @@ with support for dynamic content generation and multiple formats.
 
 from __future__ import annotations
 
-from typing import Dict, Any, List, Protocol
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import Any, Protocol
 
 
 @dataclass
@@ -21,8 +21,8 @@ class HelpSection:
     """
     title: str
     content: str
-    subsections: List[HelpSection] = None
-    metadata: Dict[str, Any] = None
+    subsections: list[HelpSection] = None
+    metadata: dict[str, Any] = None
 
     def __post_init__(self) -> None:
         """Initialize optional fields."""
@@ -39,7 +39,7 @@ class HelpContentProvider(Protocol):
     can provide help content to the help system.
     """
 
-    def get_help_content(self) -> Dict[str, Any]:
+    def get_help_content(self) -> dict[str, Any]:
         """Get help content from this provider.
 
         Returns:
@@ -56,7 +56,7 @@ class HelpGenerator(ABC):
     """
 
     @abstractmethod
-    def generate_help(self, context: Dict[str, Any] = None) -> List[HelpSection]:
+    def generate_help(self, context: dict[str, Any] = None) -> list[HelpSection]:
         """Generate help content.
 
         Args:
@@ -68,7 +68,7 @@ class HelpGenerator(ABC):
         pass
 
     @abstractmethod
-    def get_supported_topics(self) -> List[str]:
+    def get_supported_topics(self) -> list[str]:
         """Get list of topics this generator supports.
 
         Returns:
@@ -86,9 +86,9 @@ class HelpManager:
 
     def __init__(self) -> None:
         """Initialize the help manager."""
-        self._generators: Dict[str, HelpGenerator] = {}
-        self._content_cache: Dict[str, List[HelpSection]] = {}
-        self._providers: List[HelpContentProvider] = []
+        self._generators: dict[str, HelpGenerator] = {}
+        self._content_cache: dict[str, list[HelpSection]] = {}
+        self._providers: list[HelpContentProvider] = []
 
     def register_generator(self, name: str, generator: HelpGenerator) -> None:
         """Register a help content generator.
@@ -107,7 +107,7 @@ class HelpManager:
         """
         self._providers.append(provider)
 
-    def get_help(self, topic: str, context: Dict[str, Any] = None) -> List[HelpSection]:
+    def get_help(self, topic: str, context: dict[str, Any] = None) -> list[HelpSection]:
         """Get help content for a specific topic.
 
         Args:
@@ -134,7 +134,7 @@ class HelpManager:
 
         raise HelpTopicNotFoundError(f"Help topic '{topic}' not found")
 
-    def get_all_topics(self) -> List[str]:
+    def get_all_topics(self) -> list[str]:
         """Get all available help topics.
 
         Returns:

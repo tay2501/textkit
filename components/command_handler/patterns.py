@@ -8,8 +8,8 @@ a registry for managing command patterns.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
 from dataclasses import dataclass
+from typing import Any
 
 from .core import CommandContext
 
@@ -73,7 +73,7 @@ class CommandRegistry:
 
     def __init__(self) -> None:
         """Initialize the command registry."""
-        self._patterns: List[PatternInfo] = []
+        self._patterns: list[PatternInfo] = []
 
     def register_pattern(
         self,
@@ -122,7 +122,7 @@ class CommandRegistry:
                 return pattern_info.pattern
         return None
 
-    def get_all_patterns(self) -> List[PatternInfo]:
+    def get_all_patterns(self) -> list[PatternInfo]:
         """Get all registered patterns.
 
         Returns:
@@ -130,7 +130,7 @@ class CommandRegistry:
         """
         return self._patterns.copy()
 
-    def get_pattern_help(self) -> Dict[str, str]:
+    def get_pattern_help(self) -> dict[str, str]:
         """Get help text for all patterns.
 
         Returns:

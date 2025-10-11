@@ -6,10 +6,11 @@ into transformer classes for consistent error management.
 """
 
 import functools
-from typing import Any, Callable, Optional, Dict, TypeVar
+from collections.abc import Callable
+from typing import Any, TypeVar
 
-from textkit.exceptions import TransformationError, ValidationError
 from textkit.common_utils import safe_execute, with_error_context
+from textkit.exceptions import TransformationError, ValidationError
 
 T = TypeVar('T')
 
@@ -68,7 +69,7 @@ class ErrorHandlingMixin:
         error: Exception,
         rule_name: str,
         text: str,
-        additional_context: Optional[Dict[str, Any]] = None
+        additional_context: dict[str, Any] | None = None
     ) -> TransformationError:
         """Wrap an exception as a TransformationError with context.
 
@@ -108,7 +109,7 @@ class ErrorHandlingMixin:
         self,
         rule_name: str,
         text: str,
-        additional_context: Optional[Dict[str, Any]] = None
+        additional_context: dict[str, Any] | None = None
     ):
         """Context manager for transformation operations.
 
@@ -164,7 +165,7 @@ class ErrorHandlingMixin:
         return result
 
     @staticmethod
-    def error_handler(rule_name: Optional[str] = None):
+    def error_handler(rule_name: str | None = None):
         """Decorator for automatic error handling in transformer methods.
 
         Args:

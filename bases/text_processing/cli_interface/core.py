@@ -6,17 +6,19 @@ following Polylith architecture principles and single responsibility pattern.
 
 from __future__ import annotations
 
-import typer
-from rich.console import Console
 from typing import TYPE_CHECKING
 
-# Import application factory and interface
-from .factory import ApplicationFactory
+import typer
+from rich.console import Console
+
 from .abstractions import ApplicationServiceInterface
+from .commands.clipboard_cmd import register_clipboard_commands
 
 # Import command modules
 from .commands.status_cmd import register_status_commands
-from .commands.clipboard_cmd import register_clipboard_commands
+
+# Import application factory and interface
+from .factory import ApplicationFactory
 
 # Import middleware
 from .middleware.error_handler import ErrorHandler
@@ -146,8 +148,8 @@ def run_cli() -> None:
     """Main CLI entry point with enhanced error handling and logging setup."""
     try:
         # Initialize structured logging first
-        from textkit.config_manager.settings import configure_logging
         import structlog
+        from textkit.config_manager.settings import configure_logging
 
         configure_logging()
         logger = structlog.get_logger(__name__)

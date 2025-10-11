@@ -33,8 +33,8 @@ class ApplicationFactory:
             ConfigurationError: If required configuration is missing
             ComponentInitializationError: If core components fail to initialize
         """
-        from .container import get_container
         from .abstractions import ApplicationServiceInterface
+        from .container import get_container
 
         # Get the configured DI container
         container = get_container()

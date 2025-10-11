@@ -6,10 +6,11 @@ Supports operations like clear, get, and set for clipboard content.
 
 from __future__ import annotations
 
-import typer
 from typing import Annotated
-from rich.console import Console
+
 import structlog
+import typer
+from rich.console import Console
 
 console = Console()
 logger = structlog.get_logger(__name__)

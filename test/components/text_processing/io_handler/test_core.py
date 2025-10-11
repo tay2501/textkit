@@ -1,10 +1,9 @@
-from textkit.io_handler import core
-
+import sys
+from unittest.mock import mock_open, patch
 
 import pytest
-import sys
-from unittest.mock import patch, mock_open
-from textkit.io_handler.core import InputOutputManager, IOError, CLIPBOARD_AVAILABLE
+from textkit.io_handler import core
+from textkit.io_handler.core import CLIPBOARD_AVAILABLE, InputOutputManager, IOError
 
 
 class TestInputOutputManager:
@@ -46,7 +45,7 @@ class TestInputOutputManager:
         """Test pipe availability check."""
         with patch('sys.stdin.isatty', return_value=True):
             assert not io_manager.is_pipe_available()
-        
+
         with patch('sys.stdin.isatty', return_value=False):
             assert io_manager.is_pipe_available()
 
@@ -303,7 +302,7 @@ class TestInputOutputManager:
         """Test IOError with context information."""
         context = {"test_key": "test_value", "error_type": "TestError"}
         error = IOError("Test error message", context)
-        
+
         assert str(error) == "Test error message"
         assert error.context == context
 

@@ -6,11 +6,11 @@ separated from the main CLI interface for better maintainability.
 
 from __future__ import annotations
 
-import typer
 from typing import Annotated
+
+import typer
 from rich.console import Console
 
-from ..interfaces import ApplicationInterface
 from ..middleware.output_manager import OutputManager
 
 console = Console()

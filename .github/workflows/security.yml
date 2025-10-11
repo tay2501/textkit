@@ -29,8 +29,8 @@ jobs:
             --skip-git
             ./
 
-  safety-check:
-    name: Safety Security Check
+  pip-audit:
+    name: pip-audit Security Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -49,16 +49,17 @@ jobs:
         run: |
           uv sync --dev
 
-      - name: Run Safety check
+      - name: Run pip-audit security check
         run: |
-          uv run safety check --json --output safety-report.json || true
+          uv pip install pip-audit
+          uv run pip-audit --format json --output pip-audit-report.json || true
 
-      - name: Upload Safety report
+      - name: Upload pip-audit report
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: safety-report
-          path: safety-report.json
+          name: pip-audit-report
+          path: pip-audit-report.json
 
   bandit-security:
     name: Bandit Security Linter
@@ -76,13 +77,14 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
 
-      - name: Install dependencies
+      - name: Install dependencies with bandit
         run: |
           uv sync --dev
+          uv pip install bandit[toml]
 
       - name: Run Bandit security linter
         run: |
-          uv run bandit -r . -f json -o bandit-report.json || true
+          uv run bandit -r . -f json -o bandit-report.json --exclude ./test,./tests,./.venv || true
 
       - name: Upload Bandit report
         uses: actions/upload-artifact@v4
@@ -90,6 +92,7 @@ jobs:
         with:
           name: bandit-report
           path: bandit-report.json
+          retention-days: 30
 
   semgrep:
     name: Semgrep Security Analysis

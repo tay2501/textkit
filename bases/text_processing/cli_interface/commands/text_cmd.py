@@ -14,21 +14,21 @@ Design References:
 """
 
 from typing import Annotated
+
 import typer
 from rich.console import Console
 
+from ..middleware.output_manager import OutputManager
 from ..shared.standard_options import (
+    ErrorHandlingOption,
+    FromClipboardOption,
     InputTextOption,
     OutputPathOption,
-    ClipboardOption,
-    FromClipboardOption,
-    ToClipboardOption,
     RulesArgument,
     SourceEncodingOption,
     TargetEncodingOption,
-    ErrorHandlingOption,
+    ToClipboardOption,
 )
-from ..middleware.output_manager import OutputManager
 
 console = Console()
 

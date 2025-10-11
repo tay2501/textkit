@@ -1,13 +1,12 @@
-from textkit.config_manager import core
-
-
-import pytest
 import json
-import tempfile
 import shutil
+import tempfile
 from pathlib import Path
 from unittest.mock import patch
-from textkit.config_manager.core import ConfigurationManager, ConfigurationError, ConfigDict
+
+import pytest
+from textkit.config_manager import core
+from textkit.config_manager.core import ConfigDict, ConfigurationError, ConfigurationManager
 
 
 class TestConfigurationManager:
@@ -57,19 +56,19 @@ class TestConfigurationManager:
     def test_load_transformation_rules_default(self, config_manager):
         """Test loading transformation rules with default content."""
         rules = config_manager.load_transformation_rules()
-        
+
         assert isinstance(rules, dict)
         assert "version" in rules
         assert "rules" in rules
         assert "basic" in rules["rules"]
         assert "advanced" in rules["rules"]
-        
+
         # Check basic rules
         basic_rules = rules["rules"]["basic"]
         assert "t" in basic_rules
         assert "l" in basic_rules
         assert "u" in basic_rules
-        
+
         # Check advanced rules
         advanced_rules = rules["rules"]["advanced"]
         assert "sha256" in advanced_rules
@@ -79,12 +78,12 @@ class TestConfigurationManager:
     def test_load_security_config_default(self, config_manager):
         """Test loading security config with default content."""
         security = config_manager.load_security_config()
-        
+
         assert isinstance(security, dict)
         assert "version" in security
         assert "rsa" in security
         assert "encryption" in security
-        
+
         # Check RSA config
         rsa_config = security["rsa"]
         assert rsa_config["key_size"] == 4096
@@ -96,13 +95,13 @@ class TestConfigurationManager:
     def test_load_hotkey_config_default(self, config_manager):
         """Test loading hotkey config with default content."""
         hotkeys = config_manager.load_hotkey_config()
-        
+
         assert isinstance(hotkeys, dict)
         assert "version" in hotkeys
         assert "hotkeys" in hotkeys
         assert "enabled" in hotkeys
         assert "global_hotkeys" in hotkeys
-        
+
         # Check default hotkeys
         hotkey_mappings = hotkeys["hotkeys"]
         assert "toggle_interactive" in hotkey_mappings
@@ -114,11 +113,11 @@ class TestConfigurationManager:
         # First load should create cache
         rules1 = config_manager.load_transformation_rules()
         assert config_manager._transformation_rules is not None
-        
+
         # Second load should return cached version
         rules2 = config_manager.load_transformation_rules()
         assert rules1 == rules2
-        
+
         # Verify it's a copy, not the same object
         assert rules1 is not rules2
 
@@ -130,11 +129,11 @@ class TestConfigurationManager:
             "custom_setting": "test_value",
             "nested": {"key": "value"}
         }
-        
+
         config_file = temp_dir / "transformation_rules.json"
         with open(config_file, "w", encoding="utf-8") as f:
             json.dump(custom_config, f)
-        
+
         # Load should return the custom config
         rules = config_manager.load_transformation_rules()
         assert rules["version"] == "2.0"
@@ -147,7 +146,7 @@ class TestConfigurationManager:
         config_file = temp_dir / "transformation_rules.json"
         with open(config_file, "w", encoding="utf-8") as f:
             f.write("{ invalid json }")
-        
+
         with pytest.raises(ConfigurationError) as exc_info:
             config_manager.load_transformation_rules()
         assert "Invalid JSON" in str(exc_info.value)
@@ -156,13 +155,13 @@ class TestConfigurationManager:
         """Test saving JSON configuration file."""
         test_content = {"test": "data", "number": 123}
         config_manager._save_json_file("test_config.json", test_content)
-        
+
         config_file = temp_dir / "test_config.json"
         assert config_file.exists()
-        
-        with open(config_file, "r", encoding="utf-8") as f:
+
+        with open(config_file, encoding="utf-8") as f:
             loaded_content = json.load(f)
-        
+
         assert loaded_content == test_content
 
     def test_save_json_file_error(self, config_manager):
@@ -195,15 +194,15 @@ class TestConfigurationManager:
         config_manager.load_transformation_rules()
         config_manager.load_security_config()
         config_manager.load_hotkey_config()
-        
+
         # Verify cache is populated
         assert config_manager._transformation_rules is not None
         assert config_manager._security_config is not None
         assert config_manager._hotkey_config is not None
-        
+
         # Clear cache
         config_manager.clear_cache()
-        
+
         # Verify cache is cleared
         assert config_manager._transformation_rules is None
         assert config_manager._security_config is None
@@ -212,18 +211,18 @@ class TestConfigurationManager:
     def test_get_config_status_empty_dir(self, config_manager):
         """Test getting config status with empty directory."""
         status = config_manager.get_config_status()
-        
+
         assert isinstance(status, dict)
         assert "config_dir" in status
         assert "config_dir_exists" in status
         assert "files" in status
         assert "cache_status" in status
-        
+
         # All files should not exist initially
         assert not status["files"]["transformation_rules.json"]
         assert not status["files"]["security_config.json"]
         assert not status["files"]["hotkey_config.json"]
-        
+
         # No cache initially
         assert not status["cache_status"]["transformation_rules_cached"]
         assert not status["cache_status"]["security_config_cached"]
@@ -234,14 +233,14 @@ class TestConfigurationManager:
         # Load configs (this will create files and cache)
         config_manager.load_transformation_rules()
         config_manager.load_security_config()
-        
+
         status = config_manager.get_config_status()
-        
+
         # Files should exist after loading
         assert status["files"]["transformation_rules.json"]
         assert status["files"]["security_config.json"]
         assert not status["files"]["hotkey_config.json"]  # Not loaded yet
-        
+
         # Cache should be populated for loaded configs
         assert status["cache_status"]["transformation_rules_cached"]
         assert status["cache_status"]["security_config_cached"]
@@ -250,12 +249,12 @@ class TestConfigurationManager:
     def test_default_transformation_rules_structure(self, config_manager):
         """Test the structure of default transformation rules."""
         default_rules = config_manager._get_default_transformation_rules()
-        
+
         assert default_rules["version"] == "1.0"
         assert "rules" in default_rules
         assert "basic" in default_rules["rules"]
         assert "advanced" in default_rules["rules"]
-        
+
         # Check basic rules structure
         for rule_key in ["t", "l", "u"]:
             assert rule_key in default_rules["rules"]["basic"]
@@ -266,17 +265,17 @@ class TestConfigurationManager:
     def test_default_security_config_structure(self, config_manager):
         """Test the structure of default security config."""
         default_security = config_manager._get_default_security_config()
-        
+
         assert default_security["version"] == "1.0"
         assert "rsa" in default_security
         assert "encryption" in default_security
-        
+
         # Check RSA config structure
         rsa = default_security["rsa"]
         required_rsa_keys = ["key_size", "public_exponent", "aes_key_size", "aes_iv_size", "key_directory"]
         for key in required_rsa_keys:
             assert key in rsa
-        
+
         # Check encryption config structure
         encryption = default_security["encryption"]
         required_encryption_keys = ["enabled", "auto_generate_keys", "secure_delete"]
@@ -286,12 +285,12 @@ class TestConfigurationManager:
     def test_default_hotkey_config_structure(self, config_manager):
         """Test the structure of default hotkey config."""
         default_hotkeys = config_manager._get_default_hotkey_config()
-        
+
         assert default_hotkeys["version"] == "1.0"
         assert "hotkeys" in default_hotkeys
         assert "enabled" in default_hotkeys
         assert "global_hotkeys" in default_hotkeys
-        
+
         # Check hotkey mappings
         hotkeys = default_hotkeys["hotkeys"]
         required_hotkeys = ["toggle_interactive", "quick_transform", "emergency_stop"]
@@ -302,7 +301,7 @@ class TestConfigurationManager:
         """Test _load_json_file with file reading error."""
         config_file = temp_dir / "test.json"
         config_file.write_text("{}", encoding="utf-8")
-        
+
         with patch('builtins.open', side_effect=PermissionError("Read denied")):
             with pytest.raises(ConfigurationError) as exc_info:
                 config_manager._load_json_file("test.json")
@@ -318,7 +317,7 @@ class TestConfigurationManager:
         """Test ConfigurationError with context information."""
         context = {"file_path": "/test/path", "error_type": "TestError"}
         error = ConfigurationError("Test configuration error", context)
-        
+
         assert str(error) == "Test configuration error"
         assert error.context == context
 
@@ -328,7 +327,7 @@ class TestConfigurationManager:
         config_file = temp_dir / "transformation_rules.json"
         with open(config_file, "w", encoding="utf-8") as f:
             f.write("{ invalid json }")
-        
+
         try:
             config_manager.load_transformation_rules()
         except ConfigurationError as e:
@@ -356,11 +355,11 @@ class TestConfigurationManager:
         results = []
         for _ in range(5):
             results.append(config_manager.load_transformation_rules())
-        
+
         # All results should be equal (same content)
         for i in range(1, len(results)):
             assert results[i] == results[0]
-        
+
         # But should be different objects (copies)
         for i in range(1, len(results)):
             assert results[i] is not results[0]
@@ -370,7 +369,7 @@ class TestConfigurationManager:
         # Try to create config manager with a file as config_dir
         dummy_file = temp_dir / "dummy_file.txt"
         dummy_file.write_text("test")
-        
+
         with patch('pathlib.Path.mkdir', side_effect=PermissionError("Cannot create directory")):
             # Should raise error during initialization
             with pytest.raises(PermissionError):
@@ -384,11 +383,11 @@ class TestConfigurationManager:
             "special_chars": "éñüñ",
             "emoji": "🚀💻🎉"
         }
-        
+
         # Save and load unicode content
         config_manager._save_json_file("unicode_test.json", unicode_config)
         loaded_config = config_manager._load_json_file("unicode_test.json")
-        
+
         assert loaded_config == unicode_config
         assert loaded_config["unicode_text"] == "Hello 世界 🌍"
 
@@ -404,7 +403,7 @@ def test_configuration_error_class():
     error = ConfigurationError("Test message")
     assert str(error) == "Test message"
     assert error.context == {}
-    
+
     # Test with context
     context = {"key": "value"}
     error_with_context = ConfigurationError("Test message", context)

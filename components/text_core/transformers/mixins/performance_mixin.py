@@ -5,10 +5,11 @@ Provides standardized performance monitoring patterns that can be mixed
 into transformer classes for consistent performance tracking.
 """
 
-import time
 import functools
-from typing import Any, Callable, Dict, Optional, List, TypeVar
+import time
 from collections import defaultdict, deque
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 T = TypeVar('T')
 
@@ -33,7 +34,7 @@ class PerformanceMixin:
         elapsed_ms: float,
         input_length: int,
         output_length: int,
-        context: Optional[Dict[str, Any]] = None
+        context: dict[str, Any] | None = None
     ) -> None:
         """Track performance metrics for a transformation.
 
@@ -65,7 +66,7 @@ class PerformanceMixin:
         if hasattr(self, 'log_performance_warning'):
             self.log_performance_warning(rule_name, elapsed_ms)
 
-    def get_performance_stats(self) -> Dict[str, Any]:
+    def get_performance_stats(self) -> dict[str, Any]:
         """Get comprehensive performance statistics.
 
         Returns:
@@ -128,7 +129,7 @@ class PerformanceMixin:
             return len(recent_list) / time_span * 60
         return 0.0
 
-    def get_slow_operations(self, threshold_ms: float = 1000.0) -> List[Dict[str, Any]]:
+    def get_slow_operations(self, threshold_ms: float = 1000.0) -> list[dict[str, Any]]:
         """Get operations that exceeded the performance threshold.
 
         Args:
@@ -153,7 +154,7 @@ class PerformanceMixin:
         self._operation_count.clear()
 
     @staticmethod
-    def performance_tracked(rule_name: Optional[str] = None):
+    def performance_tracked(rule_name: str | None = None):
         """Decorator for automatic performance tracking.
 
         Args:
@@ -205,9 +206,9 @@ class PerformanceMixin:
     def benchmark_rule(
         self,
         rule_name: str,
-        test_texts: List[str],
+        test_texts: list[str],
         iterations: int = 1
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Benchmark a specific transformation rule.
 
         Args:

@@ -7,9 +7,10 @@ separated from the main CLI interface for better maintainability.
 from __future__ import annotations
 
 import datetime
-import typer
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+import typer
 from rich.console import Console
 
 if TYPE_CHECKING:

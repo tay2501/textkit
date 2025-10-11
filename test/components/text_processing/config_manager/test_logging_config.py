@@ -4,12 +4,11 @@ This module tests the structured logging setup with different environments
 and configuration options.
 """
 
-from unittest.mock import patch, MagicMock
-import pytest
+from unittest.mock import MagicMock, patch
+
 import structlog
 from structlog.testing import LogCapture
-
-from textkit.config_manager.settings import configure_logging, _get_exception_formatter
+from textkit.config_manager.settings import _get_exception_formatter, configure_logging
 
 
 class TestLoggingConfiguration:

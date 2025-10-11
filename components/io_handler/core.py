@@ -270,7 +270,7 @@ class InputOutputManager:
         try:
             # Set clipboard to empty string (following xsel -c convention)
             pyperclip.copy("")
-            
+
             # Log the operation
             import structlog
             logger = structlog.get_logger(__name__)
@@ -279,9 +279,9 @@ class InputOutputManager:
                 operation="clear_clipboard",
                 clipboard_available=self.clipboard_available
             )
-            
+
             return True
-            
+
         except Exception as e:
             import structlog
             logger = structlog.get_logger(__name__)

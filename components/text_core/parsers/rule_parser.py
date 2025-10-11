@@ -6,19 +6,16 @@ with enhanced error handling and validation.
 """
 
 import re
-from typing import List, Tuple, NamedTuple
+from typing import NamedTuple
+
+from textkit.common_utils import get_structured_logger, validate_text_input, with_error_context
 from textkit.exceptions import ValidationError
-from textkit.common_utils import (
-    get_structured_logger,
-    validate_text_input,
-    with_error_context
-)
 
 
 class ParsedRule(NamedTuple):
     """Represents a parsed transformation rule."""
     name: str
-    args: List[str]
+    args: list[str]
 
 
 class RuleParser:
@@ -37,7 +34,7 @@ class RuleParser:
         """Initialize rule parser with logging."""
         self.logger = get_structured_logger(__name__)
 
-    def parse_rule_string(self, rule_string: str) -> List[ParsedRule]:
+    def parse_rule_string(self, rule_string: str) -> list[ParsedRule]:
         """Parse rule string into individual rules and arguments.
 
         Args:
@@ -79,7 +76,7 @@ class RuleParser:
                     cause=e
                 ).add_context("rule_string", rule_string)
 
-    def _parse_flag_format(self, rule_string: str) -> List[ParsedRule]:
+    def _parse_flag_format(self, rule_string: str) -> list[ParsedRule]:
         """Parse flag-based rule format: -rule"""
         rule_name = rule_string[1:]  # Remove the '-'
         if not rule_name:
@@ -88,7 +85,7 @@ class RuleParser:
         self.logger.debug("parsed_flag_rule", rule_name=rule_name)
         return [ParsedRule(rule_name, [])]
 
-    def _parse_slash_format(self, rule_string: str) -> List[ParsedRule]:
+    def _parse_slash_format(self, rule_string: str) -> list[ParsedRule]:
         """Parse slash-separated rule format: /rule1/rule2/..."""
         # Check for quoted arguments first
         if "'" in rule_string or '"' in rule_string:
@@ -107,7 +104,7 @@ class RuleParser:
         self.logger.debug("parsed_slash_rules", rule_count=len(rules))
         return rules
 
-    def _parse_with_quotes(self, rule_string: str) -> List[ParsedRule]:
+    def _parse_with_quotes(self, rule_string: str) -> list[ParsedRule]:
         """Parse rule string that contains quoted arguments."""
         try:
             rules = []
@@ -150,7 +147,7 @@ class RuleParser:
                 operation="quoted_parsing"
             ).add_context("rule_string", rule_string) from e
 
-    def _parse_space_separated(self, rule_string: str) -> List[ParsedRule]:
+    def _parse_space_separated(self, rule_string: str) -> list[ParsedRule]:
         """Parse space-separated rule with arguments."""
         parts = rule_string.split()
         if not parts:
@@ -162,7 +159,7 @@ class RuleParser:
         self.logger.debug("parsed_space_separated_rule", rule_name=rule_name, arg_count=len(args))
         return [ParsedRule(rule_name, args)]
 
-    def _parse_simple_rule(self, rule_string: str) -> List[ParsedRule]:
+    def _parse_simple_rule(self, rule_string: str) -> list[ParsedRule]:
         """Parse simple rule name."""
         # Validate rule name format
         if not re.match(r'^[a-zA-Z][a-zA-Z0-9_-]*$', rule_string):
@@ -171,7 +168,7 @@ class RuleParser:
         self.logger.debug("parsed_simple_rule", rule_name=rule_string)
         return [ParsedRule(rule_string, [])]
 
-    def _parse_windows_path(self, rule_string: str) -> List[ParsedRule]:
+    def _parse_windows_path(self, rule_string: str) -> list[ParsedRule]:
         """Parse Windows path format: D:/Applications/Git/rule-name"""
         git_path_match = re.match(
             r'^[A-Za-z]:[\\\\/][^/\\]*[\\\\/]Git[\\\\/](.+)',
@@ -188,7 +185,7 @@ class RuleParser:
         """Check if string looks like a Windows Git path."""
         return bool(re.match(r'^[A-Za-z]:[\\\\/][^/\\]*[\\\\/]Git[\\\\/]', rule_string))
 
-    def validate_parsed_rules(self, rules: List[ParsedRule]) -> None:
+    def validate_parsed_rules(self, rules: list[ParsedRule]) -> None:
         """Validate parsed rules for common issues.
 
         Args:

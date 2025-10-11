@@ -5,14 +5,14 @@ This module tests the integration between different components and
 end-to-end functionality of the text processing system.
 """
 
-import pytest
 import time
 from unittest.mock import Mock
 
+import pytest
 from textkit.text_core.core import TextTransformationEngine
 from textkit.text_core.transformation_base import (
-    ValidationError,
     TransformationError,
+    ValidationError,
 )
 
 

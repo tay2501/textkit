@@ -6,9 +6,9 @@ transformer classes following the DRY principle.
 """
 
 from .error_handling_mixin import ErrorHandlingMixin
-from .validation_mixin import ValidationMixin
 from .logging_mixin import LoggingMixin
 from .performance_mixin import PerformanceMixin
+from .validation_mixin import ValidationMixin
 
 __all__ = [
     "ErrorHandlingMixin",

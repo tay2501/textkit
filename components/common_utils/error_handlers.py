@@ -7,13 +7,14 @@ across different components of the text processing toolkit.
 
 import functools
 import time
-from typing import Any, Callable, Dict, Optional, Tuple, TypeVar, Union
+from collections.abc import Callable
 from contextlib import contextmanager
+from typing import Any, TypeVar
 
 from textkit.exceptions import (
     BaseTextProcessingError,
-    ValidationError,
     TransformationError,
+    ValidationError,
 )
 
 T = TypeVar('T')
@@ -23,11 +24,11 @@ R = TypeVar('R')
 def safe_execute(
     operation: Callable[..., T],
     *args,
-    default_return: Optional[T] = None,
+    default_return: T | None = None,
     logger=None,
-    context: Optional[Dict[str, Any]] = None,
+    context: dict[str, Any] | None = None,
     **kwargs
-) -> Tuple[Optional[T], Optional[Exception]]:
+) -> tuple[T | None, Exception | None]:
     """Execute operation safely following EAFP principles.
 
     Args:
@@ -60,8 +61,8 @@ def handle_validation_error(
     validation_func: Callable[[T], R],
     data: T,
     logger=None,
-    context: Optional[Dict[str, Any]] = None
-) -> Tuple[Optional[R], Optional[ValidationError]]:
+    context: dict[str, Any] | None = None
+) -> tuple[R | None, ValidationError | None]:
     """Handle validation with proper EAFP error handling.
 
     Args:
@@ -102,7 +103,7 @@ def handle_validation_error(
 def with_error_context(
     operation_name: str,
     logger=None,
-    context: Optional[Dict[str, Any]] = None,
+    context: dict[str, Any] | None = None,
     reraise: bool = True
 ):
     """Context manager for enhanced error handling and logging.
@@ -184,7 +185,7 @@ def retry_on_failure(
     max_attempts: int = 3,
     delay_seconds: float = 0.1,
     backoff_factor: float = 2.0,
-    retry_on: Optional[Tuple[type, ...]] = None,
+    retry_on: tuple[type, ...] | None = None,
     logger=None
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Decorator for retrying operations on failure.

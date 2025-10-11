@@ -5,7 +5,8 @@ Provides specialized exceptions for different types of validation failures
 with enhanced context for debugging.
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
+
 from .base_exceptions import BaseTextProcessingError
 
 
@@ -19,9 +20,9 @@ class ValidationError(BaseTextProcessingError):
     def __init__(
         self,
         message: str,
-        field_name: Optional[str] = None,
+        field_name: str | None = None,
         invalid_value: Any = None,
-        expected_type: Optional[type] = None,
+        expected_type: type | None = None,
         **kwargs
     ) -> None:
         """Initialize validation error.
@@ -55,7 +56,7 @@ class ParameterValidationError(ValidationError):
         message: str,
         parameter_name: str,
         parameter_value: Any = None,
-        constraints: Optional[Dict[str, Any]] = None,
+        constraints: dict[str, Any] | None = None,
         **kwargs
     ) -> None:
         """Initialize parameter validation error.
@@ -87,8 +88,8 @@ class DataValidationError(ValidationError):
     def __init__(
         self,
         message: str,
-        data_type: Optional[str] = None,
-        validation_rules: Optional[List[str]] = None,
+        data_type: str | None = None,
+        validation_rules: list[str] | None = None,
         **kwargs
     ) -> None:
         """Initialize data validation error.
@@ -116,9 +117,9 @@ class SchemaValidationError(ValidationError):
     def __init__(
         self,
         message: str,
-        schema_path: Optional[str] = None,
-        expected_schema: Optional[Dict[str, Any]] = None,
-        actual_structure: Optional[Dict[str, Any]] = None,
+        schema_path: str | None = None,
+        expected_schema: dict[str, Any] | None = None,
+        actual_structure: dict[str, Any] | None = None,
         **kwargs
     ) -> None:
         """Initialize schema validation error.

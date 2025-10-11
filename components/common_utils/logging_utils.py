@@ -5,10 +5,11 @@ Provides consistent logging patterns across all components
 with performance monitoring and structured data support.
 """
 
-import time
 import functools
-from typing import Any, Dict, Optional, Union, Callable, TypeVar
+import time
+from collections.abc import Callable
 from contextlib import contextmanager
+from typing import Any, TypeVar
 
 try:
     import structlog
@@ -20,7 +21,7 @@ except ImportError:
 T = TypeVar('T')
 
 
-def get_structured_logger(name: str, context: Optional[Dict[str, Any]] = None):
+def get_structured_logger(name: str, context: dict[str, Any] | None = None):
     """Get a structured logger instance.
 
     Args:
@@ -53,7 +54,7 @@ def get_structured_logger(name: str, context: Optional[Dict[str, Any]] = None):
 def log_performance(
     logger,
     operation: str,
-    context: Optional[Dict[str, Any]] = None,
+    context: dict[str, Any] | None = None,
     log_start: bool = True,
     log_end: bool = True
 ):
@@ -102,7 +103,7 @@ def log_performance(
 def log_operation_start(
     logger,
     operation: str,
-    context: Optional[Dict[str, Any]] = None
+    context: dict[str, Any] | None = None
 ) -> float:
     """Log the start of an operation and return start time.
 
@@ -128,9 +129,9 @@ def log_operation_end(
     logger,
     operation: str,
     start_time: float,
-    context: Optional[Dict[str, Any]] = None,
+    context: dict[str, Any] | None = None,
     success: bool = True,
-    error: Optional[Exception] = None
+    error: Exception | None = None
 ) -> None:
     """Log the end of an operation with timing information.
 
@@ -163,7 +164,7 @@ def log_operation_end(
             )
 
 
-def create_log_context(**kwargs) -> Dict[str, Any]:
+def create_log_context(**kwargs) -> dict[str, Any]:
     """Create a logging context dictionary with standard fields.
 
     Args:
@@ -191,7 +192,7 @@ def create_log_context(**kwargs) -> Dict[str, Any]:
 
 def performance_monitor(
     logger,
-    operation_name: Optional[str] = None,
+    operation_name: str | None = None,
     log_args: bool = False,
     log_result: bool = False
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:

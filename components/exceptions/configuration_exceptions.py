@@ -5,8 +5,9 @@ Provides specialized exceptions for configuration-related failures
 with enhanced context for troubleshooting.
 """
 
-from typing import Any, Dict, List, Optional, Union
 from pathlib import Path
+from typing import Any
+
 from .base_exceptions import BaseTextProcessingError
 
 
@@ -19,8 +20,8 @@ class ConfigurationError(BaseTextProcessingError):
     def __init__(
         self,
         message: str,
-        config_source: Optional[str] = None,
-        config_key: Optional[str] = None,
+        config_source: str | None = None,
+        config_key: str | None = None,
         **kwargs
     ) -> None:
         """Initialize configuration error.
@@ -45,9 +46,9 @@ class ConfigurationLoadError(ConfigurationError):
     def __init__(
         self,
         message: str,
-        config_path: Optional[Union[str, Path]] = None,
-        format_type: Optional[str] = None,
-        parse_error: Optional[str] = None,
+        config_path: str | Path | None = None,
+        format_type: str | None = None,
+        parse_error: str | None = None,
         **kwargs
     ) -> None:
         """Initialize configuration load error.
@@ -75,9 +76,9 @@ class ConfigurationValidationError(ConfigurationError):
     def __init__(
         self,
         message: str,
-        invalid_keys: Optional[List[str]] = None,
-        missing_keys: Optional[List[str]] = None,
-        validation_rules: Optional[Dict[str, Any]] = None,
+        invalid_keys: list[str] | None = None,
+        missing_keys: list[str] | None = None,
+        validation_rules: dict[str, Any] | None = None,
         **kwargs
     ) -> None:
         """Initialize configuration validation error.
@@ -105,8 +106,8 @@ class ConfigurationNotFoundError(ConfigurationError):
     def __init__(
         self,
         message: str,
-        search_paths: Optional[List[Union[str, Path]]] = None,
-        config_name: Optional[str] = None,
+        search_paths: list[str | Path] | None = None,
+        config_name: str | None = None,
         **kwargs
     ) -> None:
         """Initialize configuration not found error.

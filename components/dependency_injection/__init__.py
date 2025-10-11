@@ -9,9 +9,9 @@ from lagom import Container, Singleton, injectable
 
 # Re-export DI-specific exceptions
 from .exceptions import (
-    ServiceNotFoundError,
     CircularDependencyError,
     DependencyResolutionError,
+    ServiceNotFoundError,
 )
 
 # Global container instance

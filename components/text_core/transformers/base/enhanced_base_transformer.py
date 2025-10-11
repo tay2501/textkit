@@ -5,18 +5,13 @@ Provides a comprehensive base class for transformers that includes
 error handling, validation, logging, and performance monitoring.
 """
 
-from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
+from abc import abstractmethod
 
 from textkit.exceptions import TransformationError
-from ..mixins import (
-    ErrorHandlingMixin,
-    ValidationMixin,
-    LoggingMixin,
-    PerformanceMixin
-)
-from ..base_transformer import BaseTransformer
+
 from ...types import TransformationRule
+from ..base_transformer import BaseTransformer
+from ..mixins import ErrorHandlingMixin, LoggingMixin, PerformanceMixin, ValidationMixin
 
 
 class EnhancedBaseTransformer(
@@ -44,7 +39,7 @@ class EnhancedBaseTransformer(
         import structlog
         self.logger = structlog.get_logger(self.__class__.__name__)
 
-        self._rules: Dict[str, TransformationRule] = {}
+        self._rules: dict[str, TransformationRule] = {}
         self._initialize_rules()
         self.log_rule_initialization(len(self._rules))
 
@@ -53,7 +48,7 @@ class EnhancedBaseTransformer(
         """Initialize transformation rules. Must be implemented by subclasses."""
         pass
 
-    def get_rules(self) -> Dict[str, TransformationRule]:
+    def get_rules(self) -> dict[str, TransformationRule]:
         """Return available transformation rules."""
         return self._rules.copy()
 
@@ -65,7 +60,7 @@ class EnhancedBaseTransformer(
         self,
         text: str,
         rule_name: str,
-        args: Optional[List[str]] = None
+        args: list[str] | None = None
     ) -> str:
         """Apply transformation to text with enhanced capabilities.
 
@@ -152,7 +147,7 @@ class EnhancedBaseTransformer(
         self,
         text: str,
         rule_name: str,
-        args: Optional[List[str]]
+        args: list[str] | None
     ) -> str:
         """Apply transformation with safe execution patterns.
 
@@ -188,7 +183,7 @@ class EnhancedBaseTransformer(
         self,
         text: str,
         rule: TransformationRule,
-        args: List[str]
+        args: list[str]
     ) -> str:
         """Apply transformation that requires arguments.
 
@@ -199,18 +194,18 @@ class EnhancedBaseTransformer(
         # Subclasses should override this for complex argument handling
         return rule.function(text)
 
-    def get_rule_names(self) -> List[str]:
+    def get_rule_names(self) -> list[str]:
         """Return list of supported rule names."""
         return list(self._rules.keys())
 
-    def get_rules_by_type(self, rule_type) -> Dict[str, TransformationRule]:
+    def get_rules_by_type(self, rule_type) -> dict[str, TransformationRule]:
         """Return rules filtered by type."""
         return {
             name: rule for name, rule in self._rules.items()
             if rule.rule_type == rule_type
         }
 
-    def get_transformer_stats(self) -> Dict[str, any]:
+    def get_transformer_stats(self) -> dict[str, any]:
         """Get comprehensive transformer statistics.
 
         Returns:
@@ -228,7 +223,7 @@ class EnhancedBaseTransformer(
 
         return base_stats
 
-    def validate_all_rules(self) -> Dict[str, any]:
+    def validate_all_rules(self) -> dict[str, any]:
         """Validate all rules for consistency and correctness.
 
         Returns:

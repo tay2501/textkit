@@ -1,19 +1,18 @@
 """Factory for creating transformation strategies and managing rules."""
 
-from typing import Dict, List, Type
 
-from ..types import TransformationRule
 from ..transformers import (
     BaseTransformer,
     BasicTransformer,
     CaseTransformer,
+    EncodingTransformer,
     HashTransformer,
-    StringTransformer,
+    JapaneseTransformer,
     JsonTransformer,
     LineEndingTransformer,
-    EncodingTransformer,
-    JapaneseTransformer,
+    StringTransformer,
 )
+from ..types import TransformationRule
 
 
 class TransformationFactory:
@@ -26,8 +25,8 @@ class TransformationFactory:
 
     def __init__(self) -> None:
         """Initialize the factory with default transformers."""
-        self._transformer_classes: Dict[str, Type[BaseTransformer]] = {}
-        self._transformer_instances: Dict[str, BaseTransformer] = {}
+        self._transformer_classes: dict[str, type[BaseTransformer]] = {}
+        self._transformer_instances: dict[str, BaseTransformer] = {}
         self._register_default_transformers()
 
     def _register_default_transformers(self) -> None:
@@ -41,7 +40,7 @@ class TransformationFactory:
         self.register_transformer("encoding", EncodingTransformer)
         self.register_transformer("japanese", JapaneseTransformer)
 
-    def register_transformer(self, name: str, transformer_class: Type[BaseTransformer]) -> None:
+    def register_transformer(self, name: str, transformer_class: type[BaseTransformer]) -> None:
         """Register a new transformer strategy.
 
         Args:
@@ -80,7 +79,7 @@ class TransformationFactory:
 
         return self._transformer_instances[name]
 
-    def get_all_rules(self) -> Dict[str, TransformationRule]:
+    def get_all_rules(self) -> dict[str, TransformationRule]:
         """Get all transformation rules from all registered transformers.
 
         Returns:
@@ -89,8 +88,8 @@ class TransformationFactory:
         Raises:
             ValueError: If rule name conflicts exist between transformers
         """
-        all_rules: Dict[str, TransformationRule] = {}
-        conflicts: List[str] = []
+        all_rules: dict[str, TransformationRule] = {}
+        conflicts: list[str] = []
 
         for transformer_name in self._transformer_classes:
             transformer = self.get_transformer(transformer_name)
@@ -125,7 +124,7 @@ class TransformationFactory:
 
         raise KeyError(f"No transformer found for rule '{rule_name}'")
 
-    def get_available_rules(self) -> List[str]:
+    def get_available_rules(self) -> list[str]:
         """Get list of all available rule names.
 
         Returns:
@@ -133,7 +132,7 @@ class TransformationFactory:
         """
         return sorted(self.get_all_rules().keys())
 
-    def get_registered_transformers(self) -> List[str]:
+    def get_registered_transformers(self) -> list[str]:
         """Get list of registered transformer names.
 
         Returns:

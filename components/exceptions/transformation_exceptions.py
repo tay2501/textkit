@@ -5,7 +5,8 @@ Provides specialized exceptions for different types of transformation failures
 with enhanced context for debugging and recovery.
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
+
 from .base_exceptions import BaseTextProcessingError
 
 
@@ -18,9 +19,9 @@ class TransformationError(BaseTextProcessingError):
     def __init__(
         self,
         message: str,
-        rule_name: Optional[str] = None,
-        input_length: Optional[int] = None,
-        processing_stage: Optional[str] = None,
+        rule_name: str | None = None,
+        input_length: int | None = None,
+        processing_stage: str | None = None,
         **kwargs
     ) -> None:
         """Initialize transformation error.
@@ -49,7 +50,7 @@ class TransformationTimeoutError(TransformationError):
         self,
         message: str,
         timeout_seconds: float,
-        elapsed_seconds: Optional[float] = None,
+        elapsed_seconds: float | None = None,
         **kwargs
     ) -> None:
         """Initialize transformation timeout error.
@@ -73,8 +74,8 @@ class TransformationRuleError(TransformationError):
         self,
         message: str,
         rule_name: str,
-        rule_args: Optional[List[str]] = None,
-        available_rules: Optional[List[str]] = None,
+        rule_args: list[str] | None = None,
+        available_rules: list[str] | None = None,
         **kwargs
     ) -> None:
         """Initialize transformation rule error.
@@ -100,10 +101,10 @@ class EncodingTransformationError(TransformationError):
     def __init__(
         self,
         message: str,
-        source_encoding: Optional[str] = None,
-        target_encoding: Optional[str] = None,
-        error_position: Optional[int] = None,
-        encoding_confidence: Optional[float] = None,
+        source_encoding: str | None = None,
+        target_encoding: str | None = None,
+        error_position: int | None = None,
+        encoding_confidence: float | None = None,
         **kwargs
     ) -> None:
         """Initialize encoding transformation error.
@@ -134,9 +135,9 @@ class CryptoTransformationError(TransformationError):
     def __init__(
         self,
         message: str,
-        crypto_operation: Optional[str] = None,
-        algorithm: Optional[str] = None,
-        key_info: Optional[Dict[str, Any]] = None,
+        crypto_operation: str | None = None,
+        algorithm: str | None = None,
+        key_info: dict[str, Any] | None = None,
         **kwargs
     ) -> None:
         """Initialize crypto transformation error.

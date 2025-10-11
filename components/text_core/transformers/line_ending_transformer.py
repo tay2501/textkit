@@ -5,10 +5,9 @@ supporting conversion between different line ending formats (Unix, Windows, Mac 
 """
 
 import re
-from typing import List
 
-from .base_transformer import BaseTransformer
 from ..types import TransformationRule, TransformationRuleType
+from .base_transformer import BaseTransformer
 
 
 class LineEndingTransformer(BaseTransformer):
@@ -84,7 +83,7 @@ class LineEndingTransformer(BaseTransformer):
             ),
         }
 
-    def _apply_with_args(self, text: str, rule: TransformationRule, args: List[str]) -> str:
+    def _apply_with_args(self, text: str, rule: TransformationRule, args: list[str]) -> str:
         """Apply transformation that requires arguments."""
         if rule.name == "tr":
             if len(args) < 2:

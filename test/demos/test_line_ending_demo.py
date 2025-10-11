@@ -3,6 +3,7 @@
 
 import sys
 from pathlib import Path
+
 from textkit.text_core.transformers.line_ending_transformer import LineEndingTransformer
 
 # Add the project root to sys.path

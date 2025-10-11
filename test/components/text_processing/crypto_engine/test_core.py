@@ -1,12 +1,15 @@
-from textkit.crypto_engine import core
-
-
-import pytest
-import tempfile
 import shutil
+import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
-from textkit.crypto_engine.core import CryptographyManager, CryptographyError, CRYPTOGRAPHY_AVAILABLE
+
+import pytest
+from textkit.crypto_engine import core
+from textkit.crypto_engine.core import (
+    CRYPTOGRAPHY_AVAILABLE,
+    CryptographyError,
+    CryptographyManager,
+)
 
 
 class TestCryptographyManager:
@@ -109,12 +112,12 @@ class TestCryptographyManager:
     def test_generate_and_save_key_pair(self, crypto_manager):
         """Test key pair generation and saving."""
         private_key, public_key = crypto_manager._generate_and_save_key_pair()
-        
+
         assert private_key is not None
         assert public_key is not None
         assert crypto_manager.private_key_path.exists()
         assert crypto_manager.public_key_path.exists()
-        
+
         # Check file permissions (Unix-like systems)
         import stat
         if hasattr(stat, 'S_IMODE'):
@@ -128,7 +131,7 @@ class TestCryptographyManager:
         """Test loading existing key pair."""
         # First generate keys
         crypto_manager._generate_and_save_key_pair()
-        
+
         # Then load them
         private_key, public_key = crypto_manager._load_key_pair()
         assert private_key is not None
@@ -149,7 +152,7 @@ class TestCryptographyManager:
         # Generate keys first
         crypto_manager.ensure_key_pair()
         original_mtime = crypto_manager.private_key_path.stat().st_mtime
-        
+
         # Call again - should load existing
         private_key, public_key = crypto_manager.ensure_key_pair()
         assert private_key is not None
@@ -171,7 +174,7 @@ class TestCryptographyManager:
         encrypted = crypto_manager.encrypt_text(test_text)
         assert encrypted != test_text
         assert isinstance(encrypted, str)
-        
+
         decrypted = crypto_manager.decrypt_text(encrypted)
         assert decrypted == test_text
 
@@ -181,10 +184,10 @@ class TestCryptographyManager:
         text = "Test message"
         encrypted1 = crypto_manager.encrypt_text(text)
         encrypted2 = crypto_manager.encrypt_text(text)
-        
+
         # Should be different due to random AES key and IV
         assert encrypted1 != encrypted2
-        
+
         # But both should decrypt to the same text
         assert crypto_manager.decrypt_text(encrypted1) == text
         assert crypto_manager.decrypt_text(encrypted2) == text
@@ -209,10 +212,10 @@ class TestCryptographyManager:
         """Test decryption with corrupted encrypted data."""
         # Get valid encrypted data first
         encrypted = crypto_manager.encrypt_text("test")
-        
+
         # Corrupt it by changing some characters
         corrupted = encrypted[:-10] + "CORRUPTED="
-        
+
         with pytest.raises(CryptographyError) as exc_info:
             crypto_manager.decrypt_text(corrupted)
         assert "Decryption failed" in str(exc_info.value)
@@ -222,7 +225,7 @@ class TestCryptographyManager:
         """Test decryption with data that's too short."""
         import base64
         short_data = base64.b64encode(b"too_short").decode('ascii')
-        
+
         with pytest.raises(CryptographyError) as exc_info:
             crypto_manager.decrypt_text(short_data)
         assert "Decryption failed" in str(exc_info.value)
@@ -239,7 +242,7 @@ class TestCryptographyManager:
         """Test handling of configuration loading errors."""
         mock_config = Mock()
         mock_config.load_security_config.side_effect = Exception("Config error")
-        
+
         # Should still initialize with defaults despite config error
         with patch.object(CryptographyManager, '__init__', lambda x, config_manager=None: None):
             manager = CryptographyManager()
@@ -257,7 +260,7 @@ class TestCryptographyManager:
         """Test CryptographyError with context information."""
         context = {"test_key": "test_value", "error_type": "TestError"}
         error = CryptographyError("Test error message", context)
-        
+
         assert str(error) == "Test error message"
         assert error.context == context
 
@@ -266,7 +269,7 @@ class TestCryptographyManager:
         """Test loading key pair when files are missing."""
         # Ensure directory exists but files don't
         crypto_manager._ensure_key_directory()
-        
+
         with pytest.raises(CryptographyError) as exc_info:
             crypto_manager._load_key_pair()
         assert "Failed to load key pair" in str(exc_info.value)

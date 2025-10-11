@@ -5,7 +5,7 @@ This component provides encryption, decryption, and hashing capabilities
 for secure text processing operations.
 """
 
-from .core import CryptographyManager, CryptographyError
+from .core import CryptographyError, CryptographyManager
 
 __all__ = [
     "CryptographyManager",

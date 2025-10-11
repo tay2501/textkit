@@ -6,8 +6,9 @@ separated from the main CLI interface for better maintainability.
 
 from __future__ import annotations
 
-import typer
 from typing import Annotated
+
+import typer
 from rich.console import Console
 
 console = Console()
@@ -149,7 +150,7 @@ def iconv_command_func(
         """
         # Display deprecation warning (without emoji for Windows terminal compatibility)
         console.print("[yellow]Warning: 'textkit iconv' is deprecated. Use 'textkit text encode' instead.[/yellow]")
-        
+
         try:
             from textkit.text_core.transformers.encoding_transformer import EncodingTransformer
 

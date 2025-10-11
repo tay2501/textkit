@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Protocol, List, Tuple
+from typing import Protocol
+
 from pydantic import BaseModel
 
 
@@ -14,7 +15,7 @@ class ParsedRule(BaseModel):
         args: Arguments for the rule
     """
     name: str
-    args: List[str] = []
+    args: list[str] = []
 
 
 class RuleParserProtocol(Protocol):
@@ -24,7 +25,7 @@ class RuleParserProtocol(Protocol):
     enabling dependency injection and testing.
     """
 
-    def parse(self, rule_string: str) -> List[Tuple[str, List[str]]]:
+    def parse(self, rule_string: str) -> list[tuple[str, list[str]]]:
         """Parse a rule string into structured rules.
 
         Args:

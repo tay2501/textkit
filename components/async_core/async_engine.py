@@ -9,21 +9,23 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import AsyncIterator, Optional, List, Tuple, Dict, Any, Union
-from functools import wraps
+from collections.abc import AsyncIterator
 from concurrent.futures import ThreadPoolExecutor
+from functools import wraps
+from typing import Any
+
 import structlog
 
-from ..text_core.models import TextTransformationRequest
-from ..text_core.core import TextTransformationEngine
 from ..config_manager.settings import ApplicationSettings, get_settings
 from ..exceptions import TransformationError
+from ..text_core.core import TextTransformationEngine
+from ..text_core.models import TextTransformationRequest
 
 # Initialize logger
 logger = structlog.get_logger(__name__)
 
 # Global thread pool for CPU-bound operations
-_cpu_executor: Optional[ThreadPoolExecutor] = None
+_cpu_executor: ThreadPoolExecutor | None = None
 
 
 def get_cpu_executor() -> ThreadPoolExecutor:
@@ -52,8 +54,8 @@ class AsyncTextTransformationEngine:
 
     def __init__(
         self,
-        sync_engine: Optional[TextTransformationEngine] = None,
-        settings: Optional[ApplicationSettings] = None,
+        sync_engine: TextTransformationEngine | None = None,
+        settings: ApplicationSettings | None = None,
         chunk_size: int = 1024 * 1024,  # 1MB chunks
         max_concurrent_chunks: int = 4
     ) -> None:
@@ -89,7 +91,7 @@ class AsyncTextTransformationEngine:
         text: str,
         rule_string: str,
         enable_streaming: bool = False
-    ) -> Union[str, AsyncIterator[str]]:
+    ) -> str | AsyncIterator[str]:
         """Transform text asynchronously.
 
         Args:
@@ -182,7 +184,7 @@ class AsyncTextTransformationEngine:
             # Process chunks concurrently with semaphore
             semaphore = asyncio.Semaphore(self.max_concurrent_chunks)
 
-            async def process_chunk(chunk: str, chunk_id: int) -> Tuple[int, str]:
+            async def process_chunk(chunk: str, chunk_id: int) -> tuple[int, str]:
                 async with semaphore:
                     loop = asyncio.get_event_loop()
                     result = await loop.run_in_executor(
@@ -220,7 +222,7 @@ class AsyncTextTransformationEngine:
             )
             raise TransformationError(f"Streaming transformation failed: {e}") from e
 
-    def _create_chunks(self, text: str) -> List[str]:
+    def _create_chunks(self, text: str) -> list[str]:
         """Create text chunks for processing.
 
         Args:
@@ -255,8 +257,8 @@ class AsyncTextTransformationEngine:
 
     async def transform_batch_async(
         self,
-        requests: List[Tuple[str, str]]
-    ) -> List[str]:
+        requests: list[tuple[str, str]]
+    ) -> list[str]:
         """Transform multiple texts concurrently.
 
         Args:
@@ -321,7 +323,7 @@ class AsyncTextTransformationEngine:
                 self._stats['total_characters'] / self._stats['total_time']
             )
 
-    def get_performance_stats(self) -> Dict[str, Any]:
+    def get_performance_stats(self) -> dict[str, Any]:
         """Get performance statistics.
 
         Returns:
@@ -336,7 +338,7 @@ class AsyncTextTransformationEngine:
             )
         }
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Perform async health check.
 
         Returns:

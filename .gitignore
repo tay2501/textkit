@@ -70,6 +70,8 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/_static/
+docs/_templates/
 
 # PyBuilder
 .pybuilder/
@@ -91,8 +93,7 @@ ipython_config.py
 # https://docs.astral.sh/uv/
 # For applications: commit uv.lock to ensure reproducible builds
 # For libraries: you may choose to ignore uv.lock
-# uv.lock
-.python-version  # Personal Python version preference
+# Note: This project commits uv.lock for reproducible builds
 
 # pipenv
 #   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
@@ -139,6 +140,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+CLAUDE.md
+.claude
+.serena
 
 # API Keys and Credentials (Security Critical)
 **/config/secrets.yml
@@ -255,8 +259,13 @@ test-reports/
 
 # Personal Development Environment Settings
 .direnv/
-.claude
-.serena
+
+# Claude Code and Serena MCP settings (project-specific, should be committed)
+# .claude/          # Claude Code project settings
+# .serena/          # Serena MCP agent settings
+# Note: These directories contain project configuration and should be tracked
+.claude/settings.local.json
+.serena/cache/
 
 # IDE and Editor Personal Settings
 .vscode/settings.json
@@ -327,3 +336,35 @@ temp/
 
 # Pyright type checker
 pyrightconfig.json
+
+# Polylith-specific
+# Build artifacts
+.polylith/cache/
+workspace-info.json
+
+# Project-specific build outputs
+projects/*/dist/
+projects/*/build/
+projects/*/.venv/
+
+# Development and demo files
+demos/output/
+demos/temp/
+cache/
+rsa/*.pem
+rsa/*.key
+
+# IDE project files (keep .vscode and .idea structure but ignore personal settings)
+.vscode/*.log
+.idea/*.log
+.idea/vcs.xml
+.idea/misc.xml
+
+# Local configuration overrides
+*.local.toml
+*.local.json
+config.local.py
+
+# Test outputs
+test-output/
+.test-results/

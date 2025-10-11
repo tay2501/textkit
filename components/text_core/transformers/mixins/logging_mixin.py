@@ -5,15 +5,12 @@ Provides standardized logging patterns that can be mixed
 into transformer classes for consistent logging behavior.
 """
 
-import time
 import functools
-from typing import Any, Callable, Dict, Optional, TypeVar
+import time
+from collections.abc import Callable
+from typing import Any, TypeVar
 
-from textkit.common_utils import (
-    get_structured_logger,
-    log_performance,
-    create_log_context
-)
+from textkit.common_utils import create_log_context, get_structured_logger
 
 T = TypeVar('T')
 
@@ -34,7 +31,7 @@ class LoggingMixin:
         self,
         rule_name: str,
         text: str,
-        args: Optional[list] = None
+        args: list | None = None
     ) -> float:
         """Log the start of a transformation.
 
@@ -66,7 +63,7 @@ class LoggingMixin:
         input_text: str,
         result: str,
         success: bool = True,
-        error: Optional[Exception] = None
+        error: Exception | None = None
     ) -> None:
         """Log the end of a transformation.
 
@@ -116,7 +113,7 @@ class LoggingMixin:
         rule_name: str,
         elapsed_ms: float,
         threshold_ms: float = 1000.0,
-        context: Optional[Dict[str, Any]] = None
+        context: dict[str, Any] | None = None
     ) -> None:
         """Log performance warning for slow transformations.
 
@@ -139,7 +136,7 @@ class LoggingMixin:
             self.logger.warning("transformation_performance_warning", **log_context)
 
     @staticmethod
-    def logged_transformation(rule_name: Optional[str] = None):
+    def logged_transformation(rule_name: str | None = None):
         """Decorator for automatic transformation logging.
 
         Args:

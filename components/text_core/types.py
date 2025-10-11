@@ -10,20 +10,31 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
-from enum import auto, Enum
+from enum import Enum, auto
 from pathlib import Path
 
 # Import ValidationError for TypeGuard functions
 # Note: This creates a circular import, so we'll use TYPE_CHECKING
-from typing import Any, Dict, List, Protocol, runtime_checkable, TypeGuard, TypeVar
-
-
-
 # Type variables for generic classes
 # Pydantic imports for modern validation patterns
-from typing import Annotated, Optional
+from typing import (
+    Annotated,
+    Any,
+    Protocol,
+    TypeGuard,
+    TypeVar,
+    runtime_checkable,
+)
+
 try:
-    from pydantic import BaseModel, Field, computed_field, field_validator, ConfigDict, ValidationInfo
+    from pydantic import (
+        BaseModel,
+        ConfigDict,
+        Field,
+        ValidationInfo,
+        computed_field,
+        field_validator,
+    )
 except ImportError:
     # Fallback for environments where pydantic is not available
     class BaseModel:
@@ -103,58 +114,58 @@ class TransformationRule(BaseModel):
     This model provides type-safe validation and immutability for rule definitions.
     Uses modern Pydantic v2 patterns for field validation and constraints.
     """
-    
+
     model_config = ConfigDict(
         frozen=True,  # Immutable like the original dataclass
         str_strip_whitespace=True,
         validate_assignment=True,
         extra='forbid'
     )
-    
+
     name: Annotated[str, Field(
         min_length=1,
         max_length=50,
         description="Human-readable rule name or identifier"
     )]
-    
+
     description: Annotated[str, Field(
         min_length=1,
         max_length=500,
         description="Human-readable description of the rule"
     )]
-    
+
     example: Annotated[str, Field(
         min_length=1,
         max_length=200,
         description="Example usage of the rule"
     )]
-    
+
     function: Callable[[str], str] = Field(
         description="Function that implements the transformation"
     )
-    
+
     requires_args: bool = Field(
         default=False,
         description="Whether this rule requires additional arguments"
     )
-    
-    default_args: Optional[list[str]] = Field(
+
+    default_args: list[str] | None = Field(
         default=None,
         description="Default arguments for the rule"
     )
-    
+
     rule_type: TransformationRuleType = Field(
         default=TransformationRuleType.BASIC,
         description="Category of the transformation rule"
     )
-    
+
     @field_validator('default_args', mode='after')
     @classmethod
     def validate_default_args_consistency(
         cls,
-        v: Optional[list[str]],
+        v: list[str] | None,
         info: ValidationInfo
-    ) -> Optional[list[str]]:
+    ) -> list[str] | None:
         """Ensure default_args is provided when requires_args is True."""
         if info.context and 'requires_args' in info.context:
             requires_args = info.context['requires_args']
@@ -177,13 +188,13 @@ class TransformationRule(BaseModel):
             )
 
         return v
-    
+
     @computed_field
     @property
     def is_configurable(self) -> bool:
         """Computed field indicating if the rule can be configured."""
         return self.requires_args and bool(self.default_args)
-    
+
     @computed_field
     @property
     def arg_count(self) -> int:
@@ -198,8 +209,8 @@ FactoryT = TypeVar("FactoryT")
 @runtime_checkable
 class TransformerProtocol(Protocol):
     """Protocol for transformer strategies."""
-    
-    def get_rules(self) -> Dict[str, TransformationRule]:
+
+    def get_rules(self) -> dict[str, TransformationRule]:
         """Return available transformation rules."""
         ...
 
@@ -207,22 +218,22 @@ class TransformerProtocol(Protocol):
         """Check if transformer supports given rule."""
         ...
 
-    def transform(self, text: str, rule_name: str, args: List[str] | None = None) -> str:
+    def transform(self, text: str, rule_name: str, args: list[str] | None = None) -> str:
         """Apply transformation to text."""
         ...
 
-@runtime_checkable  
+@runtime_checkable
 class TransformationFactoryProtocol(Protocol):
     """Protocol for transformation factories."""
-    
+
     def get_transformer_for_rule(self, rule_name: str) -> TransformerProtocol:
         """Find transformer that supports a specific rule."""
         ...
-    
-    def get_all_rules(self) -> Dict[str, TransformationRule]:
+
+    def get_all_rules(self) -> dict[str, TransformationRule]:
         """Get all transformation rules from all transformers."""
         ...
-    
+
     def supports_rule(self, rule_name: str) -> bool:
         """Check if any transformer supports the given rule."""
         ...
@@ -766,7 +777,7 @@ def is_transformation_factory(obj: Any) -> TypeGuard[TransformationFactoryProtoc
     """
     return (
         hasattr(obj, "get_transformer_for_rule")
-        and hasattr(obj, "get_all_rules") 
+        and hasattr(obj, "get_all_rules")
         and hasattr(obj, "supports_rule")
         and callable(obj.get_transformer_for_rule)
         and callable(obj.get_all_rules)

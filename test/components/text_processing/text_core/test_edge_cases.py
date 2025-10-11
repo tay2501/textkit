@@ -10,8 +10,8 @@ from textkit.text_core.transformers import (
     BasicTransformer,
     CaseTransformer,
     HashTransformer,
-    StringTransformer,
     JsonTransformer,
+    StringTransformer,
 )
 
 

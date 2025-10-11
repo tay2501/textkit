@@ -3,6 +3,7 @@
 
 import sys
 from pathlib import Path
+
 from textkit.text_core.transformers.encoding_transformer import EncodingTransformer
 
 # Add the project root to sys.path

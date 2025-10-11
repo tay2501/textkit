@@ -15,8 +15,9 @@ Design References:
 
 from __future__ import annotations
 
-import typer
 from typing import Annotated
+
+import typer
 from rich.console import Console
 from rich.table import Table
 

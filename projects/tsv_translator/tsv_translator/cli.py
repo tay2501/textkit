@@ -1,13 +1,6 @@
 """CLI interface for TSV Translator."""
 
-import argparse
-import sys
-from pathlib import Path
-
-from .width_converter import convert_width
-
-
-def read_text_input(input_source: str | None = None) -> str:
+import argparseimport sysfrom pathlib import Pathfrom .width_converter import convert_widthdef read_text_input(input_source: str | None = None) -> str:
     """Read text from file or stdin."""
     if input_source and input_source != '-':
         # Read from file

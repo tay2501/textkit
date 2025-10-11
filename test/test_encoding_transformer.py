@@ -1,14 +1,16 @@
 """Tests for encoding transformation functionality."""
 
-import pytest
 import sys
 from pathlib import Path
+
+import pytest
 
 # Add the project root to sys.path to enable imports
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from textkit.text_core.transformers.encoding_transformer import EncodingTransformer  # noqa: E402
+
 
 class TestEncodingTransformer:
     """Test cases for EncodingTransformer."""

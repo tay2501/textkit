@@ -7,8 +7,9 @@ with proper error handling and validation.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Callable
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
@@ -19,9 +20,9 @@ class CommandContext:
     for command execution, promoting loose coupling.
     """
     command_name: str
-    arguments: Dict[str, Any]
-    options: Dict[str, Any]
-    metadata: Dict[str, Any] = None
+    arguments: dict[str, Any]
+    options: dict[str, Any]
+    metadata: dict[str, Any] = None
 
     def __post_init__(self) -> None:
         """Initialize metadata if not provided."""
@@ -38,7 +39,7 @@ class CommandProcessor:
 
     def __init__(self) -> None:
         """Initialize the command processor."""
-        self._commands: Dict[str, Callable] = {}
+        self._commands: dict[str, Callable] = {}
         self._middleware: list[Callable] = []
 
     def register_command(self, name: str, handler: Callable) -> None:

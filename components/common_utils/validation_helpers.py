@@ -5,15 +5,14 @@ Provides reusable validation functions that can be applied
 across different components with consistent error handling.
 """
 
-import re
 import codecs
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any, TypeVar
 
 from textkit.exceptions import (
-    ValidationError,
-    ParameterValidationError,
     DataValidationError,
+    ParameterValidationError,
 )
 
 T = TypeVar('T')
@@ -22,7 +21,7 @@ T = TypeVar('T')
 def validate_text_input(
     text: Any,
     allow_empty: bool = True,
-    max_length: Optional[int] = None,
+    max_length: int | None = None,
     min_length: int = 0,
     parameter_name: str = "text"
 ) -> str:
@@ -210,11 +209,11 @@ def validate_file_path(
 
 
 def validate_parameters(
-    parameters: Dict[str, Any],
-    required: Optional[List[str]] = None,
-    types: Optional[Dict[str, Union[type, List[type]]]] = None,
-    validators: Optional[Dict[str, Callable[[Any], bool]]] = None
-) -> Dict[str, Any]:
+    parameters: dict[str, Any],
+    required: list[str] | None = None,
+    types: dict[str, type | list[type]] | None = None,
+    validators: dict[str, Callable[[Any], bool]] | None = None
+) -> dict[str, Any]:
     """Validate multiple parameters at once.
 
     Args:
@@ -294,7 +293,7 @@ def validate_parameters(
 
 def type_guard(
     value: Any,
-    expected_type: Union[type, List[type]],
+    expected_type: type | list[type],
     allow_none: bool = False
 ) -> bool:
     """Type guard function for runtime type checking.

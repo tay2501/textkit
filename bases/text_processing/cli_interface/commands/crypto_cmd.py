@@ -15,11 +15,12 @@ Design References:
 
 from __future__ import annotations
 
-import typer
 from typing import Annotated
+
+import typer
 from rich.console import Console
 
-from ..shared.standard_options import InputTextOption, FromClipboardOption, ToClipboardOption
+from ..shared.standard_options import FromClipboardOption, InputTextOption, ToClipboardOption
 
 console = Console()
 

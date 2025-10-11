@@ -4,11 +4,11 @@ This package contains separated command implementations following
 the single responsibility principle.
 """
 
-from .transform_cmd import transform_text
 from .crypto_cmd import register_crypto_commands
+from .iconv_cmd import register_iconv_command
 from .rules_cmd import register_rules_command
 from .status_cmd import register_status_commands
-from .iconv_cmd import register_iconv_command
+from .transform_cmd import transform_text
 
 __all__ = [
     "transform_text",

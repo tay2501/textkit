@@ -7,9 +7,10 @@ and serialization throughout the text processing toolkit.
 
 from __future__ import annotations
 
-from typing import Annotated, Optional, Any, Dict, List
-from pydantic import BaseModel, Field, field_validator, ConfigDict, ValidationInfo
+from typing import Annotated, Any
+
 import structlog
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 # Logger for validation messages
 logger = structlog.get_logger(__name__)
@@ -39,7 +40,7 @@ class TextTransformationRequest(BaseModel):
         description="Transformation rule string (must start with / or -)"
     )]
 
-    config_override: Optional[Dict[str, Any]] = Field(
+    config_override: dict[str, Any] | None = Field(
         default=None,
         description="Optional configuration overrides"
     )
@@ -49,7 +50,7 @@ class TextTransformationRequest(BaseModel):
     def validate_rule_format(cls, v: str, info: ValidationInfo) -> str:
         """Enhanced validation for rule string format with Windows compatibility."""
         import re
-        
+
         if not v.strip():
             raise ValueError("Rule string cannot be empty")
 
@@ -109,7 +110,7 @@ class TextTransformationResponse(BaseModel):
         description="The transformed text result"
     )
 
-    applied_rules: List[str] = Field(
+    applied_rules: list[str] = Field(
         description="List of rules that were applied"
     )
 
@@ -118,7 +119,7 @@ class TextTransformationResponse(BaseModel):
         description="Processing time in milliseconds"
     )
 
-    warnings: Optional[List[str]] = Field(
+    warnings: list[str] | None = Field(
         default=None,
         description="Any warnings generated during processing"
     )
@@ -155,17 +156,17 @@ class RuleValidationResponse(BaseModel):
         description="Whether the rule string is valid"
     )
 
-    parsed_rules: Optional[List[tuple[str, List[str]]]] = Field(
+    parsed_rules: list[tuple[str, list[str]]] | None = Field(
         default=None,
         description="Parsed rules if validation succeeded"
     )
 
-    error_message: Optional[str] = Field(
+    error_message: str | None = Field(
         default=None,
         description="Error message if validation failed"
     )
 
-    suggestions: Optional[List[str]] = Field(
+    suggestions: list[str] | None = Field(
         default=None,
         description="Suggestions for fixing invalid rules"
     )

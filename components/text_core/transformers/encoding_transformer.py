@@ -5,13 +5,12 @@ Simplified character encoding transformer that leverages
 the enhanced base transformer and mixins for clean, maintainable code.
 """
 
-from typing import List, Optional, Dict, Any
 
 from textkit.exceptions import EncodingTransformationError
-from .base import EnhancedBaseTransformer
-from .base_transformer import BaseTransformer  # Import for compatibility
-from .mixins import ErrorHandlingMixin, LoggingMixin, PerformanceMixin
+
 from ..types import TransformationRule, TransformationRuleType
+from .base import EnhancedBaseTransformer
+from .mixins import ErrorHandlingMixin, LoggingMixin, PerformanceMixin
 
 try:
     from charset_normalizer import from_bytes
@@ -175,7 +174,7 @@ class EncodingTransformer(EnhancedBaseTransformer):
         self,
         text: str,
         rule: TransformationRule,
-        args: List[str]
+        args: list[str]
     ) -> str:
         """Apply transformation with argument parsing."""
         if rule.name == "iconv":
@@ -185,7 +184,7 @@ class EncodingTransformer(EnhancedBaseTransformer):
     @ErrorHandlingMixin.error_handler("iconv")
     @LoggingMixin.logged_transformation("iconv")
     @PerformanceMixin.performance_tracked("iconv")
-    def _apply_iconv_with_args(self, text: str, args: List[str]) -> str:
+    def _apply_iconv_with_args(self, text: str, args: list[str]) -> str:
         """Apply iconv transformation with Unix-style argument parsing."""
         source_encoding = "auto"
         target_encoding = "utf-8"
@@ -310,12 +309,12 @@ class EncodingTransformer(EnhancedBaseTransformer):
         """
         if not CHARSET_NORMALIZER_AVAILABLE:
             return 'utf-8'  # Fallback if library not available
-        
+
         try:
             result = from_bytes(data).best()
             if result and result.encoding:
                 return result.encoding
         except Exception:
             pass
-        
+
         return 'utf-8'  # Final fallback  # Final fallback  # Final fallback

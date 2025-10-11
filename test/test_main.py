@@ -5,8 +5,9 @@ Following best practices, main.py is kept minimal and delegates
 all functionality to the CLI layer.
 """
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from main import main
 

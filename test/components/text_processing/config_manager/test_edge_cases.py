@@ -5,16 +5,18 @@ This module contains comprehensive tests for the config manager,
 including edge cases, error handling, and integration scenarios.
 """
 
-import pytest
-import tempfile
 import os
+import tempfile
 from unittest.mock import Mock, patch
 
-from textkit.config_manager.core import ConfigurationManager as ConfigManager
-from textkit.config_manager.config import (
-    ConfigurationManager,
+import pytest
+from textkit.config_manager.core import (
     ConfigurationError,
+    ConfigurationManager,
 )
+
+# Alias for backward compatibility
+ConfigManager = ConfigurationManager
 
 
 class TestConfigManagerEdgeCases:

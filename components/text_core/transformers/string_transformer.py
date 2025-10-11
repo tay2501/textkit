@@ -1,6 +1,5 @@
 """String manipulation transformation strategies."""
 
-from typing import List
 
 from ..types import TransformationRule, TransformationRuleType
 from .base_transformer import BaseTransformer
@@ -60,7 +59,7 @@ class StringTransformer(BaseTransformer):
             ),
         }
 
-    def _apply_with_args(self, text: str, rule: TransformationRule, args: List[str]) -> str:
+    def _apply_with_args(self, text: str, rule: TransformationRule, args: list[str]) -> str:
         """Apply transformation that requires arguments with StringZilla optimizations."""
         if rule.name == "Replace":
             return self._replace_text(text, args)
@@ -68,7 +67,7 @@ class StringTransformer(BaseTransformer):
             return self._replace_text_sz(text, args)
         return super()._apply_with_args(text, rule, args)
 
-    def _replace_text(self, text: str, args: List[str]) -> str:
+    def _replace_text(self, text: str, args: list[str]) -> str:
         """Replace text using provided arguments.
 
         Args:
@@ -87,7 +86,7 @@ class StringTransformer(BaseTransformer):
         old_text, new_text = args[0], args[1]
         return text.replace(old_text, new_text)
 
-    def _replace_text_sz(self, text: str, args: List[str]) -> str:
+    def _replace_text_sz(self, text: str, args: list[str]) -> str:
         """High-performance text replacement using StringZilla SIMD operations.
 
         Leverages StringZilla's optimized string search and replacement for

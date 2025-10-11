@@ -5,9 +5,9 @@ from textkit.text_core.transformers import (
     BasicTransformer,
     CaseTransformer,
     HashTransformer,
-    StringTransformer,
     JsonTransformer,
     LineEndingTransformer,
+    StringTransformer,
 )
 from textkit.text_core.types import (
     TransformationRule,
@@ -217,7 +217,7 @@ class TestStringTransformer:
             ("single", "'single',"),
             ("", ""),
         ]
-        
+
         for input_text, expected in test_cases:
             result = self.transformer.transform(input_text, "i")
             assert result == expected, f"Failed for input: {input_text!r}"
@@ -250,15 +250,15 @@ class TestLineEndingTransformer:
         # Test with CRLF (Windows)
         result = self.transformer.transform("Hello\r\nWorld\r\nTest", "rlb")
         assert result == "HelloWorldTest"
-        
+
         # Test with LF (Unix)
         result = self.transformer.transform("Hello\nWorld\nTest", "rlb")
         assert result == "HelloWorldTest"
-        
+
         # Test with CR (Mac Classic)
         result = self.transformer.transform("Hello\rWorld\rTest", "rlb")
         assert result == "HelloWorldTest"
-        
+
         # Test with mixed line endings
         result = self.transformer.transform("Hello\r\nWorld\nTest\rLine", "rlb")
         assert result == "HelloWorldTestLine"

@@ -7,9 +7,8 @@ from __future__ import annotations
 
 import re
 import shlex
-import structlog
-from typing import List, Tuple
 
+import structlog
 from textkit.exceptions import ValidationError
 
 logger = structlog.get_logger(__name__)
@@ -27,7 +26,7 @@ class RuleParser:
     The parser follows EAFP (Easier to Ask for Forgiveness than Permission) style.
     """
 
-    def parse(self, rule_string: str) -> List[Tuple[str, List[str]]]:
+    def parse(self, rule_string: str) -> list[tuple[str, list[str]]]:
         """Parse rule string into individual rules and arguments.
 
         Args:
@@ -115,7 +114,7 @@ class RuleParser:
 
         return rule_string
 
-    def _parse_dash_format(self, rule_string: str) -> List[Tuple[str, List[str]]]:
+    def _parse_dash_format(self, rule_string: str) -> list[tuple[str, list[str]]]:
         """Parse dash-prefixed rule format: -rule
 
         Args:
@@ -132,7 +131,7 @@ class RuleParser:
             raise ValidationError("Empty rule name after '-'")
         return [(rule_name, [])]
 
-    def _parse_slash_format(self, rule_string: str) -> List[Tuple[str, List[str]]]:
+    def _parse_slash_format(self, rule_string: str) -> list[tuple[str, list[str]]]:
         """Parse slash-separated rule format: /rule1/rule2/... or /rule args
 
         Handles both simple slash-separated rules and rules with arguments.
@@ -184,7 +183,7 @@ class RuleParser:
 
         return rules
 
-    def _parse_with_quotes(self, rule_string: str) -> List[Tuple[str, List[str]]]:
+    def _parse_with_quotes(self, rule_string: str) -> list[tuple[str, list[str]]]:
         """Parse rule string that contains quoted arguments.
 
         Args:
@@ -236,7 +235,7 @@ class RuleParser:
                 {"rule_string": rule_string}
             ) from e
 
-    def _parse_space_separated(self, rule_string: str) -> List[Tuple[str, List[str]]]:
+    def _parse_space_separated(self, rule_string: str) -> list[tuple[str, list[str]]]:
         """Parse space-separated rule format: rule_name arg1 arg2
 
         Args:
@@ -261,7 +260,7 @@ class RuleParser:
         """
         return bool(re.match(r'^[A-Za-z]:[\\/]', rule_string))
 
-    def _parse_windows_path(self, rule_string: str) -> List[Tuple[str, List[str]]]:
+    def _parse_windows_path(self, rule_string: str) -> list[tuple[str, list[str]]]:
         """Parse Windows path that may contain a rule.
 
         Args:

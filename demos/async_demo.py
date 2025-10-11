@@ -6,16 +6,16 @@ including streaming, performance monitoring, and concurrent operations.
 """
 
 import asyncio
+import tempfile
 import time
 from pathlib import Path
-import tempfile
 
 from textkit.async_core import (
+    AsyncBenchmark,
+    AsyncIOManager,
     AsyncTextTransformationEngine,
     ChunkedProcessor,
     PerformanceMonitor,
-    AsyncBenchmark,
-    AsyncIOManager
 )
 
 
@@ -41,7 +41,7 @@ async def demonstrate_basic_async_transformation():
     print("\nBatch transformations:")
     batch_results = await async_engine.transform_batch_async(transformations)
 
-    for i, ((text, rule), result) in enumerate(zip(transformations, batch_results)):
+    for i, ((text, rule), result) in enumerate(zip(transformations, batch_results, strict=False)):
         print(f"  {i+1}. '{text}' with '{rule}' -> '{result}'")
 
     print()

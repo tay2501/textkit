@@ -1,0 +1,54 @@
+# Code Owners for Text Processing Toolkit
+#
+# These owners will be automatically requested for review when a PR
+# modifies files in the specified paths.
+#
+# Documentation: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything in the repo
+# This is a fallback and will be used for any file that doesn't have a more specific owner
+* @tay2501
+
+# CI/CD and GitHub workflows
+/.github/ @tay2501
+/.github/workflows/ @tay2501
+
+# Core components - require careful review
+/components/text_core/ @tay2501
+/components/crypto_engine/ @tay2501
+/components/dependency_injection/ @tay2501
+
+# Base applications
+/bases/ @tay2501
+
+# Configuration and build files
+/pyproject.toml @tay2501
+/uv.lock @tay2501
+/.python-version @tay2501
+/mypy.ini @tay2501
+
+# Documentation
+/README.md @tay2501
+/docs/ @tay2501
+/SECURITY.md @tay2501
+/CONTRIBUTING.md @tay2501
+/CHANGELOG.md @tay2501
+
+# Test files - ensure quality
+/test/ @tay2501
+/tests/ @tay2501
+
+# Development tools and configurations
+/.vscode/ @tay2501
+/.editorconfig @tay2501
+/.gitignore @tay2501
+
+# Security-sensitive components
+/components/crypto_engine/ @tay2501
+/.github/workflows/security.yml @tay2501
+/.github/workflows/codeql.yml @tay2501
+/SECURITY.md @tay2501
+
+# Release and deployment
+/.github/workflows/release.yml @tay2501
+/.github/workflows/publish.yml @tay2501

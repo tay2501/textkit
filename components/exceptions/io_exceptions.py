@@ -5,8 +5,8 @@ Provides specialized exceptions for different types of I/O failures
 including clipboard, file system, and network operations.
 """
 
-from typing import Any, Dict, List, Optional, Union
 from pathlib import Path
+
 from .base_exceptions import BaseTextProcessingError
 
 
@@ -19,8 +19,8 @@ class IOError(BaseTextProcessingError):
     def __init__(
         self,
         message: str,
-        io_operation: Optional[str] = None,
-        resource_path: Optional[Union[str, Path]] = None,
+        io_operation: str | None = None,
+        resource_path: str | Path | None = None,
         **kwargs
     ) -> None:
         """Initialize I/O error.
@@ -45,8 +45,8 @@ class ClipboardError(IOError):
     def __init__(
         self,
         message: str,
-        clipboard_format: Optional[str] = None,
-        data_size: Optional[int] = None,
+        clipboard_format: str | None = None,
+        data_size: int | None = None,
         **kwargs
     ) -> None:
         """Initialize clipboard error.
@@ -71,9 +71,9 @@ class FileAccessError(IOError):
     def __init__(
         self,
         message: str,
-        file_path: Union[str, Path],
-        access_mode: Optional[str] = None,
-        permissions: Optional[str] = None,
+        file_path: str | Path,
+        access_mode: str | None = None,
+        permissions: str | None = None,
         **kwargs
     ) -> None:
         """Initialize file access error.

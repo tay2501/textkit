@@ -5,14 +5,9 @@ Provides standardized validation patterns that can be mixed
 into transformer classes for consistent input validation.
 """
 
-from typing import Any, List, Optional, Dict, Union
 
+from textkit.common_utils import validate_text_input
 from textkit.exceptions import ParameterValidationError, ValidationError
-from textkit.common_utils import (
-    validate_text_input,
-    validate_parameters,
-    type_guard
-)
 
 
 class ValidationMixin:
@@ -26,9 +21,9 @@ class ValidationMixin:
         self,
         text: str,
         rule_name: str,
-        args: Optional[List[str]] = None,
+        args: list[str] | None = None,
         allow_empty: bool = True,
-        max_length: Optional[int] = None
+        max_length: int | None = None
     ) -> str:
         """Validate transformation input parameters.
 
@@ -95,13 +90,13 @@ class ValidationMixin:
 
     def validate_rule_arguments(
         self,
-        args: List[str],
+        args: list[str],
         rule_name: str,
-        required_count: Optional[int] = None,
-        min_count: Optional[int] = None,
-        max_count: Optional[int] = None,
-        allowed_values: Optional[Dict[int, List[str]]] = None
-    ) -> List[str]:
+        required_count: int | None = None,
+        min_count: int | None = None,
+        max_count: int | None = None,
+        allowed_values: dict[int, list[str]] | None = None
+    ) -> list[str]:
         """Validate transformation rule arguments.
 
         Args:
@@ -251,10 +246,10 @@ class ValidationMixin:
 
     def require_arguments(
         self,
-        args: Optional[List[str]],
+        args: list[str] | None,
         rule_name: str,
         min_count: int = 1
-    ) -> List[str]:
+    ) -> list[str]:
         """Require minimum number of arguments for a rule.
 
         Args:

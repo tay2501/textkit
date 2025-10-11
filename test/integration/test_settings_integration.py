@@ -11,16 +11,15 @@ from pathlib import Path
 
 import pytest
 from pydantic import ValidationError as PydanticValidationError
-
 from textkit.config_manager.settings import (
     ApplicationSettings,
-    SecurityConfig,
     HotkeyConfig,
-    TransformationRulesConfig,
     LogLevel,
-    reload_settings,
+    SecurityConfig,
+    TransformationRulesConfig,
+    get_max_text_length,
     is_debug_mode,
-    get_max_text_length
+    reload_settings,
 )
 from textkit.dependency_injection import Container, injectable
 

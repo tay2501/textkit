@@ -6,22 +6,16 @@ with enhanced error handling, performance monitoring, and recovery capabilities.
 """
 
 import time
-from typing import List, Optional, Dict, Any, Tuple
+from typing import Any
 
-from textkit.exceptions import (
-    TransformationError,
-    TransformationTimeoutError,
-    ValidationError
-)
 from textkit.common_utils import (
     get_structured_logger,
-    safe_execute,
     with_error_context,
-    log_performance
 )
-from ..parsers import ParsedRule
-from ..models import TextTransformationRequest
+from textkit.exceptions import TransformationError, ValidationError
+
 from ..factories import TransformationFactory
+from ..parsers import ParsedRule
 
 
 class TransformationOrchestrator:
@@ -32,7 +26,7 @@ class TransformationOrchestrator:
     and detailed logging.
     """
 
-    def __init__(self, transformation_factory: Optional[TransformationFactory] = None):
+    def __init__(self, transformation_factory: TransformationFactory | None = None):
         """Initialize transformation orchestrator.
 
         Args:
@@ -44,9 +38,9 @@ class TransformationOrchestrator:
     def execute_transformations(
         self,
         text: str,
-        parsed_rules: List[ParsedRule],
-        context: Optional[Dict[str, Any]] = None
-    ) -> Tuple[str, Dict[str, Any]]:
+        parsed_rules: list[ParsedRule],
+        context: dict[str, Any] | None = None
+    ) -> tuple[str, dict[str, Any]]:
         """Execute a sequence of transformation rules.
 
         Args:
@@ -184,7 +178,7 @@ class TransformationOrchestrator:
         self,
         text: str,
         rule: ParsedRule,
-        rule_context: Optional[Dict[str, Any]] = None
+        rule_context: dict[str, Any] | None = None
     ) -> str:
         """Apply a single transformation rule.
 
@@ -238,7 +232,7 @@ class TransformationOrchestrator:
             ).add_context("rule_name", rule.name)\
              .add_context("rule_args", rule.args)
 
-    def get_performance_stats(self) -> Dict[str, Any]:
+    def get_performance_stats(self) -> dict[str, Any]:
         """Get performance statistics for debugging.
 
         Returns:

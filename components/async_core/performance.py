@@ -8,11 +8,13 @@ with real-time metrics, benchmarking tools, and optimization insights.
 from __future__ import annotations
 
 import asyncio
-import time
 import statistics
-from typing import Dict, Any, List, Optional, Callable, NamedTuple
-from dataclasses import dataclass, field
+import time
 from collections import defaultdict, deque
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from typing import Any, NamedTuple
+
 import structlog
 
 from ..config_manager.settings import ApplicationSettings, get_settings
@@ -28,7 +30,7 @@ class PerformanceMetric(NamedTuple):
     duration: float
     data_size: int
     success: bool
-    metadata: Dict[str, Any] = {}
+    metadata: dict[str, Any] = {}
 
 
 @dataclass
@@ -84,7 +86,7 @@ class PerformanceMonitor:
 
     def __init__(
         self,
-        settings: Optional[ApplicationSettings] = None,
+        settings: ApplicationSettings | None = None,
         max_metrics_history: int = 10000
     ) -> None:
         """Initialize performance monitor.
@@ -98,12 +100,12 @@ class PerformanceMonitor:
 
         # Metrics storage
         self._metrics: deque[PerformanceMetric] = deque(maxlen=max_metrics_history)
-        self._stats: Dict[str, PerformanceStats] = defaultdict(PerformanceStats)
+        self._stats: dict[str, PerformanceStats] = defaultdict(PerformanceStats)
         self._start_time = time.perf_counter()
 
         # Real-time monitoring
         self._monitoring_enabled = True
-        self._alert_thresholds: Dict[str, Dict[str, float]] = {}
+        self._alert_thresholds: dict[str, dict[str, float]] = {}
 
         logger.info("performance_monitor_initialized", max_history=max_metrics_history)
 
@@ -112,8 +114,8 @@ class PerformanceMonitor:
         operation_name: str,
         operation_func: Callable,
         *args,
-        data_size: Optional[int] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        data_size: int | None = None,
+        metadata: dict[str, Any] | None = None,
         **kwargs
     ) -> Any:
         """Measure the performance of an async operation.
@@ -273,8 +275,8 @@ class PerformanceMonitor:
     def set_alert_threshold(
         self,
         operation_name: str,
-        max_duration: Optional[float] = None,
-        min_throughput: Optional[float] = None
+        max_duration: float | None = None,
+        min_throughput: float | None = None
     ) -> None:
         """Set performance alert thresholds for an operation.
 
@@ -299,7 +301,7 @@ class PerformanceMonitor:
             min_throughput=min_throughput
         )
 
-    def get_stats(self, operation_name: Optional[str] = None) -> Dict[str, Any]:
+    def get_stats(self, operation_name: str | None = None) -> dict[str, Any]:
         """Get performance statistics.
 
         Args:
@@ -333,7 +335,7 @@ class PerformanceMonitor:
             for operation in self._stats.keys()
         }
 
-    def get_recent_metrics(self, count: int = 100) -> List[Dict[str, Any]]:
+    def get_recent_metrics(self, count: int = 100) -> list[dict[str, Any]]:
         """Get recent performance metrics.
 
         Args:
@@ -372,7 +374,7 @@ class PerformanceMonitor:
         self._monitoring_enabled = False
         logger.info("performance_monitoring_disabled")
 
-    def get_system_overview(self) -> Dict[str, Any]:
+    def get_system_overview(self) -> dict[str, Any]:
         """Get system-wide performance overview.
 
         Returns:
@@ -404,8 +406,8 @@ class AsyncBenchmark:
 
     def __init__(
         self,
-        monitor: Optional[PerformanceMonitor] = None,
-        settings: Optional[ApplicationSettings] = None
+        monitor: PerformanceMonitor | None = None,
+        settings: ApplicationSettings | None = None
     ) -> None:
         """Initialize async benchmark.
 
@@ -419,10 +421,10 @@ class AsyncBenchmark:
     async def benchmark_function(
         self,
         func: Callable,
-        test_cases: List[tuple],
+        test_cases: list[tuple],
         iterations: int = 100,
         warmup_iterations: int = 10
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Benchmark an async function with multiple test cases.
 
         Args:
@@ -525,10 +527,10 @@ class AsyncBenchmark:
 
     async def compare_functions(
         self,
-        functions: List[Callable],
-        test_cases: List[tuple],
+        functions: list[Callable],
+        test_cases: list[tuple],
         iterations: int = 50
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Compare performance of multiple async functions.
 
         Args:
@@ -576,7 +578,7 @@ class AsyncBenchmark:
                         "relative_speed": min(mean_durations) / duration,
                         "slowdown_factor": duration / min(mean_durations)
                     }
-                    for name, duration in zip(function_names, mean_durations)
+                    for name, duration in zip(function_names, mean_durations, strict=False)
                 ]
             }
 
@@ -587,9 +589,9 @@ class AsyncBenchmark:
         func: Callable,
         args: tuple,
         kwargs: dict,
-        concurrent_calls: List[int] = [1, 5, 10, 20, 50],
+        concurrent_calls: list[int] = [1, 5, 10, 20, 50],
         duration_seconds: float = 10.0
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Perform stress testing with varying concurrency levels.
 
         Args:
@@ -695,7 +697,7 @@ class AsyncBenchmark:
 
         return results
 
-    def _find_degradation_threshold(self, phases: List[Dict[str, Any]]) -> Optional[int]:
+    def _find_degradation_threshold(self, phases: list[dict[str, Any]]) -> int | None:
         """Find the concurrency level where performance starts degrading.
 
         Args:

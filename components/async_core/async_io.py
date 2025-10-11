@@ -8,11 +8,13 @@ and stdin/stdout handling optimized for high-throughput text processing.
 from __future__ import annotations
 
 import asyncio
-import aiofiles
 import time
-from typing import AsyncIterator, Optional, List, Dict, Any, Union
-from pathlib import Path
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+import aiofiles
 import structlog
 
 from ..config_manager.settings import ApplicationSettings, get_settings
@@ -30,7 +32,7 @@ class FileOperationResult:
     operation: str
     data_size: int = 0
     duration: float = 0.0
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 class AsyncIOManager:
@@ -38,7 +40,7 @@ class AsyncIOManager:
 
     def __init__(
         self,
-        settings: Optional[ApplicationSettings] = None,
+        settings: ApplicationSettings | None = None,
         buffer_size: int = 1024 * 64,  # 64KB buffer
         max_concurrent_ops: int = 10
     ) -> None:
@@ -55,7 +57,7 @@ class AsyncIOManager:
 
         # Concurrency control
         self._io_semaphore = asyncio.Semaphore(max_concurrent_ops)
-        self._active_operations: Dict[str, asyncio.Task] = {}
+        self._active_operations: dict[str, asyncio.Task] = {}
 
         # Performance tracking
         self._operation_stats = {
@@ -75,9 +77,9 @@ class AsyncIOManager:
 
     async def read_file_async(
         self,
-        file_path: Union[str, Path],
+        file_path: str | Path,
         encoding: str = 'utf-8',
-        chunk_size: Optional[int] = None
+        chunk_size: int | None = None
     ) -> str:
         """Read file asynchronously with optimized buffering.
 
@@ -98,7 +100,7 @@ class AsyncIOManager:
 
         async with self._io_semaphore:
             try:
-                async with aiofiles.open(file_path, mode='r', encoding=encoding) as file:
+                async with aiofiles.open(file_path, encoding=encoding) as file:
                     content = await file.read()
 
                 # Update statistics
@@ -125,7 +127,7 @@ class AsyncIOManager:
 
     async def write_file_async(
         self,
-        file_path: Union[str, Path],
+        file_path: str | Path,
         content: str,
         encoding: str = 'utf-8',
         create_dirs: bool = True
@@ -186,9 +188,9 @@ class AsyncIOManager:
 
     async def read_file_streaming(
         self,
-        file_path: Union[str, Path],
+        file_path: str | Path,
         encoding: str = 'utf-8',
-        chunk_size: Optional[int] = None
+        chunk_size: int | None = None
     ) -> AsyncIterator[str]:
         """Read file as async stream for memory-efficient processing.
 
@@ -205,7 +207,7 @@ class AsyncIOManager:
 
         async with self._io_semaphore:
             try:
-                async with aiofiles.open(file_path, mode='r', encoding=encoding) as file:
+                async with aiofiles.open(file_path, encoding=encoding) as file:
                     while True:
                         chunk = await file.read(chunk_size)
                         if not chunk:
@@ -226,7 +228,7 @@ class AsyncIOManager:
 
     async def write_file_streaming(
         self,
-        file_path: Union[str, Path],
+        file_path: str | Path,
         content_stream: AsyncIterator[str],
         encoding: str = 'utf-8',
         create_dirs: bool = True
@@ -286,9 +288,9 @@ class AsyncIOManager:
 
     async def batch_read_files(
         self,
-        file_paths: List[Union[str, Path]],
+        file_paths: list[str | Path],
         encoding: str = 'utf-8'
-    ) -> Dict[Path, Union[str, Exception]]:
+    ) -> dict[Path, str | Exception]:
         """Read multiple files concurrently.
 
         Args:
@@ -300,7 +302,7 @@ class AsyncIOManager:
         """
         logger.info("batch_read_starting", file_count=len(file_paths))
 
-        async def read_single_file(path: Union[str, Path]) -> tuple[Path, Union[str, Exception]]:
+        async def read_single_file(path: str | Path) -> tuple[Path, str | Exception]:
             path = Path(path)
             try:
                 content = await self.read_file_async(path, encoding)
@@ -335,10 +337,10 @@ class AsyncIOManager:
 
     async def batch_write_files(
         self,
-        file_data: Dict[Union[str, Path], str],
+        file_data: dict[str | Path, str],
         encoding: str = 'utf-8',
         create_dirs: bool = True
-    ) -> Dict[Path, FileOperationResult]:
+    ) -> dict[Path, FileOperationResult]:
         """Write multiple files concurrently.
 
         Args:
@@ -351,7 +353,7 @@ class AsyncIOManager:
         """
         logger.info("batch_write_starting", file_count=len(file_data))
 
-        async def write_single_file(path: Union[str, Path], content: str) -> tuple[Path, FileOperationResult]:
+        async def write_single_file(path: str | Path, content: str) -> tuple[Path, FileOperationResult]:
             path = Path(path)
             try:
                 result = await self.write_file_async(path, content, encoding, create_dirs)
@@ -390,8 +392,8 @@ class AsyncIOManager:
 
     async def read_stdin_async(
         self,
-        timeout: Optional[float] = None,
-        chunk_size: Optional[int] = None
+        timeout: float | None = None,
+        chunk_size: int | None = None
     ) -> str:
         """Read from stdin asynchronously with timeout.
 
@@ -423,7 +425,7 @@ class AsyncIOManager:
             logger.debug("stdin_read_completed", size_bytes=len(content.encode()))
             return content
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("stdin_read_timeout", timeout=timeout)
             raise
         except Exception as e:
@@ -452,7 +454,7 @@ class AsyncIOManager:
             logger.error("stdout_write_failed", error=str(e))
             raise FileOperationError(f"Failed to write to stdout: {e}") from e
 
-    def get_io_statistics(self) -> Dict[str, Any]:
+    def get_io_statistics(self) -> dict[str, Any]:
         """Get I/O operation statistics.
 
         Returns:
@@ -505,7 +507,7 @@ class AsyncIOManager:
 
 # Convenience functions for backward compatibility
 async def read_file_async(
-    file_path: Union[str, Path],
+    file_path: str | Path,
     encoding: str = 'utf-8'
 ) -> str:
     """Convenience function for async file reading.
@@ -522,7 +524,7 @@ async def read_file_async(
 
 
 async def write_file_async(
-    file_path: Union[str, Path],
+    file_path: str | Path,
     content: str,
     encoding: str = 'utf-8'
 ) -> FileOperationResult:

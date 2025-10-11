@@ -5,8 +5,8 @@ half-width Japanese characters using the jaconv library.
 """
 
 
-from .base_transformer import BaseTransformer
 from ..types import TransformationRule, TransformationRuleType
+from .base_transformer import BaseTransformer
 
 
 class JapaneseTransformer(BaseTransformer):
