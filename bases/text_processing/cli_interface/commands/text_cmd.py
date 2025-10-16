@@ -62,7 +62,7 @@ def create_text_subcommand(
 
     @text_app.command("transform")
     def transform(
-        rules: RulesArgument,
+        rules: Annotated[str | None, typer.Argument(help="Transformation rules (e.g., '/t/l' for trim+lowercase)")] = None,
         text: InputTextOption = None,
         from_clipboard: FromClipboardOption = False,
         output: OutputPathOption = None,
@@ -122,9 +122,18 @@ def create_text_subcommand(
         - Multiple rules are applied left to right
         - Specify input explicitly with `-i` or use `--from-clipboard`
         """
+        # Handle --show-rules first (doesn't require rules argument)
         if show_rules:
             _show_available_rules(get_app_func)
             return
+
+        # Validate that rules argument is provided when not using --show-rules
+        if rules is None:
+            console.print(
+                "[yellow]Error: Missing argument 'RULES'.[/yellow]\n"
+                "Use --show-rules to see available rules."
+            )
+            raise typer.Exit(1)
 
         # Normalize rule argument to handle Windows path expansion
         normalized_rules = normalize_rule_func(rules)
@@ -281,7 +290,7 @@ def _show_available_rules(get_app_func: callable) -> None:
     """Display all available transformation rules."""
     try:
         app_instance = get_app_func()
-        rules = app_instance.get_all_rules()
+        rules_dict = app_instance.get_available_rules()
 
         console.print("\n[bold]Available Transformation Rules:[/bold]\n")
 
@@ -289,13 +298,13 @@ def _show_available_rules(get_app_func: callable) -> None:
         from collections import defaultdict
 
         grouped = defaultdict(list)
-        for rule in rules:
+        for rule_name, rule in rules_dict.items():
             grouped[rule.rule_type].append(rule)
 
         for rule_type, type_rules in grouped.items():
             console.print(f"[bold cyan]{rule_type.value}:[/bold cyan]")
-            for rule in sorted(type_rules, key=lambda r: r.rule):
-                console.print(f"  {rule.rule:15s} - {rule.description}")
+            for rule in sorted(type_rules, key=lambda r: r.name):
+                console.print(f"  {rule.name:15s} - {rule.description}")
             console.print()
 
     except Exception as e:

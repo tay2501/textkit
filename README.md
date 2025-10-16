@@ -438,11 +438,24 @@ uv run python main.py text transform '/u2h' -i "my_test_file"
 # Pipe usage
 echo "hello-world" | uv run python main.py text transform '/h2u'
 # Result: "hello_world"
+
+# Read from clipboard, convert hyphens to underscores, and save to clipboard
+uv run python main.py text transform '/h2u' --from-clipboard --to-clipboard
+# Example: Clipboard "my-test-file" → "my_test_file" → Clipboard
+
+# Process clipboard text (shorter syntax, uses clipboard by default)
+uv run python main.py text transform '/h2u'
+# Same as above: reads from clipboard, converts, saves to clipboard
 ```
 
 **Available rules:**
 - `h2u` - Convert hyphens (-) to underscores (_)
 - `u2h` - Convert underscores (_) to hyphens (-)
+
+**Clipboard workflow:**
+1. Copy text with hyphens to clipboard (e.g., "my-test-file")
+2. Run: `uv run python main.py text transform '/h2u'`
+3. Paste the converted text (e.g., "my_test_file")
 
 ### ⚡ High-Performance String Operations (StringZilla)
 Ultra-fast string processing with SIMD acceleration for maximum performance:
