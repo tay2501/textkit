@@ -191,14 +191,28 @@ uv run python main.py crypto decrypt -i "encrypted" --to-clipboard
 
 #### Rules Management
 
+TextKit provides comprehensive rule documentation through multiple access methods:
+
 ```bash
-# List all transformation rules
+# List all transformation rules in a formatted table
 uv run python main.py rules list
 
-# Search for specific rules
+# Search for specific rules by keyword (filters name and description)
 uv run python main.py rules list --search "case"
 uv run python main.py rules list -s "japanese"
+
+# Quick reference: Show available rules directly in transform command
+uv run python main.py text transform --show-rules
 ```
+
+**Available Rule Categories:**
+- **Text Case**: lowercase (`/l`), uppercase (`/u`), PascalCase (`/p`), camelCase (`/c`), snake_case (`/s`)
+- **String Operations**: trim (`/t`), reverse (`/R`), replace (`/r`), SQL IN format (`/i`)
+- **Encoding**: Base64 encode/decode (`/b64e`, `/b64d`), URL encode/decode (`/urle`, `/urld`)
+- **Japanese**: Full-width/half-width conversion (`/fh`, `/hf`), hiragana/katakana conversion
+- **Line Endings**: Unix/Windows/Mac conversion, normalize, tr-like translation (`/tr`)
+- **Character Conversion**: Hyphen/underscore conversion (`/h2u`, `/u2h`)
+- **Cryptographic**: Hash generation (MD5, SHA256, SHA512)
 
 **Recent Improvements:**
 - ✅ Hierarchical command structure (v0.1.0) - Industry-standard CLI design

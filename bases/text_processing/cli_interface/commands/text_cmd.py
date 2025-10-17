@@ -287,25 +287,77 @@ def create_text_subcommand(
 
 
 def _show_available_rules(get_app_func: callable) -> None:
-    """Display all available transformation rules."""
+    """Display quick reference for transformation rules with practical examples."""
     try:
         app_instance = get_app_func()
         rules_dict = app_instance.get_available_rules()
 
-        console.print("\n[bold]Available Transformation Rules:[/bold]\n")
+        console.print("\n[bold cyan]Quick Reference: Transformation Rules[/bold cyan]\n")
 
-        # Group by type
-        from collections import defaultdict
+        # Most commonly used rules with practical examples
+        console.print("[bold]>> Most Used (Copy & Run These!):[/bold]")
+        common_examples = [
+            ("Trim + Lowercase", "/t/l", "uv run python main.py text transform '/t/l' -i '  HELLO  '"),
+            ("Uppercase", "/u", "uv run python main.py text transform '/u' -i 'hello'"),
+            ("PascalCase", "/p", "uv run python main.py text transform '/p' -i 'hello world'"),
+            ("camelCase", "/c", "uv run python main.py text transform '/c' -i 'hello world'"),
+            ("snake_case", "/s", "uv run python main.py text transform '/s' -i 'Hello World'"),
+        ]
+        for desc, rule, example in common_examples:
+            console.print(f"  [green]{desc:20s}[/green] {rule:8s} -> [dim]{example}[/dim]")
+        console.print()
 
-        grouped = defaultdict(list)
-        for rule_name, rule in rules_dict.items():
-            grouped[rule.rule_type].append(rule)
+        # Text processing rules
+        console.print("[bold]>> Text Processing:[/bold]")
+        text_examples = [
+            ("Trim whitespace", "/t", "... '/t' -i '  text  '"),
+            ("Reverse text", "/R", "... '/R' -i 'hello'"),
+            ("Replace text", "/r old new", "... '/r old new' -i 'old text'"),
+        ]
+        for desc, rule, example in text_examples:
+            console.print(f"  [green]{desc:20s}[/green] {rule:12s} -> [dim]{example}[/dim]")
+        console.print()
 
-        for rule_type, type_rules in grouped.items():
-            console.print(f"[bold cyan]{rule_type.value}:[/bold cyan]")
-            for rule in sorted(type_rules, key=lambda r: r.name):
-                console.print(f"  {rule.name:15s} - {rule.description}")
-            console.print()
+        # Encoding rules
+        console.print("[bold]>> Encoding:[/bold]")
+        encoding_examples = [
+            ("Base64 encode", "/b64e", "... '/b64e' -i 'hello'"),
+            ("Base64 decode", "/b64d", "... '/b64d' -i 'aGVsbG8='"),
+            ("SHA256 hash", "/sha256", "... '/sha256' -i 'password'"),
+        ]
+        for desc, rule, example in encoding_examples:
+            console.print(f"  [green]{desc:20s}[/green] {rule:12s} -> [dim]{example}[/dim]")
+        console.print()
+
+        # Character conversion
+        console.print("[bold]>> Character Conversion:[/bold]")
+        char_examples = [
+            ("Hyphen to underscore", "/h2u", "... '/h2u' -i 'my-file-name'"),
+            ("Underscore to hyphen", "/u2h", "... '/u2h' -i 'my_file_name'"),
+            ("Full to half-width", "/fh", "... '/fh' -i 'hello123'"),
+        ]
+        for desc, rule, example in char_examples:
+            console.print(f"  [green]{desc:20s}[/green] {rule:12s} -> [dim]{example}[/dim]")
+        console.print()
+
+        # Line ending conversion
+        console.print("[bold]>> Line Endings:[/bold]")
+        line_examples = [
+            ("Unix to Windows", "/unix-to-windows", "... '/unix-to-windows' -i 'line1\\nline2'"),
+            ("Windows to Unix", "/windows-to-unix", "... '/windows-to-unix' -i 'line1\\r\\nline2'"),
+            ("Normalize endings", "/normalize", "... '/normalize' -i 'mixed\\r\\nline\\nendings'"),
+        ]
+        for desc, rule, example in line_examples:
+            console.print(f"  [green]{desc:20s}[/green] {rule:18s} -> [dim]{example}[/dim]")
+        console.print()
+
+        # Pro tips
+        console.print("[bold yellow]** Pro Tips:[/bold yellow]")
+        console.print("  * Chain rules: [cyan]/t/l/p[/cyan] (trim -> lowercase -> PascalCase)")
+        console.print("  * From clipboard: [cyan]uv run python main.py text transform '/u'[/cyan] (no -i flag)")
+        console.print("  * To clipboard: [cyan]... '/l' -i 'TEXT' --to-clipboard[/cyan]")
+        console.print("  * Full list: [cyan]uv run python main.py rules list[/cyan]")
+        console.print("  * Search: [cyan]uv run python main.py rules list --search 'case'[/cyan]\n")
 
     except Exception as e:
         console.print(f"[red]Error loading rules: {e}[/red]")
