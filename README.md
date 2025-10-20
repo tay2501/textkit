@@ -108,11 +108,11 @@ uv run python main.py --install-completion powershell
 
 Once enabled, you can use tab completion for:
 
-- **Main Commands**: `text`, `crypto`, `rules`, `clipboard`, `status`, `version`
+- **Main Commands**: `text`, `crypto`, `rules`, `clip`, `status`, `version`
 - **Text Subcommands**: `transform`, `encode`
 - **Crypto Subcommands**: `encrypt`, `decrypt`
 - **Rules Subcommands**: `list`
-- **Clipboard Subcommands**: `get`, `set`, `clear`, `status`
+- **Clip Subcommands**: `get`, `set`, `clear`, `status`
 - **Options**: `--help`, `--input`, `-i`, `--output`, `-o`, `--from-clipboard`, `--to-clipboard`, `-f`, `-t`, `--error`
 - **Help text**: Displays descriptions alongside suggestions (shell-dependent)
 
@@ -121,7 +121,7 @@ Once enabled, you can use tab completion for:
 ```bash
 # Tab complete main command groups
 uv run python main.py [TAB][TAB]
-# Shows: text, crypto, rules, clipboard, status, version
+# Shows: text, crypto, rules, clip, status, version
 
 # Tab complete text subcommands
 uv run python main.py text [TAB][TAB]
@@ -135,8 +135,8 @@ uv run python main.py crypto [TAB][TAB]
 uv run python main.py rules [TAB][TAB]
 # Shows: list
 
-# Tab complete clipboard subcommands
-uv run python main.py clipboard [TAB][TAB]
+# Tab complete clip subcommands
+uv run python main.py clip [TAB][TAB]
 # Shows: get, set, clear, status
 
 # Tab complete options
@@ -223,24 +223,31 @@ uv run python main.py text transform --show-rules
 
 ### 📋 Clipboard Operations
 
-Manage clipboard content with Unix-style commands (similar to `xsel` and `pbcopy`):
+Manage clipboard content with Microsoft Windows `clip` compatible command:
 
 ```bash
-# Clear clipboard (like xsel -c)
-uv run python main.py clipboard clear
+# Copy from standard input (Microsoft clip compatible)
+echo "Hello, World!" | uv run python main.py clip
+
+# Copy from file redirect
+uv run python main.py clip < input.txt
+
+# Clear clipboard
+uv run python main.py clip clear
 
 # Get clipboard content
-uv run python main.py clipboard get
+uv run python main.py clip get
 
 # Set clipboard content
-uv run python main.py clipboard set "Hello, World!"
+uv run python main.py clip set "Hello, World!"
 
 # Check clipboard status
-uv run python main.py clipboard status
+uv run python main.py clip status
 ```
 
 **Features:**
-- **Unix-style operations**: Follows conventions from `xsel` (Linux) and `pbcopy` (macOS)
+- **Microsoft clip compatible**: Supports pipe and redirect input like Windows `clip` command
+- **Unix-style subcommands**: Additional `get`, `set`, `clear`, `status` commands
 - **Error handling**: Graceful fallback when clipboard is unavailable
 - **Structured logging**: All operations logged with structlog
 - **Cross-platform**: Works on Windows, macOS, and Linux
@@ -309,7 +316,7 @@ uv run python main.py [COMMAND] [SUBCOMMAND] [OPTIONS]
 uv run python main.py text       # Text processing operations
 uv run python main.py crypto     # Cryptographic operations
 uv run python main.py rules      # View transformation rules
-uv run python main.py clipboard  # Clipboard management
+uv run python main.py clip  # Clipboard management (Microsoft clip compatible)
 uv run python main.py status     # Show status
 uv run python main.py version    # Show version
 ```

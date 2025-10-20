@@ -1,7 +1,7 @@
-"""Clipboard command implementation.
+"""Clip command implementation.
 
-This module provides clipboard management commands following Unix conventions.
-Supports operations like clear, get, and set for clipboard content.
+This module provides clipboard management commands compatible with Microsoft Windows clip command.
+Supports standard input (pipe/redirect) and subcommands for clipboard operations.
 """
 
 from __future__ import annotations
@@ -16,27 +16,95 @@ console = Console()
 logger = structlog.get_logger(__name__)
 
 
-def register_clipboard_commands(
+def register_clip_commands(
     app: typer.Typer,
     get_app_func: callable,
     handle_cli_error_func: callable,
 ) -> None:
-    """Register clipboard commands with the application.
+    """Register clip commands with the application.
 
     Args:
         app: The Typer application instance
         get_app_func: Function to get the application service
         handle_cli_error_func: Function to handle CLI errors
     """
+    import sys
 
-    # Create clipboard subcommand group
-    clipboard_app = typer.Typer(
-        name="clipboard",
-        help="Clipboard management operations",
+    # Create clip subcommand group
+    clip_app = typer.Typer(
+        name="clip",
+        help="Clipboard management operations (Microsoft clip compatible)",
         rich_markup_mode="rich",
     )
 
-    @clipboard_app.command("clear")
+    @clip_app.callback(invoke_without_command=True)
+    def clip_default(ctx: typer.Context) -> None:
+        """Copy standard input to clipboard.
+
+        This is the default behavior when no subcommand is specified,
+        compatible with Microsoft Windows clip command.
+
+        **Examples:**
+
+        ```bash
+        # Pipe input
+        echo "Hello, World!" | textkit clip
+
+        # Redirect from file
+        textkit clip < file.txt
+
+        # Interactive input (Ctrl+D to finish on Unix, Ctrl+Z on Windows)
+        textkit clip
+        ```
+        """
+        # If a subcommand is invoked, don't execute default behavior
+        if ctx.invoked_subcommand is not None:
+            return
+
+        try:
+            logger.info("clip_default_requested")
+
+            # Get application instance
+            app_instance = get_app_func()
+
+            # Read from stdin
+            if not sys.stdin.isatty():
+                # Piped or redirected input
+                content = sys.stdin.read()
+            else:
+                # Interactive mode - read until EOF
+                console.print(
+                    "[dim]Reading from stdin (press Ctrl+D on Unix or Ctrl+Z on Windows to finish)...[/dim]"
+                )
+                content = sys.stdin.read()
+
+            # Copy to clipboard
+            success = app_instance.io_manager.safe_copy_to_clipboard(content)
+
+            if success:
+                if sys.stdin.isatty():
+                    console.print(
+                        f"[green]OK[/green] Copied {len(content)} characters to clipboard",
+                        style="bold",
+                    )
+                logger.info("clip_default_success", content_length=len(content))
+            else:
+                console.print(
+                    "[yellow]WARNING[/yellow] Failed to copy to clipboard",
+                    style="bold",
+                )
+                logger.warning("clip_default_failed")
+
+        except KeyboardInterrupt:
+            console.print("\n[yellow]Cancelled[/yellow]")
+            logger.info("clip_default_cancelled")
+        except Exception as e:
+            logger.error(
+                "clip_default_error", error=str(e), error_type=type(e).__name__
+            )
+            handle_cli_error_func(e, "clip")
+
+    @clip_app.command("clear")
     def clear_clipboard() -> None:
         """Clear the clipboard content.
 
@@ -47,11 +115,11 @@ def register_clipboard_commands(
 
         ```bash
         # Clear clipboard
-        textkit clipboard clear
+        textkit clip clear
         ```
         """
         try:
-            logger.info("clipboard_clear_requested")
+            logger.info("clip_clear_requested")
 
             # Get application instance
             app_instance = get_app_func()
@@ -63,21 +131,21 @@ def register_clipboard_commands(
                 console.print(
                     "[green]OK[/green] Clipboard cleared successfully", style="bold"
                 )
-                logger.info("clipboard_clear_success")
+                logger.info("clip_clear_success")
             else:
                 console.print(
                     "[yellow]WARNING[/yellow] Clipboard cleared but verification failed",
                     style="bold",
                 )
-                logger.warning("clipboard_clear_verification_failed")
+                logger.warning("clip_clear_verification_failed")
 
         except Exception as e:
             logger.error(
-                "clipboard_clear_error", error=str(e), error_type=type(e).__name__
+                "clip_clear_error", error=str(e), error_type=type(e).__name__
             )
-            handle_cli_error_func(e, "clipboard clear")
+            handle_cli_error_func(e, "clip clear")
 
-    @clipboard_app.command("get")
+    @clip_app.command("get")
     def get_clipboard() -> None:
         """Get the current clipboard content.
 
@@ -85,14 +153,14 @@ def register_clipboard_commands(
 
         ```bash
         # Display clipboard content
-        textkit clipboard get
+        textkit clip get
 
         # Save to file
-        textkit clipboard get > output.txt
+        textkit clip get > output.txt
         ```
         """
         try:
-            logger.info("clipboard_get_requested")
+            logger.info("clip_get_requested")
 
             # Get application instance
             app_instance = get_app_func()
@@ -102,18 +170,18 @@ def register_clipboard_commands(
 
             if content:
                 console.print(content, end="")
-                logger.info("clipboard_get_success", content_length=len(content))
+                logger.info("clip_get_success", content_length=len(content))
             else:
                 console.print("[dim](clipboard is empty)[/dim]")
-                logger.info("clipboard_get_empty")
+                logger.info("clip_get_empty")
 
         except Exception as e:
             logger.error(
-                "clipboard_get_error", error=str(e), error_type=type(e).__name__
+                "clip_get_error", error=str(e), error_type=type(e).__name__
             )
-            handle_cli_error_func(e, "clipboard get")
+            handle_cli_error_func(e, "clip get")
 
-    @clipboard_app.command("set")
+    @clip_app.command("set")
     def set_clipboard(
         text: Annotated[str, typer.Argument(help="Text to set in clipboard")],
     ) -> None:
@@ -123,10 +191,10 @@ def register_clipboard_commands(
 
         ```bash
         # Set clipboard text
-        textkit clipboard set "Hello, World!"
+        textkit clip set "Hello, World!"
 
         # Set from file
-        textkit clipboard set "$(cat file.txt)"
+        textkit clip set "$(cat file.txt)"
         ```
 
         **Args:**
@@ -134,7 +202,7 @@ def register_clipboard_commands(
         - **text**: The text to copy to clipboard
         """
         try:
-            logger.info("clipboard_set_requested", text_length=len(text))
+            logger.info("clip_set_requested", text_length=len(text))
 
             # Get application instance
             app_instance = get_app_func()
@@ -147,20 +215,20 @@ def register_clipboard_commands(
                     f"[green]OK[/green] Copied {len(text)} characters to clipboard",
                     style="bold",
                 )
-                logger.info("clipboard_set_success", text_length=len(text))
+                logger.info("clip_set_success", text_length=len(text))
             else:
                 console.print(
                     "[yellow]WARNING[/yellow] Failed to copy to clipboard", style="bold"
                 )
-                logger.warning("clipboard_set_failed")
+                logger.warning("clip_set_failed")
 
         except Exception as e:
             logger.error(
-                "clipboard_set_error", error=str(e), error_type=type(e).__name__
+                "clip_set_error", error=str(e), error_type=type(e).__name__
             )
-            handle_cli_error_func(e, "clipboard set")
+            handle_cli_error_func(e, "clip set")
 
-    @clipboard_app.command("status")
+    @clip_app.command("status")
     def clipboard_status() -> None:
         """Show clipboard system status.
 
@@ -170,11 +238,11 @@ def register_clipboard_commands(
 
         ```bash
         # Check clipboard status
-        textkit clipboard status
+        textkit clip status
         ```
         """
         try:
-            logger.info("clipboard_status_requested")
+            logger.info("clip_status_requested")
 
             # Get application instance
             app_instance = get_app_func()
@@ -205,13 +273,13 @@ def register_clipboard_commands(
                     )
 
             console.print()
-            logger.info("clipboard_status_success", status=status)
+            logger.info("clip_status_success", status=status)
 
         except Exception as e:
             logger.error(
-                "clipboard_status_error", error=str(e), error_type=type(e).__name__
+                "clip_status_error", error=str(e), error_type=type(e).__name__
             )
-            handle_cli_error_func(e, "clipboard status")
+            handle_cli_error_func(e, "clip status")
 
-    # Add clipboard subcommand to main app
-    app.add_typer(clipboard_app, name="clipboard")
+    # Add clip subcommand to main app
+    app.add_typer(clip_app, name="clip")

@@ -12,7 +12,7 @@ import typer
 from rich.console import Console
 
 from .abstractions import ApplicationServiceInterface
-from .commands.clipboard_cmd import register_clipboard_commands
+from .commands.clip_cmd import register_clip_commands
 
 # Import command modules
 from .commands.status_cmd import register_status_commands
@@ -131,8 +131,8 @@ def _register_all_commands() -> None:
     )
     app.add_typer(rules_subcommand, name="rules")
 
-    # clipboard subcommand group: textkit clipboard {get,set,clear,status}
-    register_clipboard_commands(
+    # clip subcommand group: textkit clip {get,set,clear,status} or textkit clip < file
+    register_clip_commands(
         app=app,
         get_app_func=get_app,
         handle_cli_error_func=error_handler.handle_cli_error,
