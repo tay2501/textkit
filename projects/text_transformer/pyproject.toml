@@ -12,10 +12,13 @@ dependencies = [
     "typer>=0.16.1",
     "rich>=14.1.0",
     "pyperclip>=1.9.0",
+    "structlog>=25.4.0",
+    "chardet>=5.2.0",
 ]
 
 [project.scripts]
-text-transformer = "text_transformer.main:app"
+tt = "text_transformer.cli:app"
+text-transformer = "text_transformer.cli:app"
 
 # カスタムトップネームスペース設定
 [tool.polylith.build]
@@ -25,7 +28,9 @@ top-namespace = "textkit"
 "../../components/text_core" = "text_processing/text_core"
 "../../components/config_manager" = "text_processing/config_manager"
 "../../components/io_handler" = "text_processing/io_handler"
-"../../bases/text_processing/cli_interface" = "text_processing/cli_interface"
+"../../components/rule_parser" = "text_processing/rule_parser"
+"../../components/exceptions" = "text_processing/exceptions"
+"../../components/common_utils" = "common_utils"
 
 [tool.hatch.build.hooks.polylith-bricks]
 

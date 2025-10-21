@@ -5,6 +5,33 @@
 
 A modern, modular text processing toolkit built with the Polylith architecture, providing reusable components for text transformation, line ending conversion, character encoding conversion, encryption, and I/O operations.
 
+## 🎯 Unix-Philosophy Compliant CLI Tools
+
+TextKit provides simple, independent CLI tools that follow Unix philosophy:
+
+- **`tt`** - Text transformer (trim, case, encoding)
+- **`encrypt`** / **`decrypt`** - RSA+AES encryption
+- **`clip`** - Clipboard manager
+
+Each tool:
+- Does one thing well
+- Works with stdin/stdout for pipeline composition
+- Has a simple, intuitive interface
+
+**Quick Start**:
+```bash
+# Text transformation
+PYTHONPATH=. uv run python bin/tt.py //l -t "HELLO"  # Output: hello
+
+# Clipboard management
+PYTHONPATH=. uv run python bin/clip.py get
+
+# Encryption
+echo "secret" | PYTHONPATH=. uv run python bin/encrypt.py -n
+```
+
+📖 **See [bin/README.md](bin/README.md) for complete CLI documentation**
+
 ## 🏗️ Architecture
 
 This workspace follows the [Polylith architecture](https://polylith.gitbook.io/), enabling modular development with shared code across multiple deployable applications.
