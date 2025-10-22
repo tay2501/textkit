@@ -20,9 +20,39 @@ def register_status_commands(
 ) -> None:
     """Register status and version commands with the application."""
 
-    @app.command("status", help="Show application status and configuration")
+    @app.command("status")
     def show_status() -> None:
-        """Display application status and configuration information."""
+        """Display application status and configuration information.
+
+        Shows the current state of application components including:
+
+        **Status Information:**
+
+        - Configuration status and loaded rules count
+        - Input/Output system status (clipboard, stdin/stdout)
+        - Transformation engine status
+        - Cryptography system availability
+        - Active components and their states
+
+        **Usage Examples:**
+
+        ```bash
+        # Check application status
+        textkit status
+
+        # Verify clipboard availability
+        textkit status | grep -i clipboard
+
+        # Check all component states
+        textkit status
+        ```
+
+        **Tips:**
+        - Use this command to diagnose issues with clipboard or I/O
+        - Check if cryptography features are available
+        - Verify configuration loading status
+        - See which transformation rules are loaded
+        """
         try:
             app_instance = get_app_func()
             status = app_instance.get_status()
@@ -48,9 +78,39 @@ def register_status_commands(
         except Exception as e:
             handle_cli_error_func(e, "status display")
 
-    @app.command("version", help="Show version information")
+    @app.command("version")
     def show_version() -> None:
-        """Display version information."""
+        """Display version and system information.
+
+        Shows detailed information about the application version, architecture,
+        and runtime environment.
+
+        **Information Displayed:**
+
+        - Application name and version
+        - Architecture type (Polylith modular architecture)
+        - Python version requirement
+        - Brief description of capabilities
+
+        **Usage Examples:**
+
+        ```bash
+        # Show version information
+        textkit version
+
+        # Check version in scripts
+        textkit version | grep "Version:"
+
+        # Verify Python compatibility
+        textkit version
+        ```
+
+        **Tips:**
+        - Use this to verify installed version
+        - Check Python version compatibility
+        - Confirm Polylith architecture is active
+        - Useful for bug reports and support requests
+        """
         try:
             console.print("[bold blue]Text Processing Toolkit[/bold blue]")
             console.print("Version: [cyan]0.1.0[/cyan]")
@@ -99,12 +159,14 @@ def show_status_func(
 
     return _show_status
 
+    return _show_status
+
 
 def show_version_func(handle_cli_error_func: callable) -> callable:
     """Create show_version function with dependencies injected."""
 
     def _show_version() -> None:
-        """Display version information."""
+        """Display version and system information."""
         try:
             console.print("[bold blue]Text Processing Toolkit[/bold blue]")
             console.print("Version: [cyan]0.1.0[/cyan]")
@@ -116,5 +178,7 @@ def show_version_func(handle_cli_error_func: callable) -> callable:
 
         except Exception as e:
             handle_cli_error_func(e, "version display")
+
+    return _show_version
 
     return _show_version

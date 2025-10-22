@@ -33,8 +33,41 @@ error_handler = ErrorHandler(console)
 # Main Typer application
 app = typer.Typer(
     name="text-processing-toolkit",
-    help="Modern text transformation toolkit with Polylith architecture",
-    epilog="Examples:\\n  text-processing-toolkit transform '/t/l' # Trim and lowercase\\n  text-processing-toolkit encrypt           # Encrypt clipboard text\\n  text-processing-toolkit rules             # Show available rules",
+    help="""Modern text transformation toolkit with Polylith architecture.
+
+A comprehensive command-line tool for text processing, character encoding conversion,
+and cryptographic operations with clipboard integration.
+
+**Key Features:**
+- Text transformations (case conversion, trimming, encoding/decoding)
+- Character encoding conversion (iconv-compatible)
+- RSA+AES hybrid encryption/decryption
+- Clipboard integration (Microsoft clip compatible)
+- Flexible I/O (stdin, clipboard, files)
+- 40+ transformation rules with chainable operations
+
+**Quick Start:**
+```bash
+# Transform text: trim and lowercase
+textkit text transform '/t/l' -i "  HELLO  "
+
+# Convert encoding
+textkit text encode -f shift_jis -t utf-8 -i "日本語"
+
+# Encrypt clipboard content
+textkit crypto encrypt --from-clipboard
+
+# View all transformation rules
+textkit rules list
+```
+
+**Tips:**
+- Use `--help` on any command for detailed usage
+- Chain multiple transformation rules: `/t/l/p`
+- All commands support stdin piping and clipboard I/O
+- See `textkit COMMAND --help` for command-specific examples
+""",
+    epilog="\\nExamples:\\n  textkit text transform '/t/l' -i 'text' # Trim and lowercase\\n  textkit crypto encrypt --from-clipboard  # Encrypt clipboard\\n  textkit rules list --search 'case'       # Search rules\\n\\nDocumentation: Use --help on any command for detailed information",
     rich_markup_mode="rich",
     no_args_is_help=True,
     add_completion=True,

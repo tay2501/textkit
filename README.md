@@ -175,6 +175,42 @@ uv run python main.py text encode --[TAB][TAB]
 
 ## 🎯 Usage
 
+### 📖 Getting Help
+
+All commands provide comprehensive help documentation following CLI best practices:
+
+```bash
+# Main help - Shows all available commands
+uv run python main.py --help
+
+# Command-specific help with detailed examples
+uv run python main.py text --help
+uv run python main.py crypto --help
+uv run python main.py rules --help
+uv run python main.py clip --help
+
+# Subcommand help with usage examples
+uv run python main.py text transform --help
+uv run python main.py text encode --help
+uv run python main.py crypto encrypt --help
+uv run python main.py crypto decrypt --help
+uv run python main.py rules list --help
+```
+
+**Each help page includes:**
+- Clear description of what the command does
+- Common use cases and feature highlights
+- Practical, copy-paste ready examples
+- Tips for effective usage
+- Related commands and next steps
+
+**Example help output features:**
+- 🎨 Rich formatted text with syntax highlighting
+- 📋 Code blocks with realistic examples
+- 💡 Tips section with practical advice
+- 🔗 References to related commands
+- ✨ Progressive disclosure: brief descriptions + detailed examples
+
 ### 🆕 Modern Hierarchical Command Structure (Recommended)
 
 Following industry-standard CLI patterns from **GitHub CLI** (`gh pr create`), **Docker** (`docker container ls`), and **kubectl** (`kubectl get pods`):
@@ -669,5 +705,11 @@ This project is licensed under the MIT License.
 - ✅ **Type safety** - Enhanced Pydantic validation across components
 - ✅ **Test improvements** - Comprehensive test suite with skip markers and coverage
 - ✅ **Security enhancements** - Improved encoding and cryptographic operations
+- ✅ **Enhanced CLI help** - Comprehensive help documentation following industry best practices
+  - Examples-first approach with practical, copy-paste ready commands
+  - Rich formatted output with syntax highlighting
+  - Progressive disclosure: brief descriptions + detailed examples
+  - Tips sections for effective usage
+  - Consistent structure across all commands
 
 
