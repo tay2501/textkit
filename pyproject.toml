@@ -6,7 +6,8 @@ build-backend = "hatchling.build"
 name = "text-processing-toolkit"
 version = "0.1.0"
 description = "Polylith workspace for text processing applications with token-optimized architecture"
-# readme = "README.md"
+readme = "README.md"
+license = "AGPL-3.0-or-later"
 requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2.10.0",

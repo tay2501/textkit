@@ -3,7 +3,26 @@
 
 # TextKit
 
+![Python](https://img.shields.io/badge/python-3.12+-blue.svg)
+![License](https://img.shields.io/badge/license-AGPL--3.0-green.svg)
+[![GitHub Stars](https://img.shields.io/github/stars/tay2501/textkit?style=social)](https://github.com/tay2501/textkit)
+
 A modern, modular text processing toolkit built with the Polylith architecture, providing reusable components for text transformation, line ending conversion, character encoding conversion, encryption, and I/O operations.
+
+## 📚 Table of Contents
+
+- [Unix-Philosophy Compliant CLI Tools](#-unix-philosophy-compliant-cli-tools)
+- [Architecture](#️-architecture)
+- [Getting Started](#-getting-started)
+- [Shell Tab Completion](#️-shell-tab-completion)
+- [Usage](#-usage)
+- [Key Features](#-key-features)
+- [Available Projects](#-available-projects)
+- [Tech Stack](#-tech-stack)
+- [Development](#️-development)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Support](#-support)
 
 ## 🎯 Unix-Philosophy Compliant CLI Tools
 
@@ -676,15 +695,36 @@ Before submitting changes:
 
 ## 🤝 Contributing
 
+Contributions are welcome! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+
+Quick checklist:
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes following the development guidelines
-4. Run the complete test suite
+3. Follow the [development guidelines](CONTRIBUTING.md#coding-standards)
+4. Run all quality checks (`ruff`, `mypy`, `pytest`)
 5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the [GNU Affero General Public License v3.0](LICENSE).
+
+**Key points:**
+- ✅ Open source and free to use
+- ✅ Modifications must be shared under AGPL-3.0
+- ✅ Network use requires source disclosure
+- 📖 See [LICENSE](LICENSE) for full terms
+
+## 💬 Support
+
+- 🐛 **Report Issues**: [GitHub Issues](https://github.com/tay2501/textkit/issues)
+- 💡 **Discussions**: [GitHub Discussions](https://github.com/tay2501/textkit/discussions)
+- 🔒 **Security**: See [SECURITY.md](SECURITY.md) for responsible disclosure
+- 📧 **Contact**: Open an issue or discussion
+
+**Helpful Resources:**
+- [Contributing Guide](CONTRIBUTING.md)
+- [Security Policy](SECURITY.md)
+- [Architecture Documentation](docs/)
 
 ## 🙏 Acknowledgments
 
@@ -697,7 +737,7 @@ This project is licensed under the MIT License.
 
 ## 🔄 Recent Changes
 
-### v0.1.0 (2025-10)
+### v0.1.0 (2025-10-23)
 - ✅ **Hierarchical CLI structure** - Migrated to industry-standard command organization
 - ✅ **Namespace refactoring** - Complete migration from `text_processing` to `textkit`
 - ✅ **Dependency injection** - Replaced custom DI with lagom library
