@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import typer
 from rich.console import Console
 
-from components.crypto_engine import CryptoEngine
+from components.crypto_engine import CryptographyManager
 from components.io_handler import InputOutputManager
 
 console = Console()
@@ -51,7 +51,6 @@ def get_input_text(io_manager: InputOutputManager, text: Optional[str]) -> str:
 def main(
     text: Optional[str] = typer.Option(None, "--text", "-t", help="Text to encrypt"),
     no_clipboard: bool = typer.Option(False, "--no-clipboard", "-n", help="Disable clipboard"),
-    key_path: Optional[str] = typer.Option(None, "--key", "-k", help="Public key path"),
     version: bool = typer.Option(False, "--version", "-v", help="Show version"),
 ) -> None:
     """Encrypt text using RSA+AES hybrid encryption.
@@ -68,13 +67,13 @@ def main(
 
     try:
         io_manager = InputOutputManager()
-        crypto = CryptoEngine()
+        crypto = CryptographyManager()
 
         # Get input
         input_text = get_input_text(io_manager, text)
 
         # Encrypt
-        encrypted = crypto.encrypt_text(input_text, public_key_path=key_path)
+        encrypted = crypto.encrypt_text(input_text)
 
         # Output
         print(encrypted)
