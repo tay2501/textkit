@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Optional
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -30,7 +29,7 @@ from components.io_handler import InputOutputManager
 console = Console()
 
 
-def get_input_text(io_manager: InputOutputManager, text: Optional[str]) -> str:
+def get_input_text(io_manager: InputOutputManager, text: str | None) -> str:
     """Get input from argument, stdin, or clipboard."""
     if text is not None:
         return text
@@ -49,7 +48,7 @@ def get_input_text(io_manager: InputOutputManager, text: Optional[str]) -> str:
 
 
 def main(
-    text: Optional[str] = typer.Option(None, "--text", "-t", help="Text to encrypt"),
+    text: str | None = typer.Option(None, "--text", "-t", help="Text to encrypt"),
     no_clipboard: bool = typer.Option(False, "--no-clipboard", "-n", help="Disable clipboard"),
     version: bool = typer.Option(False, "--version", "-v", help="Show version"),
 ) -> None:

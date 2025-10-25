@@ -20,14 +20,13 @@ Examples:
 from __future__ import annotations
 
 import sys
-from typing import Optional
 
 import typer
 from rich.console import Console
+from textkit.text_processing.io_handler import InputOutputManager
 
 # Import components using Polylith namespace
 from textkit.text_processing.text_core import TextTransformationEngine
-from textkit.text_processing.io_handler import InputOutputManager
 
 app = typer.Typer(
     name="tt",
@@ -39,7 +38,7 @@ app = typer.Typer(
 console = Console()
 
 
-def get_input_text(io_manager: InputOutputManager, text: Optional[str]) -> str:
+def get_input_text(io_manager: InputOutputManager, text: str | None) -> str:
     """Get input text from arguments, stdin, or clipboard.
 
     Priority:
@@ -93,7 +92,7 @@ def transform_command(
         help="Transformation rule(s) (e.g., '/t/l' for trim+lowercase)",
         metavar="RULES",
     ),
-    text: Optional[str] = typer.Option(
+    text: str | None = typer.Option(
         None,
         "--text",
         "-t",
@@ -135,8 +134,8 @@ def transform_command(
 @app.callback(invoke_without_command=True)
 def main(
     ctx: typer.Context,
-    rules: Optional[str] = typer.Argument(None, help="Transformation rule(s)"),
-    text: Optional[str] = typer.Option(None, "--text", "-t", help="Input text"),
+    rules: str | None = typer.Argument(None, help="Transformation rule(s)"),
+    text: str | None = typer.Option(None, "--text", "-t", help="Input text"),
     no_clipboard: bool = typer.Option(False, "--no-clipboard", help="Disable clipboard"),
     version: bool = typer.Option(False, "--version", "-v", help="Show version"),
 ) -> None:

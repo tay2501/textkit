@@ -11,15 +11,16 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Optional
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Disable all logging for clean CLI output
 import os
+
 os.environ["TEXTKIT_LOG_LEVEL"] = "CRITICAL"
 import logging
+
 logging.basicConfig(level=logging.CRITICAL)
 for logger_name in ["structlog", "textkit", "components"]:
     logging.getLogger(logger_name).setLevel(logging.CRITICAL)
@@ -28,13 +29,13 @@ for logger_name in ["structlog", "textkit", "components"]:
 import typer
 from rich.console import Console
 
-from components.text_core import TextTransformationEngine
 from components.io_handler import InputOutputManager
+from components.text_core import TextTransformationEngine
 
 console = Console()
 
 
-def get_input_text(io_manager: InputOutputManager, text: Optional[str]) -> str:
+def get_input_text(io_manager: InputOutputManager, text: str | None) -> str:
     """Get input from argument, stdin, or clipboard (priority order)."""
     if text is not None:
         return text
@@ -65,7 +66,7 @@ def output_text(io_manager: InputOutputManager, text: str, no_clipboard: bool) -
 
 def main(
     rules: str = typer.Argument(..., help="Transformation rules (e.g., '/t/l')"),
-    text: Optional[str] = typer.Option(None, "--text", "-t", help="Input text"),
+    text: str | None = typer.Option(None, "--text", "-t", help="Input text"),
     no_clipboard: bool = typer.Option(False, "--no-clipboard", "-n", help="Disable clipboard"),
     version: bool = typer.Option(False, "--version", "-v", help="Show version"),
 ) -> None:

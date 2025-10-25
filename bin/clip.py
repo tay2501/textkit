@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Optional
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -54,7 +53,7 @@ def get() -> None:
 
 @app.command()
 def set(
-    text: Optional[str] = typer.Argument(None, help="Text to set in clipboard"),
+    text: str | None = typer.Argument(None, help="Text to set in clipboard"),
 ) -> None:
     """Set clipboard content.
 
@@ -104,7 +103,7 @@ def status() -> None:
         if content:
             length = len(content)
             lines = content.count('\n') + 1
-            console.print(f"[green]Clipboard Status:[/green]")
+            console.print("[green]Clipboard Status:[/green]")
             console.print(f"  Content length: {length} characters")
             console.print(f"  Lines: {lines}")
             console.print(f"  Preview: {content[:50]}..." if length > 50 else f"  Content: {content}")

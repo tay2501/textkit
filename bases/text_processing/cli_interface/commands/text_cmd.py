@@ -24,7 +24,6 @@ from ..shared.standard_options import (
     FromClipboardOption,
     InputTextOption,
     OutputPathOption,
-    RulesArgument,
     SourceEncodingOption,
     TargetEncodingOption,
     ToClipboardOption,
@@ -290,7 +289,7 @@ def _show_available_rules(get_app_func: callable) -> None:
     """Display quick reference for transformation rules with practical examples."""
     try:
         app_instance = get_app_func()
-        rules_dict = app_instance.get_available_rules()
+        _ = app_instance.get_available_rules()  # Verify rules are accessible
 
         console.print("\n[bold cyan]Quick Reference: Transformation Rules[/bold cyan]\n")
 
