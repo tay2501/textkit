@@ -16,18 +16,11 @@ permissions:
 jobs:
   osv-scanner:
     name: OSV Vulnerability Scanner
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Run OSV Scanner
-        uses: google/osv-scanner-action@v1
-        with:
-          scan-args: |-
-            -r
-            --skip-git
-            ./
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.2.3"
+    permissions:
+      actions: read
+      security-events: write
+      contents: read
 
   pip-audit:
     name: pip-audit Security Check
