@@ -6,6 +6,7 @@ Simple, independent CLI tools following Unix philosophy and Polylith architectur
 
 - **Do One Thing Well**: Each tool has a single, clear purpose
 - **Pipeline-Friendly**: All tools work with stdin/stdout for composition
+- **Unix Compliant**: stdout for data, stderr for messages (clig.dev)
 - **Simple Interface**: Minimal options, maximum usability
 - **Polylith Architecture**: Shared components, independent deployments
 
@@ -134,6 +135,24 @@ clip get | tt //t//l -n | clip set
 cat file.txt | tt //t -n | tt //l -n > output.txt
 ```
 
+### stdout/stderr Separation
+
+All CLI tools follow Unix best practices:
+- **stdout**: Contains only the command result (perfect for piping)
+- **stderr**: Contains logs, warnings, and status messages
+- **--quiet flag**: Suppresses stderr output for clean pipe operations
+
+```bash
+# Using main.py with --quiet flag for pipe-friendly operation
+uv run python main.py --quiet text transform /t -i "  HELLO  " | \
+uv run python main.py --quiet text transform /l
+# Output: hello
+
+# Environment variable alternative
+TEXTKIT_QUIET=1 uv run python main.py text transform /l -i "HELLO"
+# Output: hello
+```
+
 ---
 
 ## Running Tools
@@ -214,6 +233,8 @@ projects/          # Future: Individual packages
 
 ### 2. Pipeline-Friendly
 - stdin/stdout support
+- **Unix Philosophy**: stdout for data, stderr for messages
+- **--quiet flag**: Suppress all non-essential output
 - No unnecessary output
 - Exit codes: 0 (success), 1 (error)
 
@@ -258,6 +279,9 @@ A: Use `//rule1//rule2`: `tt //t//l` = trim + lowercase
 
 **Q: Pipeline vs Clipboard mode?**
 A: Pipe mode (`stdin`): use `-n` flag. Clipboard mode: default when TTY.
+
+**Q: How do I suppress log messages for piping?**
+A: Use `--quiet` flag or set `TEXTKIT_QUIET=1` environment variable. This follows Unix philosophy by separating data (stdout) from messages (stderr).
 
 ---
 

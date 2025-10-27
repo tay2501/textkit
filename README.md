@@ -16,6 +16,8 @@ A modern, modular text processing toolkit built with the Polylith architecture, 
 - [Getting Started](#-getting-started)
 - [Shell Tab Completion](#️-shell-tab-completion)
 - [Usage](#-usage)
+  - [Global Options](#-global-options)
+  - [Getting Help](#-getting-help)
 - [Key Features](#-key-features)
 - [Available Projects](#-available-projects)
 - [Tech Stack](#-tech-stack)
@@ -36,6 +38,8 @@ Each tool:
 - Does one thing well
 - Works with stdin/stdout for pipeline composition
 - Has a simple, intuitive interface
+- **Separates data (stdout) from messages (stderr)** - Perfect for piping
+- **Supports `--quiet` flag** - Suppresses all non-essential output
 
 **Quick Start**:
 ```bash
@@ -47,6 +51,11 @@ PYTHONPATH=. uv run python bin/clip.py get
 
 # Encryption
 echo "secret" | PYTHONPATH=. uv run python bin/encrypt.py -n
+
+# Pipe-friendly processing with --quiet
+uv run python main.py --quiet text transform /t -i "  HELLO  " | \
+uv run python main.py --quiet text transform /l
+# Output: hello
 ```
 
 📖 **See [bin/README.md](bin/README.md) for complete CLI documentation**
@@ -194,6 +203,44 @@ uv run python main.py text encode --[TAB][TAB]
 
 ## 🎯 Usage
 
+### 🔧 Global Options
+
+TextKit supports global options that apply to all commands:
+
+```bash
+# --quiet / -q: Suppress log messages (pipe-friendly)
+uv run python main.py --quiet text transform '/l' -i "HELLO"
+uv run python main.py -q crypto encrypt -i "secret"
+
+# Environment variable: TEXTKIT_QUIET
+TEXTKIT_QUIET=1 uv run python main.py text transform '/l' -i "HELLO"
+```
+
+**Unix Philosophy Compliance:**
+- **stdout** (standard output): Contains **only the command result** - perfect for piping
+- **stderr** (standard error): Contains **logs, warnings, and messages** - visible to users but not piped
+- **--quiet flag**: Suppresses stderr output for clean pipe operations
+
+**Pipe-Friendly Examples:**
+```bash
+# Chain transformations with --quiet
+uv run python main.py --quiet text transform /t -i "  HELLO  " | \
+uv run python main.py --quiet text transform /l
+# Output: hello
+
+# Three-step pipeline
+echo "  HELLO WORLD  " | \
+uv run python main.py --quiet text transform /t | \
+uv run python main.py --quiet text transform /l | \
+uv run python main.py --quiet text transform /r
+# Output: helloworld
+
+# Using environment variable
+TEXTKIT_QUIET=1 uv run python main.py text transform /t -i "  test  " | \
+TEXTKIT_QUIET=1 uv run python main.py text transform /u
+# Output: TEST
+```
+
 ### 📖 Getting Help
 
 All commands provide comprehensive help documentation following CLI best practices:
@@ -255,6 +302,21 @@ uv run python main.py text transform '/u' -i "hello" --to-clipboard
 # Output to file
 uv run python main.py text transform '/l' -i "HELLO" -o ./output
 uv run python main.py text encode -f auto -t utf-8 -i "text" -o ./output
+
+# Pipe operations (Unix-style command chaining)
+uv run python main.py --quiet text transform /t -i "  HELLO  " | \
+uv run python main.py --quiet text transform /l
+# Output: hello
+
+# Stdin piping
+echo "  HELLO WORLD  " | uv run python main.py --quiet text transform /t/l
+# Output: hello world
+
+# Complex pipeline
+echo "hello-world" | \
+uv run python main.py --quiet text transform /h2u | \
+uv run python main.py --quiet text transform /u
+# Output: HELLO_WORLD
 ```
 
 #### Cryptographic Operations
@@ -736,6 +798,23 @@ This project is licensed under the [GNU Affero General Public License v3.0](LICE
 - Inspired by Unix tools: `tr` (line ending conversion) and `iconv` (character encoding conversion)
 
 ## 🔄 Recent Changes
+
+### v0.1.1 (2025-10-26)
+- ✅ **Unix Philosophy Compliance** - Full stdout/stderr separation
+  - Log messages and status output to stderr (following clig.dev and Unix best practices)
+  - Command results output to stdout (perfect for piping)
+  - structlog configured to use stderr for all logging output
+  - Rich Console outputs configured to stderr
+- ✅ **Pipe-Friendly Operation** - Complete pipeline support
+  - `--quiet` / `-q` global flag to suppress all non-essential output
+  - `TEXTKIT_QUIET` environment variable support
+  - Automatic stdout output when no destinations specified
+  - Tested and verified pipe chaining functionality
+- ✅ **Enhanced I/O Handling** - Smart output management
+  - Default to stdout for Unix-style pipeline composition
+  - Quiet mode respects both CLI flag and environment variable
+  - Early environment variable detection for consistent behavior
+  - Message suppression in OutputManager when quiet mode enabled
 
 ### v0.1.0 (2025-10-23)
 - ✅ **Hierarchical CLI structure** - Migrated to industry-standard command organization

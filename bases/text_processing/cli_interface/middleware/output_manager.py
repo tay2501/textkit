@@ -7,6 +7,7 @@ separated from the main CLI interface for better maintainability.
 from __future__ import annotations
 
 import datetime
+import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -16,7 +17,8 @@ from rich.console import Console
 if TYPE_CHECKING:
     from ..interfaces import ApplicationInterface
 
-console = Console()
+# Console outputs to stderr (following Unix philosophy: logs/messages to stderr)
+console = Console(stderr=True)
 
 
 class OutputManager:
@@ -39,6 +41,7 @@ class OutputManager:
         - If output_folder is a directory, creates timestamped file
         - Prompts for overwrite confirmation if file exists
         - Preserves original text encoding and line endings from clipboard
+        - If no output destination specified, outputs to stdout (Unix philosophy)
 
         Follows EAFP principle and modern pathlib best practices.
 
@@ -62,6 +65,14 @@ class OutputManager:
             file_output_result = self._handle_file_output(result, output_folder)
             if file_output_result:
                 outputs_performed.append(file_output_result)
+
+        # If no output destinations specified, output to stdout (Unix philosophy)
+        if not outputs_performed:
+            import sys
+
+            sys.stdout.write(result)
+            sys.stdout.flush()
+            outputs_performed.append("stdout")
 
         # Show success message
         self._show_completion_message(outputs_performed, result)
@@ -124,6 +135,10 @@ class OutputManager:
             outputs_performed: List of successful output destinations
             result: The processed result for preview
         """
+        # Skip messages in quiet mode (for pipe-friendly operation)
+        if os.environ.get("TEXTKIT_QUIET", "0") == "1":
+            return
+
         # Show success message
         if outputs_performed:
             output_list = " and ".join(outputs_performed)

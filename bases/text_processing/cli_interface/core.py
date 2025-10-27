@@ -26,8 +26,8 @@ from .middleware.error_handler import ErrorHandler
 if TYPE_CHECKING:
     pass
 
-# Initialize console and error handler
-console = Console()
+# Initialize console and error handler (output to stderr per Unix philosophy)
+console = Console(stderr=True)
 error_handler = ErrorHandler(console)
 
 # Main Typer application
@@ -72,6 +72,23 @@ textkit rules list
     no_args_is_help=True,
     add_completion=True,
 )
+
+
+@app.callback()
+def global_options(
+    quiet: bool = typer.Option(
+        False,
+        "--quiet",
+        "-q",
+        help="Suppress log messages (only output results, ideal for piping)",
+    ),
+) -> None:
+    """Global options for all commands."""
+    import os
+
+    if quiet:
+        os.environ["TEXTKIT_QUIET"] = "1"
+
 
 # Global application instance (singleton pattern)
 _app_instance: ApplicationServiceInterface | None = None
@@ -182,6 +199,13 @@ def _register_all_commands() -> None:
 def run_cli() -> None:
     """Main CLI entry point with enhanced error handling and logging setup."""
     try:
+        # Check for --quiet flag early and set environment variable
+        import os
+        import sys
+
+        if "--quiet" in sys.argv or "-q" in sys.argv:
+            os.environ["TEXTKIT_QUIET"] = "1"
+
         # Initialize structured logging first
         import structlog
         from textkit.config_manager.settings import configure_logging

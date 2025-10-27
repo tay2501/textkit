@@ -29,7 +29,7 @@ from ..shared.standard_options import (
     ToClipboardOption,
 )
 
-console = Console()
+console = Console(stderr=True)
 
 
 def create_text_subcommand(

@@ -23,13 +23,18 @@ def configure_logging() -> None:
     """Configure structured logging for the application.
 
     Uses modern structlog patterns with environment-aware configuration.
+    Respects TEXTKIT_QUIET environment variable to suppress logging.
     """
     import logging
+    import os
     import sys
 
     # Check if already configured to avoid double configuration
     if structlog.is_configured():
         return
+
+    # Check quiet mode (for pipe-friendly operation)
+    quiet_mode = os.environ.get("TEXTKIT_QUIET", "0") == "1"
 
     # Environment-aware processor selection
     shared_processors = [
@@ -40,9 +45,16 @@ def configure_logging() -> None:
         structlog.processors.TimeStamper(fmt="iso", utc=True),
     ]
 
-    # Development vs Production configuration
-    if sys.stderr.isatty():
+    # Determine log level based on quiet mode
+    if quiet_mode:
+        # Quiet mode: Suppress all logs except CRITICAL
+        log_level = logging.CRITICAL
+        processors = shared_processors + [structlog.dev.ConsoleRenderer()]
+        logger_factory = structlog.WriteLoggerFactory(file=sys.stderr)
+        wrapper_class = structlog.make_filtering_bound_logger(logging.CRITICAL)
+    elif sys.stderr.isatty():
         # Development: Pretty console output with colors
+        log_level = logging.DEBUG
         processors = shared_processors + [
             structlog.dev.ConsoleRenderer(
                 colors=True,
@@ -50,10 +62,11 @@ def configure_logging() -> None:
                 timestamp_key="timestamp",
             ),
         ]
-        logger_factory = structlog.PrintLoggerFactory()
+        logger_factory = structlog.WriteLoggerFactory(file=sys.stderr)
         wrapper_class = structlog.make_filtering_bound_logger(logging.DEBUG)
     else:
         # Production: Structured JSON output
+        log_level = logging.INFO
         try:
             import orjson
 
@@ -81,7 +94,7 @@ def configure_logging() -> None:
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stderr,
-        level=logging.INFO,
+        level=log_level,
     )
 
 
