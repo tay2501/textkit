@@ -56,6 +56,20 @@ class StringTransformer(BaseTransformer):
                 function=lambda text: text.replace("_", "-"),
                 rule_type=TransformationRuleType.STRING_OPS,
             ),
+            "ue": TransformationRule(
+                name="Unicode Escape",
+                description="Convert text to Unicode escape sequences (\\uXXXX format)",
+                example="'あ' -> '\\u3042'",
+                function=lambda text: text.encode("unicode-escape").decode("ascii"),
+                rule_type=TransformationRuleType.STRING_OPS,
+            ),
+            "ud": TransformationRule(
+                name="Unicode Unescape",
+                description="Convert Unicode escape sequences to text",
+                example="'\\u3042' -> 'あ'",
+                function=self._unicode_unescape,
+                rule_type=TransformationRuleType.STRING_OPS,
+            ),
         }
 
     def _apply_with_args(
@@ -272,3 +286,26 @@ class StringTransformer(BaseTransformer):
                     f"All fallback methods failed: {fallback_e}", exc_info=True
                 )
                 return ""
+
+    def _unicode_unescape(self, text: str) -> str:
+        """Convert Unicode escape sequences to actual Unicode characters.
+
+        Converts strings containing Unicode escape sequences (e.g., \\u3042)
+        to their corresponding Unicode characters using Python's standard
+        codecs module following best practices for Python 3.13+.
+
+        Args:
+            text: Input text containing Unicode escape sequences
+
+        Returns:
+            Text with escape sequences converted to Unicode characters
+
+        Raises:
+            UnicodeDecodeError: If text contains invalid escape sequences
+
+        Example:
+            '\\u3042\\u3044\\u3046' -> 'あいう'
+        """
+        import codecs
+
+        return codecs.decode(text, "unicode-escape")

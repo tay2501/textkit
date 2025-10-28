@@ -226,6 +226,53 @@ class TestStringTransformer:
             result = self.transformer.transform(input_text, "i")
             assert result == expected, f"Failed for input: {input_text!r}"
 
+    def test_unicode_escape_transformation(self):
+        """Test Unicode escape transformation."""
+        result = self.transformer.transform("あいうえお", "ue")
+        assert result == "\\u3042\\u3044\\u3046\\u3048\\u304a"
+
+    def test_unicode_escape_ascii_text(self):
+        """Test Unicode escape with ASCII text (should remain unchanged)."""
+        result = self.transformer.transform("hello", "ue")
+        assert result == "hello"
+
+    def test_unicode_escape_mixed_text(self):
+        """Test Unicode escape with mixed ASCII and Japanese text."""
+        result = self.transformer.transform("Hello, 世界", "ue")
+        assert result == "Hello, \\u4e16\\u754c"
+
+    def test_unicode_unescape_transformation(self):
+        """Test Unicode unescape transformation."""
+        result = self.transformer.transform("\\u3042\\u3044\\u3046\\u3048\\u304a", "ud")
+        assert result == "あいうえお"
+
+    def test_unicode_unescape_ascii_text(self):
+        """Test Unicode unescape with plain ASCII text."""
+        result = self.transformer.transform("hello", "ud")
+        assert result == "hello"
+
+    def test_unicode_unescape_mixed_text(self):
+        """Test Unicode unescape with mixed escaped and plain text."""
+        result = self.transformer.transform("Hello, \\u4e16\\u754c", "ud")
+        assert result == "Hello, 世界"
+
+    def test_unicode_escape_roundtrip(self):
+        """Test Unicode escape/unescape roundtrip."""
+        original = "日本語テスト：あいうえお"
+        escaped = self.transformer.transform(original, "ue")
+        unescaped = self.transformer.transform(escaped, "ud")
+        assert unescaped == original
+
+    def test_unicode_escape_empty_string(self):
+        """Test Unicode escape with empty string."""
+        result = self.transformer.transform("", "ue")
+        assert result == ""
+
+    def test_unicode_unescape_empty_string(self):
+        """Test Unicode unescape with empty string."""
+        result = self.transformer.transform("", "ud")
+        assert result == ""
+
 
 class TestLineEndingTransformer:
     """Test LineEndingTransformer strategy with rlb functionality."""
