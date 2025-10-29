@@ -33,41 +33,131 @@ error_handler = ErrorHandler(console)
 # Main Typer application
 app = typer.Typer(
     name="text-processing-toolkit",
-    help="""Modern text transformation toolkit with Polylith architecture.
+    help="""Modern text transformation toolkit built with Polylith architecture.
 
-A comprehensive command-line tool for text processing, character encoding conversion,
-and cryptographic operations with clipboard integration.
+A comprehensive, modular command-line tool for text processing, character encoding conversion,
+and cryptographic operations with seamless clipboard integration.
 
-**Key Features:**
-- Text transformations (case conversion, trimming, encoding/decoding)
-- Character encoding conversion (iconv-compatible)
-- RSA+AES hybrid encryption/decryption
-- Clipboard integration (Microsoft clip compatible)
-- Flexible I/O (stdin, clipboard, files)
-- 40+ transformation rules with chainable operations
+**Architecture:**
+Built using Polylith's modular design for high maintainability and reusability:
+- **Components**: Reusable business logic (text_core, crypto_engine, io_handler)
+- **Bases**: Application interfaces (cli_interface, interactive_session)
+- **Projects**: Deployable tools (text_transformer, encoding_specialist)
 
-**Quick Start:**
+**Core Capabilities:**
+
+*Text Processing*
+- Case conversion (lowercase, UPPERCASE, PascalCase, camelCase, snake_case, kebab-case)
+- String operations (trim, reverse, normalize, remove spaces)
+- Encoding/decoding (URL, Base64, Unicode normalization)
+- Japanese text (Hiragana/Katakana, Zenkaku/Hankaku conversion)
+
+*Encoding Conversion*
+- iconv-compatible character encoding conversion
+- Automatic encoding detection
+- Flexible error handling (strict, ignore, replace)
+- Support for 50+ encodings (UTF-8, Shift_JIS, EUC-JP, GB2312, etc.)
+
+*Cryptography*
+- RSA-2048 + AES-256-GCM hybrid encryption
+- Secure key generation and management
+- Base64-encoded safe transmission
+
+*I/O Flexibility*
+- Standard input/output (pipe-friendly)
+- Clipboard integration (read/write)
+- File-based operations
+- Chainable transformations
+
+**Getting Started:**
+
 ```bash
-# Transform text: trim and lowercase
-textkit text transform '/t/l' -i "  HELLO  "
+# 1. View available transformation rules
+textkit rules list
 
-# Convert encoding
-textkit text encode -f shift_jis -t utf-8 -i "日本語"
+# 2. Transform text: trim whitespace and convert to lowercase
+textkit text transform '/t/l' -i "  HELLO WORLD  "
+# Output: hello world
 
-# Encrypt clipboard content
+# 3. Convert character encoding (auto-detect → UTF-8)
+textkit text encode -f auto -t utf-8 -i "日本語テキスト"
+
+# 4. Chain multiple transformations
+textkit text transform '/t/u/R' -i "hello"
+# Output: OLLEH
+
+# 5. Encrypt clipboard content
 textkit crypto encrypt --from-clipboard
 
-# View all transformation rules
-textkit rules list
+# 6. Use with pipes
+echo "sample text" | textkit text transform '/u' | textkit text transform '/R'
+```
+
+**Command Structure:**
+
+```
+textkit
+├── text          Text processing operations
+│   ├── transform Apply transformation rules (40+ rules)
+│   └── encode    Convert character encodings (iconv-compatible)
+├── crypto        Cryptographic operations
+│   ├── encrypt   RSA+AES hybrid encryption
+│   └── decrypt   RSA+AES hybrid decryption
+├── rules         Explore transformation rules
+│   └── list      Display all available rules with examples
+├── clip          Clipboard management (Microsoft clip compatible)
+│   ├── get       Read from clipboard
+│   ├── set       Write to clipboard
+│   ├── clear     Clear clipboard
+│   └── status    Check clipboard status
+├── status        Display application status and configuration
+└── version       Show version and system information
+```
+
+**Common Workflows:**
+
+```bash
+# Workflow 1: Format code identifiers
+textkit text transform '/t/s' -i "getUserData"  # → get_user_data
+textkit text transform '/t/p' -i "user_name"    # → UserName
+
+# Workflow 2: Process clipboard content
+textkit clip get | textkit text transform '/t/l' | textkit clip set
+
+# Workflow 3: Convert file encoding
+cat shift_jis_file.txt | textkit text encode -f shift_jis -t utf-8 > utf8_file.txt
+
+# Workflow 4: Secure sensitive data
+echo "password123" | textkit crypto encrypt --to-clipboard
 ```
 
 **Tips:**
-- Use `--help` on any command for detailed usage
-- Chain multiple transformation rules: `/t/l/p`
-- All commands support stdin piping and clipboard I/O
-- See `textkit COMMAND --help` for command-specific examples
+- Use `-q` or `--quiet` to suppress logs (ideal for piping)
+- All commands support `--help` for detailed usage
+- Chain transformation rules: `/t/l/p` applies trim, lowercase, then PascalCase
+- Use `textkit rules list -s "keyword"` to search specific transformations
+- Clipboard operations are Microsoft clip compatible on Windows
+
+**Related Resources:**
+- Full documentation: See individual command help with `--help`
+- Search rules: `textkit rules list --search "case"`
+- Project repository: Built with Polylith architecture principles
 """,
-    epilog="\\nExamples:\\n  textkit text transform '/t/l' -i 'text' # Trim and lowercase\\n  textkit crypto encrypt --from-clipboard  # Encrypt clipboard\\n  textkit rules list --search 'case'       # Search rules\\n\\nDocumentation: Use --help on any command for detailed information",
+    epilog="""
+Examples:
+  textkit text transform '/t/l' -i '  TEXT  '  # Trim and lowercase → text
+  textkit text encode -f auto -t utf-8 -i "日本語"  # Auto-detect encoding → UTF-8
+  textkit crypto encrypt --from-clipboard       # Encrypt clipboard content
+  textkit rules list --search 'case'            # Search case-related rules
+  textkit clip get | textkit text transform '/u' | textkit clip set  # Uppercase clipboard
+
+Related Commands:
+  textkit text --help       Detailed text processing help
+  textkit crypto --help     Cryptographic operations help
+  textkit rules list        View all 40+ transformation rules
+
+Documentation: Use --help on any command for detailed information and examples
+""",
     rich_markup_mode="rich",
     no_args_is_help=True,
     add_completion=True,
