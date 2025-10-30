@@ -234,48 +234,27 @@ uv run python main.py --quiet text transform /t | \
 uv run python main.py --quiet text transform /l | \
 uv run python main.py --quiet text transform /r
 # Output: helloworld
-
-# Using environment variable
-TEXTKIT_QUIET=1 uv run python main.py text transform /t -i "  test  " | \
-TEXTKIT_QUIET=1 uv run python main.py text transform /u
-# Output: TEST
 ```
 
 ### 📖 Getting Help
 
-All commands provide comprehensive help documentation following CLI best practices:
+All commands provide comprehensive help with examples:
 
 ```bash
-# Main help - Shows all available commands
+# Main help and command-specific help
 uv run python main.py --help
-
-# Command-specific help with detailed examples
 uv run python main.py text --help
 uv run python main.py crypto --help
-uv run python main.py rules --help
-uv run python main.py clip --help
 
-# Subcommand help with usage examples
+# Subcommand help
 uv run python main.py text transform --help
-uv run python main.py text encode --help
 uv run python main.py crypto encrypt --help
-uv run python main.py crypto decrypt --help
-uv run python main.py rules list --help
 ```
 
-**Each help page includes:**
-- Clear description of what the command does
-- Common use cases and feature highlights
-- Practical, copy-paste ready examples
-- Tips for effective usage
-- Related commands and next steps
-
-**Example help output features:**
+**Help features:**
 - 🎨 Rich formatted text with syntax highlighting
-- 📋 Code blocks with realistic examples
-- 💡 Tips section with practical advice
-- 🔗 References to related commands
-- ✨ Progressive disclosure: brief descriptions + detailed examples
+- 📋 Copy-paste ready examples
+- 💡 Tips and related commands
 
 ### 🆕 Modern Hierarchical Command Structure (Recommended)
 
@@ -290,29 +269,13 @@ uv run python main.py text transform '/t/u/R' -i "hello"
 
 # Character encoding conversion (iconv-compatible)
 uv run python main.py text encode -f shift_jis -t utf-8 -i "日本語"
-uv run python main.py text encode -f auto -t utf-8 -i "text"  # Auto-detect encoding
-uv run python main.py text encode -f utf-8 -t ascii --error replace -i "Hello, 世界"
+uv run python main.py text encode -f auto -t utf-8 -i "text"
 
-# From clipboard
+# Clipboard operations
 uv run python main.py text transform '/l' --from-clipboard
-
-# To clipboard
 uv run python main.py text transform '/u' -i "hello" --to-clipboard
 
-# Output to file
-uv run python main.py text transform '/l' -i "HELLO" -o ./output
-uv run python main.py text encode -f auto -t utf-8 -i "text" -o ./output
-
-# Pipe operations (Unix-style command chaining)
-uv run python main.py --quiet text transform /t -i "  HELLO  " | \
-uv run python main.py --quiet text transform /l
-# Output: hello
-
-# Stdin piping
-echo "  HELLO WORLD  " | uv run python main.py --quiet text transform /t/l
-# Output: hello world
-
-# Complex pipeline
+# Pipe operations (Unix-style)
 echo "hello-world" | \
 uv run python main.py --quiet text transform /h2u | \
 uv run python main.py --quiet text transform /u
@@ -352,18 +315,16 @@ uv run python main.py text transform --show-rules
 **Available Rule Categories:**
 - **Text Case**: lowercase (`/l`), uppercase (`/u`), PascalCase (`/p`), camelCase (`/c`), snake_case (`/s`)
 - **String Operations**: trim (`/t`), reverse (`/R`), replace (`/r`), SQL IN format (`/i`)
-- **Encoding**: Base64 encode/decode (`/b64e`, `/b64d`), URL encode/decode (`/urle`, `/urld`)
-- **Japanese**: Full-width/half-width conversion (`/fh`, `/hf`), hiragana/katakana conversion
-- **Line Endings**: Unix/Windows/Mac conversion, normalize, tr-like translation (`/tr`)
-- **Character Conversion**: Hyphen/underscore conversion (`/h2u`, `/u2h`)
+- **Encoding**: Base64, URL encode/decode, Unicode escape/unescape (`/ue`, `/ud`)
+- **Japanese**: Full-width/half-width (`/fh`, `/hf`), hiragana/katakana conversion
+- **Line Endings**: Unix/Windows/Mac conversion, normalize, tr-like translation
+- **Character Conversion**: Hyphen/underscore (`/h2u`, `/u2h`)
 - **Cryptographic**: Hash generation (MD5, SHA256, SHA512)
 
-**Recent Improvements:**
-- ✅ Hierarchical command structure (v0.1.0) - Industry-standard CLI design
-- ✅ Namespace migration to `textkit` - Cleaner imports and better organization
-- ✅ Dependency injection with `lagom` - Improved modularity and testability
-- ✅ Structured logging with `structlog` - Better observability
-- ✅ Pydantic validation - Type-safe configuration and data handling
+**Recent Improvements (v0.1.0+):**
+- Hierarchical CLI structure, namespace migration to `textkit`
+- Dependency injection (`lagom`), structured logging (`structlog`)
+- Enhanced type safety with Pydantic validation
 
 ### 📋 Clipboard Operations
 
@@ -398,55 +359,17 @@ uv run python main.py clip status
 
 ### 📜 Legacy Commands (Deprecated)
 
-The following flat commands are maintained for backward compatibility but show deprecation warnings:
+The following flat commands are maintained for backward compatibility but show deprecation warnings. **Please migrate to the new hierarchical command structure:**
 
 ```bash
-# ⚠️  DEPRECATED: Use 'main.py text transform' instead
-uv run python main.py transform '/t/l' --text "text"
-
-# ⚠️  DEPRECATED: Use 'main.py text encode' instead
-uv run python main.py iconv -f shift_jis -t utf-8 --text "日本語"
-
-# ⚠️  DEPRECATED: Use 'main.py crypto encrypt/decrypt' instead
-uv run python main.py encrypt --text "secret"
-uv run python main.py decrypt --text "encrypted"
-
-# ⚠️  DEPRECATED: Use 'main.py rules list' instead
-uv run python main.py rules
+# Old (deprecated) → New (recommended)
+transform → text transform
+iconv     → text encode
+encrypt   → crypto encrypt
+decrypt   → crypto decrypt
 ```
 
-### Windows Usage Notes
-
-**Recommended: Use new command structure (No path expansion issues)**
-```bash
-# New commands work perfectly in all Windows shells
-uv run python main.py text encode -f shift_jis -t utf-8 -i "日本語"
-uv run python main.py text transform '/t/l' -i "HELLO"
-```
-
-On Windows, some shells (like Git Bash) may expand paths starting with `/` when using legacy transform rules (e.g., `/to-utf8` becomes `D:/Applications/Git/to-utf8`). The new command structure avoids these issues.
-
-**If using legacy commands:**
-
-**Option 1: Migrate to new commands (Recommended)**
-```bash
-# New structure avoids path expansion issues
-uv run python main.py text transform '/t/l' -i "text"
-uv run python main.py text encode -f auto -t utf-8 -i "text"
-```
-
-**Option 2: Use PowerShell**
-```powershell
-# PowerShell handles rules correctly
-$env:PYTHONPATH = "."; uv run python main.py transform "/to-utf8" --text "Hello"
-```
-
-**Option 3: Use rules without leading slash**
-```bash
-# Works in all shells
-uv run python main.py transform "to-utf8" --text "Hello"
-uv run python main.py transform "iconv -f shift_jis -t utf-8" --text "日本語"
-```
+**Windows Note:** Use PowerShell to avoid Git Bash path expansion issues with legacy commands, or migrate to the new structure which works in all shells.
 
 ### Command Structure
 
@@ -538,55 +461,42 @@ uv run poly create project --name my_project
 
 ## ✨ Key Features
 
-### 🔄 Line Ending Conversion (tr-like)
+### 🔄 Line Ending Conversion
 Transform line endings between Unix, Windows, and Mac Classic formats:
 
 ```bash
-# Using new command structure (recommended)
+# Convert line ending formats
 uv run python main.py text transform '/unix-to-windows' -i "Hello\nWorld!"
 uv run python main.py text transform '/tr \n \r\n' -i "Hello\nWorld!"
 uv run python main.py text transform '/normalize' -i "Hello\r\nWorld!"
 uv run python main.py text transform '/rlb' -i "Line1\r\nLine2\nLine3"
-
-# Using legacy commands (deprecated)
-uv run python main.py transform "unix-to-windows" --text "Hello\nWorld!"
-uv run python main.py transform "tr \n \r\n" --text "Hello\nWorld!"
-```
-
-**Available line ending rules:**
-- `unix-to-windows`, `windows-to-unix`
-- `unix-to-mac`, `mac-to-unix`, `windows-to-mac`, `mac-to-windows`
-- `normalize` - Convert all line endings to Unix format
-- `tr` - Unix tr-like character translation
-- `rlb` - Remove all line breaks (\\r\\n, \\n, \\r)
-
-### 🇯🇵 Japanese Character Width Conversion
-Convert between full-width and half-width characters using transform rules:
-
-```bash
-# Using new command structure (recommended)
-uv run python main.py text transform '/fh' -i "ｈｅｌｌｏ１２３"
-# Result: "hello123"
-
-uv run python main.py text transform '/hf' -i "hello123"
-# Result: "ｈｅｌｌｏ１２３"
-
-# Process from clipboard (uses clipboard by default)
-uv run python main.py text transform '/fh'
-
-# Using legacy commands (deprecated)
-uv run python main.py transform "fh" --text "ｈｅｌｌｏ１２３"
-uv run python main.py transform "hf" --text "hello123"
 ```
 
 **Available rules:**
-- `fh` - Full-width to half-width conversion
-- `hf` - Half-width to full-width conversion
+- `unix-to-windows`, `windows-to-unix`, `normalize`
+- `unix-to-mac`, `mac-to-unix`, `windows-to-mac`, `mac-to-windows`
+- `tr` - Unix tr-like character translation
+- `rlb` - Remove all line breaks
 
-**Features:**
-- Converts Katakana, ASCII, and digits
-- Integrated with transform command architecture
-- Powered by `jaconv` library
+### 🇯🇵 Japanese Character Width Conversion
+Convert between full-width and half-width characters:
+
+```bash
+# Full-width to half-width
+uv run python main.py text transform '/fh' -i "ｈｅｌｌｏ１２３"
+# Result: "hello123"
+
+# Half-width to full-width
+uv run python main.py text transform '/hf' -i "hello123"
+# Result: "ｈｅｌｌｏ１２３"
+
+# From clipboard
+uv run python main.py text transform '/fh'
+```
+
+**Available rules:**
+- `fh` - Full-width → half-width (Katakana, ASCII, digits)
+- `hf` - Half-width → full-width
 
 ### 🔤 Hyphen/Underscore Conversion
 Convert between hyphens and underscores for filename and identifier transformations:
@@ -600,64 +510,69 @@ uv run python main.py text transform '/h2u' -i "my-test-file"
 uv run python main.py text transform '/u2h' -i "my_test_file"
 # Result: "my-test-file"
 
-# Pipe usage
-echo "hello-world" | uv run python main.py text transform '/h2u'
-# Result: "hello_world"
-
-# Read from clipboard, convert hyphens to underscores, and save to clipboard
-uv run python main.py text transform '/h2u' --from-clipboard --to-clipboard
-# Example: Clipboard "my-test-file" → "my_test_file" → Clipboard
-
-# Process clipboard text (shorter syntax, uses clipboard by default)
+# Process clipboard (reads, converts, saves automatically)
 uv run python main.py text transform '/h2u'
-# Same as above: reads from clipboard, converts, saves to clipboard
 ```
 
 **Available rules:**
 - `h2u` - Convert hyphens (-) to underscores (_)
 - `u2h` - Convert underscores (_) to hyphens (-)
 
-**Clipboard workflow:**
-1. Copy text with hyphens to clipboard (e.g., "my-test-file")
-2. Run: `uv run python main.py text transform '/h2u'`
-3. Paste the converted text (e.g., "my_test_file")
-
-### ⚡ High-Performance String Operations (StringZilla)
-Ultra-fast string processing with SIMD acceleration for maximum performance:
+### 🌐 Unicode Escape/Unescape
+Convert between text and Unicode escape sequences (`\uXXXX` format):
 
 ```bash
-# Using new command structure (recommended)
+# Japanese text → Unicode escape sequences
+uv run python main.py text transform '/ue' -i "あいうえお"
+# Result: "\u3042\u3044\u3046\u3048\u304a"
+
+# Unicode escape sequences → Japanese text
+uv run python main.py text transform '/ud' -i '\u3042\u3044\u3046\u3048\u304a'
+# Result: "あいうえお"
+
+# Roundtrip conversion
+echo "日本語テスト" | uv run python main.py --quiet text transform '/ue' | \
+uv run python main.py --quiet text transform '/ud'
+# Result: "日本語テスト"
+
+# From clipboard
+uv run python main.py text transform '/ue'
+```
+
+**Available rules:**
+- `ue` - Text → Unicode escape sequences (`\uXXXX`)
+- `ud` - Unicode escape sequences → Text
+
+**Use cases:**
+- JSON string encoding
+- Cross-platform text compatibility
+- Debugging character encoding issues
+
+### ⚡ High-Performance String Operations (StringZilla)
+Ultra-fast string processing with SIMD acceleration:
+
+```bash
+# SIMD-accelerated replacement (up to 10x faster)
 uv run python main.py text transform '/rsz old_text new_text' -i "Replace old_text here"
+
+# SQL IN list generation
 uv run python main.py text transform '/i' -i "line1\nline2\nline3"
 # Result: ('line1','line2','line3')
-
-uv run python main.py text transform '/r old_text new_text' -i "Replace old_text here"
-
-# Using legacy commands (deprecated)
-uv run python main.py transform "rsz old_text new_text" --text "Replace old_text here"
-uv run python main.py transform "i" --text "line1\nline2\nline3"
 ```
 
 **StringZilla-Optimized Rules:**
-- `rsz` - SIMD-accelerated text replacement (up to 10x faster)
-- `i` - High-performance SQL IN list generation with memory-efficient processing
-- `r` - Standard replacement with StringZilla fallback for compatibility
+- `rsz` - SIMD-accelerated text replacement
+- `i` - High-performance SQL IN list generation
+- `r` - Standard replacement with StringZilla fallback
 
-**Performance Benefits:**
-- **Hardware Acceleration**: Leverages SIMD instructions (AVX-512, NEON)
-- **Memory Efficiency**: Zero-copy string views and lazy iteration
-- **Scalability**: Optimal performance on datasets from small (20 chars) to large (160K+ chars)
-- **Fallback Support**: Graceful degradation to standard Python when StringZilla unavailable
+**Performance:**
+- Hardware acceleration via SIMD (AVX-512, NEON)
+- Memory-efficient zero-copy string views
+- 0.07ms (20 chars) to 2.13ms (160K chars) per 100 iterations
 
-**Benchmark Results:**
-- Small text (20 chars): 0.07ms per 100 iterations
-- Medium text (12K chars): 0.24ms per 100 iterations
-- Large text (160K chars): 2.13ms per 100 iterations
-
-### 🌐 Character Encoding Conversion (iconv-like)
+### 🌐 Character Encoding Conversion
 Convert between different character encodings with auto-detection:
 
-#### **New text encode command (Recommended - Industry standard)**
 ```bash
 # Convert from Shift_JIS to UTF-8 (iconv-compatible)
 uv run python main.py text encode -f shift_jis -t utf-8 -i "日本語"
@@ -670,26 +585,12 @@ uv run python main.py text encode -f shift_jis -t utf-8
 
 # Convert with error handling
 uv run python main.py text encode -f utf-8 -t ascii --error replace -i "Hello, 世界"
-
-# Save result to file
-uv run python main.py text encode -f shift_jis -t utf-8 -o ./converted
-```
-
-#### **Legacy iconv command (Deprecated but functional)**
-```bash
-# Works but shows deprecation warning
-uv run python main.py iconv -f shift_jis -t utf-8 --text "日本語"
-uv run python main.py iconv -f auto -t utf-8 --text "日本語"
-
-# Transform command with iconv rules (also deprecated)
-uv run python main.py transform "iconv -f shift_jis -t utf-8"
-uv run python main.py transform "to-utf8"
 ```
 
 **Supported encodings:**
 - **Japanese**: Shift_JIS, EUC-JP, ISO-2022-JP
 - **Unicode**: UTF-8, UTF-16, UTF-32
-- **Western**: Latin-1 (ISO-8859-1), Windows-1252
+- **Western**: Latin-1, Windows-1252
 - **Chinese**: GBK, GB2312, GB18030, Big5
 - **Korean**: EUC-KR
 - **Russian**: KOI8-R, Windows-1251
@@ -800,35 +701,15 @@ This project is licensed under the [GNU Affero General Public License v3.0](LICE
 ## 🔄 Recent Changes
 
 ### v0.1.1 (2025-10-26)
-- ✅ **Unix Philosophy Compliance** - Full stdout/stderr separation
-  - Log messages and status output to stderr (following clig.dev and Unix best practices)
-  - Command results output to stdout (perfect for piping)
-  - structlog configured to use stderr for all logging output
-  - Rich Console outputs configured to stderr
-- ✅ **Pipe-Friendly Operation** - Complete pipeline support
-  - `--quiet` / `-q` global flag to suppress all non-essential output
-  - `TEXTKIT_QUIET` environment variable support
-  - Automatic stdout output when no destinations specified
-  - Tested and verified pipe chaining functionality
-- ✅ **Enhanced I/O Handling** - Smart output management
-  - Default to stdout for Unix-style pipeline composition
-  - Quiet mode respects both CLI flag and environment variable
-  - Early environment variable detection for consistent behavior
-  - Message suppression in OutputManager when quiet mode enabled
+- Unix Philosophy compliance: stdout/stderr separation, `--quiet` flag
+- Pipe-friendly operation with `TEXTKIT_QUIET` environment variable
+- Enhanced I/O handling for Unix-style pipeline composition
 
 ### v0.1.0 (2025-10-23)
-- ✅ **Hierarchical CLI structure** - Migrated to industry-standard command organization
-- ✅ **Namespace refactoring** - Complete migration from `text_processing` to `textkit`
-- ✅ **Dependency injection** - Replaced custom DI with lagom library
-- ✅ **Structured logging** - Implemented structlog for better observability
-- ✅ **Type safety** - Enhanced Pydantic validation across components
-- ✅ **Test improvements** - Comprehensive test suite with skip markers and coverage
-- ✅ **Security enhancements** - Improved encoding and cryptographic operations
-- ✅ **Enhanced CLI help** - Comprehensive help documentation following industry best practices
-  - Examples-first approach with practical, copy-paste ready commands
-  - Rich formatted output with syntax highlighting
-  - Progressive disclosure: brief descriptions + detailed examples
-  - Tips sections for effective usage
-  - Consistent structure across all commands
+- Hierarchical CLI structure (industry-standard design)
+- Namespace migration from `text_processing` to `textkit`
+- Dependency injection with `lagom`, structured logging with `structlog`
+- Enhanced type safety, comprehensive testing, improved security
+- Enhanced CLI help with examples-first approach
 
 
