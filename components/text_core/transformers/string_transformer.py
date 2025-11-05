@@ -35,6 +35,15 @@ class StringTransformer(BaseTransformer):
                 default_args=[],
                 rule_type=TransformationRuleType.STRING_OPS,
             ),
+            "tsv": TransformationRule(
+                name="TSV Replacements",
+                description="Apply multiple replacements from TSV file",
+                example="/tsv replacements.tsv [-c] [-r]",
+                function=lambda text: text,  # Special handling in _apply_with_args
+                requires_args=True,
+                default_args=[],
+                rule_type=TransformationRuleType.STRING_OPS,
+            ),
             "i": TransformationRule(
                 name="SQL IN List",
                 description="Convert line-separated values to SQL IN clause format (StringZilla-optimized)",
@@ -72,6 +81,190 @@ class StringTransformer(BaseTransformer):
             ),
         }
 
+    def _tsv_replacements(self, text: str, args: list[str]) -> str:
+        """Apply multiple replacements from TSV file.
+
+        Implements efficient batch text replacement using patterns loaded from
+        a TSV (Tab-Separated Values) file. Follows CLI best practices with
+        explicit flag-based options.
+
+        File Format:
+            old_text<TAB>new_text
+            Each line represents one replacement pattern.
+
+        Args:
+            text: Input text to process
+            args: List containing:
+                - [0]: Path to TSV file (required)
+                - [1:]: Optional flags:
+                    -c: Case-sensitive matching (default: case-insensitive)
+                    -r: Enable regex mode (default: literal replacement)
+
+        Returns:
+            Text with all replacements applied in order
+
+        Raises:
+            ValueError: If TSV file path not provided or file not found
+            IOError: If TSV file cannot be read
+
+        Examples:
+            # Case-insensitive literal replacement (default)
+            /tsv replacements.tsv
+
+            # Case-sensitive replacement
+            /tsv replacements.tsv -c
+
+            # Regex replacement with case-insensitive
+            /tsv replacements.tsv -r
+
+            # Regex with case-sensitive
+            /tsv replacements.tsv -c -r
+
+        Performance:
+            - Literal mode: O(n*m) where n=text length, m=patterns
+            - Regex mode: Single-pass O(n) using alternation
+        """
+        import csv
+        import re
+        from pathlib import Path
+
+        # Validate arguments
+        if not args:
+            raise ValueError("TSV file path is required")
+
+        tsv_file = args[0]
+        flags = args[1:] if len(args) > 1 else []
+
+        # Parse flags (CLI best practice: explicit flags)
+        case_sensitive = "-c" in flags
+        regex_mode = "-r" in flags
+
+        # Load replacement patterns from TSV file
+        try:
+            file_path = Path(tsv_file)
+            if not file_path.exists():
+                raise ValueError(f"TSV file not found: {tsv_file}")
+
+            replacements = []
+            with open(file_path, "r", encoding="utf-8", newline="") as f:
+                reader = csv.reader(f, delimiter="\t")
+                for line_num, row in enumerate(reader, start=1):
+                    # Skip empty lines
+                    if not row or not any(row):
+                        continue
+
+                    # Validate TSV format
+                    if len(row) < 2:
+                        import logging
+
+                        logger = logging.getLogger(__name__)
+                        logger.warning(
+                            f"Line {line_num} in {tsv_file} has insufficient columns, skipping"
+                        )
+                        continue
+
+                    old_text, new_text = row[0], row[1]
+                    replacements.append((old_text, new_text))
+
+            if not replacements:
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.warning(f"No valid replacements found in {tsv_file}")
+                return text
+
+        except FileNotFoundError:
+            raise ValueError(f"TSV file not found: {tsv_file}")
+        except Exception as e:
+            raise IOError(f"Failed to read TSV file {tsv_file}: {e}") from e
+
+        # Apply replacements based on mode
+        if regex_mode:
+            # Regex mode: Single-pass replacement using re.sub
+            return self._apply_regex_replacements(
+                text, replacements, case_sensitive
+            )
+        else:
+            # Literal mode: Sequential replacement
+            return self._apply_literal_replacements(
+                text, replacements, case_sensitive
+            )
+
+    def _apply_literal_replacements(
+        self, text: str, replacements: list[tuple[str, str]], case_sensitive: bool
+    ) -> str:
+        """Apply literal (non-regex) replacements.
+
+        Args:
+            text: Input text
+            replacements: List of (old, new) tuples
+            case_sensitive: Whether to match case-sensitively
+
+        Returns:
+            Text with all replacements applied
+        """
+        result = text
+
+        if case_sensitive:
+            # Case-sensitive: Direct replacement
+            for old, new in replacements:
+                result = result.replace(old, new)
+        else:
+            # Case-insensitive: Use temporary markers to avoid conflicts
+            import re
+
+            for old, new in replacements:
+                # Create case-insensitive pattern
+                pattern = re.compile(re.escape(old), re.IGNORECASE)
+                result = pattern.sub(new, result)
+
+        return result
+
+    def _apply_regex_replacements(
+        self, text: str, replacements: list[tuple[str, str]], case_sensitive: bool
+    ) -> str:
+        """Apply regex replacements in single pass.
+
+        Uses regex alternation to perform all replacements efficiently
+        in a single pass through the text.
+
+        Args:
+            text: Input text
+            replacements: List of (pattern, replacement) tuples
+            case_sensitive: Whether to match case-sensitively
+
+        Returns:
+            Text with all regex replacements applied
+        """
+        import re
+
+        if not replacements:
+            return text
+
+        # Build pattern dictionary for lookup
+        pattern_map = {pattern: replacement for pattern, replacement in replacements}
+
+        # Create alternation pattern: (pattern1)|(pattern2)|...
+        # Group each pattern to identify which matched
+        grouped_patterns = [f"({pattern})" for pattern, _ in replacements]
+        combined_pattern = "|".join(grouped_patterns)
+
+        # Compile with appropriate flags
+        flags = 0 if case_sensitive else re.IGNORECASE
+        regex = re.compile(combined_pattern, flags)
+
+        # Replace using callback to look up correct replacement
+        def replace_callback(match: re.Match) -> str:
+            # Find which group matched using lastindex
+            matched_text = match.group(0)
+            # Find the corresponding pattern from our original list
+            for pattern, replacement in replacements:
+                if re.match(pattern, matched_text, flags):
+                    return replacement
+            return matched_text  # Fallback (should not happen)
+
+        return regex.sub(replace_callback, text)
+
     def _apply_with_args(
         self, text: str, rule: TransformationRule, args: list[str]
     ) -> str:
@@ -80,6 +273,8 @@ class StringTransformer(BaseTransformer):
             return self._replace_text(text, args)
         elif rule.name == "Replace (StringZilla)":
             return self._replace_text_sz(text, args)
+        elif rule.name == "TSV Replacements":
+            return self._tsv_replacements(text, args)
         return super()._apply_with_args(text, rule, args)
 
     def _replace_text(self, text: str, args: list[str]) -> str:

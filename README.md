@@ -85,7 +85,7 @@ echo "my-file-name" | uv run python main.py --quiet text transform '/h2u'
 
 ### 📝 Bulk Text Replacement (TSV-Based)
 
-Process multiple replacements efficiently using TSV format:
+Process multiple replacements efficiently using TSV format with flexible options:
 
 ```bash
 # Create a TSV file with patterns (find\treplace format)
@@ -95,10 +95,32 @@ error\twarning
 TODO\tFIXME
 EOF
 
-# Apply all replacements at once
+# Basic usage: case-insensitive literal replacement (default)
 uv run python main.py text transform '/tsv replacements.tsv' -i "old_term and TODO items"
 # → new_term and FIXME items
+
+# Case-sensitive replacement
+uv run python main.py text transform '/tsv replacements.tsv -c' -i "OLD_TERM and old_term"
+# → OLD_TERM and new_term (only lowercase matches)
+
+# Regex mode for advanced pattern matching
+cat > regex_patterns.tsv << EOF
+string\s+1\tstring\t1
+string\s+2\tstring\t2
+EOF
+uv run python main.py text transform '/tsv regex_patterns.tsv -r' -i "Test string 1 and string 2"
+# → Test string and string
+
+# Pipe input support
+echo "old_term and TODO items" | uv run python main.py text transform '/tsv replacements.tsv'
+# → new_term and FIXME items
 ```
+
+**TSV Options:**
+- Default: Case-insensitive literal replacement
+- `-c`: Case-sensitive matching
+- `-r`: Regex mode (patterns in first column)
+- Combine flags: `-c -r` for case-sensitive regex
 
 ### 🔌 Seamless Pipe & Clipboard Integration
 

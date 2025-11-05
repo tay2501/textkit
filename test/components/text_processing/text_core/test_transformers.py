@@ -273,6 +273,117 @@ class TestStringTransformer:
         result = self.transformer.transform("", "ud")
         assert result == ""
 
+    def test_tsv_replacements_basic(self, tmp_path):
+        """Test basic TSV replacement functionality."""
+        # Create temporary TSV file
+        tsv_file = tmp_path / "test.tsv"
+        tsv_file.write_text("old\tnew\nfoo\tbar\n", encoding="utf-8")
+
+        # Test directly through _tsv_replacements method
+        result = self.transformer._tsv_replacements(
+            "I have old and foo", 
+            [str(tsv_file)]
+        )
+        assert result == "I have new and bar"
+
+    def test_tsv_replacements_case_insensitive(self, tmp_path):
+        """Test case-insensitive TSV replacement (default)."""
+        tsv_file = tmp_path / "test.tsv"
+        tsv_file.write_text("old_term\tnew_term\nTODO\tFIXME\n", encoding="utf-8")
+
+        # Should match regardless of case
+        result = self.transformer._tsv_replacements(
+            "OLD_TERM and TODO items", [str(tsv_file)]
+        )
+        assert result == "new_term and FIXME items"
+
+    def test_tsv_replacements_case_sensitive(self, tmp_path):
+        """Test case-sensitive TSV replacement with -c flag."""
+        tsv_file = tmp_path / "test.tsv"
+        tsv_file.write_text("old_term\tnew_term\n", encoding="utf-8")
+
+        # With -c flag, OLD_TERM should not match old_term
+        result = self.transformer._tsv_replacements(
+            "OLD_TERM and old_term", [str(tsv_file), "-c"]
+        )
+        assert result == "OLD_TERM and new_term"
+
+    def test_tsv_replacements_regex_mode(self, tmp_path):
+        """Test TSV replacement with regex mode."""
+        tsv_file = tmp_path / "test.tsv"
+        tsv_file.write_text("string\\s+1\tstring\t1\nstring\\s+2\tstring\t2\n", encoding="utf-8")
+
+        result = self.transformer._tsv_replacements(
+            "Test string 1 and string 2 here", [str(tsv_file), "-r"]
+        )
+        assert result == "Test string and string here"
+
+    def test_tsv_replacements_regex_case_sensitive(self, tmp_path):
+        """Test TSV replacement with regex and case-sensitive."""
+        tsv_file = tmp_path / "test.tsv"
+        tsv_file.write_text("[Tt]est\tEXAM\n", encoding="utf-8")
+
+        # Should match Test and test with -r flag
+        result = self.transformer._tsv_replacements(
+            "Test and test here", [str(tsv_file), "-r"]
+        )
+        assert result == "EXAM and EXAM here"
+
+        # With -c -r, should be case-sensitive regex
+        result = self.transformer._tsv_replacements(
+            "Test and test here", [str(tsv_file), "-r", "-c"]
+        )
+        assert result == "EXAM and EXAM here"
+
+    def test_tsv_replacements_file_not_found(self):
+        """Test error handling when TSV file doesn't exist."""
+        with pytest.raises((ValueError, IOError), match="TSV file not found|Failed to read TSV file"):
+            self.transformer._tsv_replacements("test", ["nonexistent.tsv"])
+
+    def test_tsv_replacements_no_file_provided(self):
+        """Test error handling when no TSV file is provided."""
+        with pytest.raises(ValueError, match="TSV file path is required"):
+            self.transformer._tsv_replacements("test", [])
+
+    def test_tsv_replacements_empty_file(self, tmp_path):
+        """Test TSV replacement with empty file."""
+        tsv_file = tmp_path / "empty.tsv"
+        tsv_file.write_text("", encoding="utf-8")
+
+        # Should return original text unchanged
+        result = self.transformer._tsv_replacements("test text", [str(tsv_file)])
+        assert result == "test text"
+
+    def test_tsv_replacements_malformed_lines(self, tmp_path):
+        """Test TSV replacement with malformed lines (skipped gracefully)."""
+        tsv_file = tmp_path / "malformed.tsv"
+        tsv_file.write_text("old\tnew\nmalformed\nfoo\tbar\n", encoding="utf-8")
+
+        # Should process valid lines and skip malformed ones
+        result = self.transformer._tsv_replacements(
+            "old foo malformed", [str(tsv_file)]
+        )
+        assert result == "new bar malformed"
+
+    def test_tsv_replacements_special_characters(self, tmp_path):
+        """Test TSV replacement with special characters."""
+        tsv_file = tmp_path / "special.tsv"
+        tsv_file.write_text("user1.table1\tuser2.table1\nuser1.table2\tuser2.table2\n", encoding="utf-8")
+
+        result = self.transformer._tsv_replacements(
+            "SELECT * FROM user1.table1 JOIN user1.table2",
+            [str(tsv_file)]
+        )
+        assert result == "SELECT * FROM user2.table1 JOIN user2.table2"
+
+    def test_tsv_replacements_unicode(self, tmp_path):
+        """Test TSV replacement with Unicode characters."""
+        tsv_file = tmp_path / "unicode.tsv"
+        tsv_file.write_text("こんにちは\thello\n世界\tworld\n", encoding="utf-8")
+
+        result = self.transformer._tsv_replacements("こんにちは、世界！", [str(tsv_file)])
+        assert result == "hello、world！"
+
 
 class TestLineEndingTransformer:
     """Test LineEndingTransformer strategy with rlb functionality."""
