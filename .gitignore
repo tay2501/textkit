@@ -342,6 +342,14 @@ pyrightconfig.json
 .polylith/cache/
 workspace-info.json
 
+# Pants Build System
+.pants.d/
+.pids/
+dist/
+.pants.bootstrap/
+.pants.workdir/
+.pants.cache/
+
 # Project-specific build outputs
 projects/*/dist/
 projects/*/build/
