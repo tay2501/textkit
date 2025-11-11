@@ -155,7 +155,7 @@ class TransformationEngine:
                     error_type=type(e).__name__,
                     **operation_context,
                 )
-                raise wrapped_error
+                raise wrapped_error from e
 
     def get_available_rules(self) -> dict[str, Any]:
         """Get dictionary of all available transformation rules."""

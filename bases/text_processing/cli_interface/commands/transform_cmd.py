@@ -135,7 +135,7 @@ def transform_text(
                 final_input_text = app_instance.io_manager.get_clipboard_text()
             except Exception as e:
                 console.print(f"[red]Error reading from clipboard: {e}[/red]")
-                raise typer.Exit(1)
+                raise typer.Exit(1) from e
         else:
             import sys
 

@@ -20,6 +20,7 @@ Examples:
 from __future__ import annotations
 
 import sys
+from contextlib import suppress
 
 import typer
 from rich.console import Console
@@ -52,7 +53,7 @@ def get_input_text(io_manager: InputOutputManager, text: str | None) -> str:
 
     # From stdin
     if not sys.stdin.isatty():
-        return sys.stdin.read().rstrip('\n')
+        return sys.stdin.read().rstrip("\n")
 
     # From clipboard
     try:
@@ -63,10 +64,12 @@ def get_input_text(io_manager: InputOutputManager, text: str | None) -> str:
     except Exception as e:
         raise typer.BadParameter(
             f"No input text available. Provide via argument, stdin, or clipboard. Error: {e}"
-        )
+        ) from e
 
 
-def output_text(io_manager: InputOutputManager, text: str, no_clipboard: bool = False) -> None:
+def output_text(
+    io_manager: InputOutputManager, text: str, no_clipboard: bool = False
+) -> None:
     """Output text to stdout and optionally clipboard.
 
     Args:
@@ -79,10 +82,9 @@ def output_text(io_manager: InputOutputManager, text: str, no_clipboard: bool = 
 
     # Copy to clipboard if not disabled and stdout is a tty
     if not no_clipboard and sys.stdout.isatty():
-        try:
+        with suppress(Exception):
+            # Silently ignore clipboard errors
             io_manager.set_clipboard_text(text)
-        except Exception:
-            pass  # Silently ignore clipboard errors
 
 
 @app.command(name="transform")
@@ -127,7 +129,7 @@ def transform_command(
 
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}", file=sys.stderr)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 # Default command - shorthand for transform
@@ -136,7 +138,9 @@ def main(
     ctx: typer.Context,
     rules: str | None = typer.Argument(None, help="Transformation rule(s)"),
     text: str | None = typer.Option(None, "--text", "-t", help="Input text"),
-    no_clipboard: bool = typer.Option(False, "--no-clipboard", help="Disable clipboard"),
+    no_clipboard: bool = typer.Option(
+        False, "--no-clipboard", help="Disable clipboard"
+    ),
     version: bool = typer.Option(False, "--version", "-v", help="Show version"),
 ) -> None:
     """Text transformation tool - Unix philosophy compliant.
@@ -148,6 +152,7 @@ def main(
     """
     if version:
         from text_transformer import __version__
+
         console.print(f"tt version {__version__}")
         return
 
@@ -171,7 +176,7 @@ def main(
 
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}", file=sys.stderr)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 if __name__ == "__main__":

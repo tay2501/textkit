@@ -48,7 +48,7 @@ def get() -> None:
             console.print("[yellow]Clipboard is empty[/yellow]")
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.command()
@@ -68,17 +68,17 @@ def set(
         # Get text from argument or stdin
         if text is None:
             if not sys.stdin.isatty():
-                text = sys.stdin.read().rstrip('\n')
+                text = sys.stdin.read().rstrip("\n")
             else:
                 console.print("[red]Error:[/red] No text provided")
-                raise typer.Exit(code=1)
+                raise typer.Exit(code=1) from e
 
         io_manager.set_clipboard_text(text)
         console.print("[green]Clipboard updated[/green]")
 
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.command()
@@ -90,7 +90,7 @@ def clear() -> None:
         console.print("[green]Clipboard cleared[/green]")
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.command()
@@ -102,17 +102,21 @@ def status() -> None:
 
         if content:
             length = len(content)
-            lines = content.count('\n') + 1
+            lines = content.count("\n") + 1
             console.print("[green]Clipboard Status:[/green]")
             console.print(f"  Content length: {length} characters")
             console.print(f"  Lines: {lines}")
-            console.print(f"  Preview: {content[:50]}..." if length > 50 else f"  Content: {content}")
+            console.print(
+                f"  Preview: {content[:50]}..."
+                if length > 50
+                else f"  Content: {content}"
+            )
         else:
             console.print("[yellow]Clipboard is empty[/yellow]")
 
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 if __name__ == "__main__":

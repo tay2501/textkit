@@ -8,7 +8,7 @@ with performance monitoring and structured data support.
 import functools
 import time
 from collections.abc import Callable
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from typing import Any, TypeVar
 
 try:
@@ -223,10 +223,8 @@ def performance_monitor(
                 if log_result and result is not None:
                     log_context["result_type"] = type(result).__name__
                     if hasattr(result, "__len__"):
-                        try:
+                        with suppress(TypeError, AttributeError):
                             log_context["result_length"] = len(result)
-                        except (TypeError, AttributeError):
-                            pass
 
                 if logger:
                     logger.info(

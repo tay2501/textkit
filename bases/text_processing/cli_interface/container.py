@@ -6,6 +6,8 @@ following Polylith architecture principles and dependency inversion patterns.
 
 from __future__ import annotations
 
+from contextlib import suppress
+
 from lagom import Container
 
 from .abstractions import (
@@ -63,11 +65,9 @@ def create_container() -> Container:
 
         # Try to get crypto manager, but allow graceful fallback
         crypto_manager = None
-        try:
-            crypto_manager = container_instance[CryptographyManagerInterface]
-        except Exception:
+        with suppress(Exception):
             # Crypto unavailable - gracefully continue without it
-            pass
+            crypto_manager = container_instance[CryptographyManagerInterface]
 
         return ApplicationInterface(
             config_manager=container_instance[ConfigurationManagerInterface],

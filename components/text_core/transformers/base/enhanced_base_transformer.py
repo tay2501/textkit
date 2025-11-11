@@ -127,7 +127,9 @@ class EnhancedBaseTransformer(
                 )
 
                 # Wrap and enhance error
-                raise self._wrap_transformation_error(e, rule_name, validated_text)
+                raise self._wrap_transformation_error(
+                    e, rule_name, validated_text
+                ) from e
 
     def _apply_transformation_safely(
         self, text: str, rule_name: str, args: list[str] | None
@@ -163,7 +165,7 @@ class EnhancedBaseTransformer(
                 )
                 .add_context("rule_name", rule_name)
                 .add_context("transformer", self.__class__.__name__)
-            )
+            ) from e
 
     def _apply_with_args(
         self, text: str, rule: TransformationRule, args: list[str]

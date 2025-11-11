@@ -26,6 +26,8 @@ for logger_name in ["structlog", "textkit", "components"]:
     logging.getLogger(logger_name).setLevel(logging.CRITICAL)
     logging.getLogger(logger_name).disabled = True
 
+import contextlib
+
 import typer
 from rich.console import Console
 
@@ -41,7 +43,7 @@ def get_input_text(io_manager: InputOutputManager, text: str | None) -> str:
         return text
 
     if not sys.stdin.isatty():
-        return sys.stdin.read().rstrip('\n')
+        return sys.stdin.read().rstrip("\n")
 
     try:
         clipboard_text = io_manager.get_clipboard_text()
@@ -58,16 +60,16 @@ def output_text(io_manager: InputOutputManager, text: str, no_clipboard: bool) -
     print(text)
 
     if not no_clipboard and sys.stdout.isatty():
-        try:
+        with contextlib.suppress(Exception):
             io_manager.set_clipboard_text(text)
-        except Exception:
-            pass
 
 
 def main(
     rules: str = typer.Argument(..., help="Transformation rules (e.g., '/t/l')"),
     text: str | None = typer.Option(None, "--text", "-t", help="Input text"),
-    no_clipboard: bool = typer.Option(False, "--no-clipboard", "-n", help="Disable clipboard"),
+    no_clipboard: bool = typer.Option(
+        False, "--no-clipboard", "-n", help="Disable clipboard"
+    ),
     version: bool = typer.Option(False, "--version", "-v", help="Show version"),
 ) -> None:
     """Transform text using simple rules.
@@ -100,7 +102,7 @@ def main(
 
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 if __name__ == "__main__":

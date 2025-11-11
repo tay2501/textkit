@@ -79,7 +79,7 @@ class RuleParser:
                     f"Failed to parse rule string: {e}",
                     operation="rule_parsing",
                     cause=e,
-                ).add_context("rule_string", rule_string)
+                ).add_context("rule_string", rule_string) from e
 
     def _parse_flag_format(self, rule_string: str) -> list[ParsedRule]:
         """Parse flag-based rule format: -rule"""

@@ -141,7 +141,7 @@ def validate_encoding_name(encoding: Any, parameter_name: str = "encoding") -> s
             )
             .add_context("encoding", encoding)
             .add_context("normalized", normalized)
-        )
+        ) from None
 
     return normalized
 
@@ -210,7 +210,7 @@ def validate_file_path(
                 parameter_name=parameter_name,
                 parameter_value=str(path_obj),
                 constraints={"must_be_readable": must_be_readable},
-            ).add_context("os_error", str(e))
+            ).add_context("os_error", str(e)) from e
 
     return path_obj
 

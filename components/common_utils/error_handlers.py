@@ -174,7 +174,7 @@ def with_error_context(
             )
 
         if reraise:
-            raise wrapped_error
+            raise wrapped_error from e
 
 
 def retry_on_failure(

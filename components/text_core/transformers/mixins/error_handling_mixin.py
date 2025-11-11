@@ -55,8 +55,7 @@ class ErrorHandlingMixin:
         )
 
         if error:
-            raise self._wrap_transformation_error(error, rule_name, text)
-
+            raise self._wrap_transformation_error(error, rule_name, text) from e
         return result
 
     def _wrap_transformation_error(
@@ -184,13 +183,13 @@ class ErrorHandlingMixin:
                         text = args[0] if args and isinstance(args[0], str) else ""
                         raise self._wrap_transformation_error(
                             e, effective_rule_name, text
-                        )
+                        ) from e
                     else:
                         raise TransformationError(
                             f"Transformation '{effective_rule_name}' failed: {e}",
                             operation="transformation",
                             cause=e,
-                        ).add_context("rule_name", effective_rule_name)
+                        ).add_context("rule_name", effective_rule_name) from e
 
             return wrapper
 

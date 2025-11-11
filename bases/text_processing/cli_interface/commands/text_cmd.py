@@ -61,7 +61,12 @@ def create_text_subcommand(
 
     @text_app.command("transform")
     def transform(
-        rules: Annotated[str | None, typer.Argument(help="Transformation rules (e.g., '/t/l' for trim+lowercase)")] = None,
+        rules: Annotated[
+            str | None,
+            typer.Argument(
+                help="Transformation rules (e.g., '/t/l' for trim+lowercase)"
+            ),
+        ] = None,
         text: InputTextOption = None,
         from_clipboard: FromClipboardOption = False,
         output: OutputPathOption = None,
@@ -291,19 +296,39 @@ def _show_available_rules(get_app_func: callable) -> None:
         app_instance = get_app_func()
         _ = app_instance.get_available_rules()  # Verify rules are accessible
 
-        console.print("\n[bold cyan]Quick Reference: Transformation Rules[/bold cyan]\n")
+        console.print(
+            "\n[bold cyan]Quick Reference: Transformation Rules[/bold cyan]\n"
+        )
 
         # Most commonly used rules with practical examples
         console.print("[bold]>> Most Used (Copy & Run These!):[/bold]")
         common_examples = [
-            ("Trim + Lowercase", "/t/l", "uv run python main.py text transform '/t/l' -i '  HELLO  '"),
+            (
+                "Trim + Lowercase",
+                "/t/l",
+                "uv run python main.py text transform '/t/l' -i '  HELLO  '",
+            ),
             ("Uppercase", "/u", "uv run python main.py text transform '/u' -i 'hello'"),
-            ("PascalCase", "/p", "uv run python main.py text transform '/p' -i 'hello world'"),
-            ("camelCase", "/c", "uv run python main.py text transform '/c' -i 'hello world'"),
-            ("snake_case", "/s", "uv run python main.py text transform '/s' -i 'Hello World'"),
+            (
+                "PascalCase",
+                "/p",
+                "uv run python main.py text transform '/p' -i 'hello world'",
+            ),
+            (
+                "camelCase",
+                "/c",
+                "uv run python main.py text transform '/c' -i 'hello world'",
+            ),
+            (
+                "snake_case",
+                "/s",
+                "uv run python main.py text transform '/s' -i 'Hello World'",
+            ),
         ]
         for desc, rule, example in common_examples:
-            console.print(f"  [green]{desc:20s}[/green] {rule:8s} -> [dim]{example}[/dim]")
+            console.print(
+                f"  [green]{desc:20s}[/green] {rule:8s} -> [dim]{example}[/dim]"
+            )
         console.print()
 
         # Text processing rules
@@ -314,7 +339,9 @@ def _show_available_rules(get_app_func: callable) -> None:
             ("Replace text", "/r old new", "... '/r old new' -i 'old text'"),
         ]
         for desc, rule, example in text_examples:
-            console.print(f"  [green]{desc:20s}[/green] {rule:12s} -> [dim]{example}[/dim]")
+            console.print(
+                f"  [green]{desc:20s}[/green] {rule:12s} -> [dim]{example}[/dim]"
+            )
         console.print()
 
         # Encoding rules
@@ -325,7 +352,9 @@ def _show_available_rules(get_app_func: callable) -> None:
             ("SHA256 hash", "/sha256", "... '/sha256' -i 'password'"),
         ]
         for desc, rule, example in encoding_examples:
-            console.print(f"  [green]{desc:20s}[/green] {rule:12s} -> [dim]{example}[/dim]")
+            console.print(
+                f"  [green]{desc:20s}[/green] {rule:12s} -> [dim]{example}[/dim]"
+            )
         console.print()
 
         # Character conversion
@@ -336,31 +365,55 @@ def _show_available_rules(get_app_func: callable) -> None:
             ("Full to half-width", "/fh", "... '/fh' -i 'hello123'"),
         ]
         for desc, rule, example in char_examples:
-            console.print(f"  [green]{desc:20s}[/green] {rule:12s} -> [dim]{example}[/dim]")
+            console.print(
+                f"  [green]{desc:20s}[/green] {rule:12s} -> [dim]{example}[/dim]"
+            )
         console.print()
 
         # Line ending conversion
         console.print("[bold]>> Line Endings:[/bold]")
         line_examples = [
-            ("Unix to Windows", "/unix-to-windows", "... '/unix-to-windows' -i 'line1\\nline2'"),
-            ("Windows to Unix", "/windows-to-unix", "... '/windows-to-unix' -i 'line1\\r\\nline2'"),
-            ("Normalize endings", "/normalize", "... '/normalize' -i 'mixed\\r\\nline\\nendings'"),
+            (
+                "Unix to Windows",
+                "/unix-to-windows",
+                "... '/unix-to-windows' -i 'line1\\nline2'",
+            ),
+            (
+                "Windows to Unix",
+                "/windows-to-unix",
+                "... '/windows-to-unix' -i 'line1\\r\\nline2'",
+            ),
+            (
+                "Normalize endings",
+                "/normalize",
+                "... '/normalize' -i 'mixed\\r\\nline\\nendings'",
+            ),
         ]
         for desc, rule, example in line_examples:
-            console.print(f"  [green]{desc:20s}[/green] {rule:18s} -> [dim]{example}[/dim]")
+            console.print(
+                f"  [green]{desc:20s}[/green] {rule:18s} -> [dim]{example}[/dim]"
+            )
         console.print()
 
         # Pro tips
         console.print("[bold yellow]** Pro Tips:[/bold yellow]")
-        console.print("  * Chain rules: [cyan]/t/l/p[/cyan] (trim -> lowercase -> PascalCase)")
-        console.print("  * From clipboard: [cyan]uv run python main.py text transform '/u'[/cyan] (no -i flag)")
-        console.print("  * To clipboard: [cyan]... '/l' -i 'TEXT' --to-clipboard[/cyan]")
+        console.print(
+            "  * Chain rules: [cyan]/t/l/p[/cyan] (trim -> lowercase -> PascalCase)"
+        )
+        console.print(
+            "  * From clipboard: [cyan]uv run python main.py text transform '/u'[/cyan] (no -i flag)"
+        )
+        console.print(
+            "  * To clipboard: [cyan]... '/l' -i 'TEXT' --to-clipboard[/cyan]"
+        )
         console.print("  * Full list: [cyan]uv run python main.py rules list[/cyan]")
-        console.print("  * Search: [cyan]uv run python main.py rules list --search 'case'[/cyan]\n")
+        console.print(
+            "  * Search: [cyan]uv run python main.py rules list --search 'case'[/cyan]\n"
+        )
 
     except Exception as e:
         console.print(f"[red]Error loading rules: {e}[/red]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 __all__ = ["create_text_subcommand"]

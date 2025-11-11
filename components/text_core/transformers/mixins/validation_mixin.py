@@ -83,7 +83,7 @@ class ValidationMixin:
         except Exception as e:
             raise ParameterValidationError(
                 f"Input validation failed: {e}", parameter_name="validation", cause=e
-            ).add_context("rule_name", rule_name)
+            ).add_context("rule_name", rule_name) from e
 
     def validate_rule_arguments(
         self,
@@ -165,7 +165,7 @@ class ValidationMixin:
                 parameter_name="args",
                 parameter_value=args,
                 cause=e,
-            ).add_context("rule_name", rule_name)
+            ).add_context("rule_name", rule_name) from e
 
     def validate_encoding_parameter(
         self, encoding: str, parameter_name: str = "encoding", allow_auto: bool = True
@@ -225,7 +225,7 @@ class ValidationMixin:
                 parameter_name=parameter_name,
                 parameter_value=encoding,
                 constraints={"validation_type": "encoding_support"},
-            )
+            ) from None
 
         return encoding
 

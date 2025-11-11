@@ -281,8 +281,7 @@ class TestStringTransformer:
 
         # Test directly through _tsv_replacements method
         result = self.transformer._tsv_replacements(
-            "I have old and foo", 
-            [str(tsv_file)]
+            "I have old and foo", [str(tsv_file)]
         )
         assert result == "I have new and bar"
 
@@ -311,7 +310,9 @@ class TestStringTransformer:
     def test_tsv_replacements_regex_mode(self, tmp_path):
         """Test TSV replacement with regex mode."""
         tsv_file = tmp_path / "test.tsv"
-        tsv_file.write_text("string\\s+1\tstring\t1\nstring\\s+2\tstring\t2\n", encoding="utf-8")
+        tsv_file.write_text(
+            "string\\s+1\tstring\t1\nstring\\s+2\tstring\t2\n", encoding="utf-8"
+        )
 
         result = self.transformer._tsv_replacements(
             "Test string 1 and string 2 here", [str(tsv_file), "-r"]
@@ -337,7 +338,9 @@ class TestStringTransformer:
 
     def test_tsv_replacements_file_not_found(self):
         """Test error handling when TSV file doesn't exist."""
-        with pytest.raises((ValueError, IOError), match="TSV file not found|Failed to read TSV file"):
+        with pytest.raises(
+            (ValueError, IOError), match="TSV file not found|Failed to read TSV file"
+        ):
             self.transformer._tsv_replacements("test", ["nonexistent.tsv"])
 
     def test_tsv_replacements_no_file_provided(self):
@@ -368,11 +371,12 @@ class TestStringTransformer:
     def test_tsv_replacements_special_characters(self, tmp_path):
         """Test TSV replacement with special characters."""
         tsv_file = tmp_path / "special.tsv"
-        tsv_file.write_text("user1.table1\tuser2.table1\nuser1.table2\tuser2.table2\n", encoding="utf-8")
+        tsv_file.write_text(
+            "user1.table1\tuser2.table1\nuser1.table2\tuser2.table2\n", encoding="utf-8"
+        )
 
         result = self.transformer._tsv_replacements(
-            "SELECT * FROM user1.table1 JOIN user1.table2",
-            [str(tsv_file)]
+            "SELECT * FROM user1.table1 JOIN user1.table2", [str(tsv_file)]
         )
         assert result == "SELECT * FROM user2.table1 JOIN user2.table2"
 
@@ -381,7 +385,9 @@ class TestStringTransformer:
         tsv_file = tmp_path / "unicode.tsv"
         tsv_file.write_text("こんにちは\thello\n世界\tworld\n", encoding="utf-8")
 
-        result = self.transformer._tsv_replacements("こんにちは、世界！", [str(tsv_file)])
+        result = self.transformer._tsv_replacements(
+            "こんにちは、世界！", [str(tsv_file)]
+        )
         assert result == "hello、world！"
 
 

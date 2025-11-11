@@ -8,6 +8,7 @@ processing operations with memory optimization and backpressure handling.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import time
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
@@ -203,10 +204,8 @@ class AsyncTextStreamer:
         if stream_id in self._active_streams:
             task = self._active_streams[stream_id]
             task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await task
-            except asyncio.CancelledError:
-                pass
             return True
         return False
 

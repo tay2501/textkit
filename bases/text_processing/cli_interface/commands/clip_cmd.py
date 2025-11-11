@@ -140,9 +140,7 @@ def register_clip_commands(
                 logger.warning("clip_clear_verification_failed")
 
         except Exception as e:
-            logger.error(
-                "clip_clear_error", error=str(e), error_type=type(e).__name__
-            )
+            logger.error("clip_clear_error", error=str(e), error_type=type(e).__name__)
             handle_cli_error_func(e, "clip clear")
 
     @clip_app.command("get")
@@ -176,9 +174,7 @@ def register_clip_commands(
                 logger.info("clip_get_empty")
 
         except Exception as e:
-            logger.error(
-                "clip_get_error", error=str(e), error_type=type(e).__name__
-            )
+            logger.error("clip_get_error", error=str(e), error_type=type(e).__name__)
             handle_cli_error_func(e, "clip get")
 
     @clip_app.command("set")
@@ -223,9 +219,7 @@ def register_clip_commands(
                 logger.warning("clip_set_failed")
 
         except Exception as e:
-            logger.error(
-                "clip_set_error", error=str(e), error_type=type(e).__name__
-            )
+            logger.error("clip_set_error", error=str(e), error_type=type(e).__name__)
             handle_cli_error_func(e, "clip set")
 
     @clip_app.command("status")
@@ -276,9 +270,7 @@ def register_clip_commands(
             logger.info("clip_status_success", status=status)
 
         except Exception as e:
-            logger.error(
-                "clip_status_error", error=str(e), error_type=type(e).__name__
-            )
+            logger.error("clip_status_error", error=str(e), error_type=type(e).__name__)
             handle_cli_error_func(e, "clip status")
 
     # Add clip subcommand to main app

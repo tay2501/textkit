@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import asyncio
-import pytest
 from pathlib import Path
 
+import pytest
 from textkit.config_manager import ConfigurationManager
 from textkit.crypto_engine import (
     CRYPTOGRAPHY_AVAILABLE,

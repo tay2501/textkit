@@ -182,7 +182,7 @@ class TextTransformationEngine:
                         args=args,
                         error_type=type(e).__name__,
                     )
-                    raise error
+                    raise error from e
 
             processing_time = (time.perf_counter() - start_time) * 1000
 
@@ -229,7 +229,7 @@ class TextTransformationEngine:
                 processing_time_ms=processing_time,
                 error_type=type(e).__name__,
             )
-            raise error
+            raise error from e
 
     def _apply_single_rule_with_strategy(
         self, text: str, rule_name: str, args: list[str]
@@ -260,7 +260,7 @@ class TextTransformationEngine:
             raise TransformationError(
                 f"Unknown transformation rule: '{rule_name}'",
                 {"rule_name": rule_name, "available_rules": self.get_available_rules()},
-            )
+            ) from None
         except ValueError as e:
             raise TransformationError(
                 f"Rule '{rule_name}' failed: {e}",

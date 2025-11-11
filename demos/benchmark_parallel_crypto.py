@@ -11,7 +11,6 @@ import time
 from pathlib import Path
 
 import structlog
-
 from textkit.config_manager import ConfigurationManager
 from textkit.crypto_engine import CryptographyManager, ParallelCryptoEngine
 
@@ -28,7 +27,9 @@ def format_time(seconds: float) -> str:
         return f"{seconds:.2f}s"
 
 
-def benchmark_sequential(crypto_manager: CryptographyManager, texts: list[str]) -> float:
+def benchmark_sequential(
+    crypto_manager: CryptographyManager, texts: list[str]
+) -> float:
     """Benchmark sequential encryption/decryption."""
     start = time.perf_counter()
 
@@ -127,7 +128,9 @@ async def run_benchmarks():
     print(f"Total sequential time:  {format_time(total_seq)}")
     print(f"Total parallel time:    {format_time(total_par)}")
     print(f"Overall speedup:        {overall_speedup:.2f}x")
-    print(f"\nAverage speedup:        {sum(r['speedup'] for r in results) / len(results):.2f}x")
+    print(
+        f"\nAverage speedup:        {sum(r['speedup'] for r in results) / len(results):.2f}x"
+    )
 
     # Cleanup
     import shutil

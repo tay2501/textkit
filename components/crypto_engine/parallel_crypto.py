@@ -11,7 +11,6 @@ import asyncio
 from typing import Any
 
 import structlog
-
 from textkit.crypto_engine import CryptographyManager
 from textkit.exceptions import CryptoTransformationError
 

@@ -135,7 +135,7 @@ class TransformationOrchestrator:
                                 .add_context("rule_name", rule.name)
                                 .add_context("rule_index", i)
                                 .add_context("applied_rules", applied_rules)
-                            )
+                            ) from e
 
                 total_elapsed = (time.perf_counter() - start_time) * 1000
 
@@ -178,7 +178,7 @@ class TransformationOrchestrator:
                         f"Transformation orchestration failed: {e}",
                         operation="transformation_orchestration",
                         cause=e,
-                    ).add_context("error_metadata", error_metadata)
+                    ).add_context("error_metadata", error_metadata) from e
 
     def _apply_single_rule(
         self, text: str, rule: ParsedRule, rule_context: dict[str, Any] | None = None
@@ -226,7 +226,7 @@ class TransformationOrchestrator:
                 )
                 .add_context("rule_name", rule.name)
                 .add_context("available_rules", available_rules[:10])
-            )  # Limit for readability
+            ) from None  # Limit for readability
 
         except ValueError as e:
             raise (
@@ -247,7 +247,7 @@ class TransformationOrchestrator:
                 )
                 .add_context("rule_name", rule.name)
                 .add_context("rule_args", rule.args)
-            )
+            ) from e
 
     def get_performance_stats(self) -> dict[str, Any]:
         """Get performance statistics for debugging.

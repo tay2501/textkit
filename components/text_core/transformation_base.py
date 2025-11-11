@@ -140,6 +140,7 @@ class TransformationBase(ABC):
         """
         # Explicit no-op: This is an optional hook method
         # Subclasses that need arguments will override this method
+        _ = args  # Acknowledge parameter without using it
 
     def _safe_transform(self, text: str) -> str:
         """安全な変換実行のヘルパーメソッド

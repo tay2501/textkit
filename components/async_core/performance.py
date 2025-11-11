@@ -12,6 +12,7 @@ import statistics
 import time
 from collections import defaultdict, deque
 from collections.abc import Callable
+from contextlib import suppress
 from dataclasses import dataclass, field
 from typing import Any, NamedTuple
 
@@ -462,10 +463,9 @@ class AsyncBenchmark:
 
             # Warmup
             for _ in range(warmup_iterations):
-                try:
+                with suppress(Exception):
+                    # Ignore warmup errors
                     await func(*args, **kwargs)
-                except Exception:
-                    pass  # Ignore warmup errors
 
             # Actual benchmark
             case_durations = []

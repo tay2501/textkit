@@ -174,21 +174,17 @@ class StringTransformer(BaseTransformer):
                 return text
 
         except FileNotFoundError:
-            raise ValueError(f"TSV file not found: {tsv_file}")
+            raise ValueError(f"TSV file not found: {tsv_file}") from None
         except Exception as e:
             raise IOError(f"Failed to read TSV file {tsv_file}: {e}") from e
 
         # Apply replacements based on mode
         if regex_mode:
             # Regex mode: Single-pass replacement using re.sub
-            return self._apply_regex_replacements(
-                text, replacements, case_sensitive
-            )
+            return self._apply_regex_replacements(text, replacements, case_sensitive)
         else:
             # Literal mode: Sequential replacement
-            return self._apply_literal_replacements(
-                text, replacements, case_sensitive
-            )
+            return self._apply_literal_replacements(text, replacements, case_sensitive)
 
     def _apply_literal_replacements(
         self, text: str, replacements: list[tuple[str, str]], case_sensitive: bool

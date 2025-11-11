@@ -3,13 +3,10 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Generic, Protocol, TypeVar
-
-# Type variable for configuration data
-ConfigT = TypeVar("ConfigT")
+from typing import Any, Protocol
 
 
-class ConfigurableComponent(Generic[ConfigT], ABC):
+class ConfigurableComponent[ConfigT](ABC):
     """Base class for components that can be configured.
 
     This abstract base class provides a common interface for components

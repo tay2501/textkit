@@ -17,6 +17,10 @@ from ..utils.unified_logger import get_logger
 
 logger = get_logger(__name__)
 
+# Module-level constants for clipboard monitoring
+_DEFAULT_CHECK_INTERVAL: Final[float] = 1.0  # seconds
+_MAX_CONTENT_SIZE: Final[int] = 1024 * 1024  # 1MB limit
+
 
 class ClipboardMonitor:
     """Monitors clipboard changes for auto-detection functionality.
@@ -37,16 +41,12 @@ class ClipboardMonitor:
         if io_manager is None:
             raise ValidationError("IO manager cannot be None")
 
-        # Constants
-        DEFAULT_CHECK_INTERVAL: Final[float] = 1.0  # seconds
-        MAX_CONTENT_SIZE: Final[int] = 1024 * 1024  # 1MB limit
-
         # Instance variable annotations following PEP 526
         self.io_manager: IOManagerProtocol = io_manager
         self.is_monitoring: bool = False
         self.last_content: str = ""
-        self.check_interval: float = DEFAULT_CHECK_INTERVAL
-        self.max_content_size: int = MAX_CONTENT_SIZE
+        self.check_interval: float = _DEFAULT_CHECK_INTERVAL
+        self.max_content_size: int = _MAX_CONTENT_SIZE
         self._monitor_thread: threading.Thread | None = None
         self._stop_event: threading.Event = threading.Event()
         self._change_callback: ThreadCallback = None

@@ -5,6 +5,7 @@ This module contains comprehensive tests for the config manager,
 including edge cases, error handling, and integration scenarios.
 """
 
+import contextlib
 import os
 import tempfile
 from unittest.mock import Mock, patch
@@ -304,10 +305,8 @@ class TestConfigPerformance:
 
             # Access same key multiple times
             for _ in range(100):
-                try:
+                with contextlib.suppress(Exception):
                     self.config_manager.get_setting("same_key")
-                except Exception:
-                    pass
 
             end_time = time.time()
 
