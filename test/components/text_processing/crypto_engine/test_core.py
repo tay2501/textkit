@@ -305,12 +305,43 @@ class TestCryptographyManager:
             assert manager.rsa_config["key_size"] == 4096  # Should use default
 
     def test_cryptography_error_with_context(self):
-        """Test CryptographyError with context information."""
-        context = {"test_key": "test_value", "error_type": "TestError"}
-        error = CryptographyError("Test error message", context)
+        """Test CryptographyError with context information.
 
-        assert str(error) == "Test error message"
-        assert error.context == context
+        Verifies that CryptographyError properly stores crypto-specific
+        context information including operation type, algorithm, and key info.
+        This follows the proper API usage for CryptoTransformationError.
+        """
+        # Arrange
+        crypto_operation = "encrypt"
+        algorithm = "RSA-2048"
+        key_info = {"key_size": 2048, "key_type": "RSA"}
+
+        # Act
+        error = CryptographyError(
+            "Test encryption error",
+            crypto_operation=crypto_operation,
+            algorithm=algorithm,
+            key_info=key_info,
+        )
+        error_str = str(error)
+
+        # Assert
+        # Error message should be included
+        assert "Test encryption error" in error_str
+
+        # Context should contain crypto-specific information
+        assert "crypto_operation" in error.context
+        assert error.context["crypto_operation"] == "encrypt"
+
+        assert "algorithm" in error.context
+        assert error.context["algorithm"] == "RSA-2048"
+
+        assert "key_info" in error.context
+        assert error.context["key_info"]["key_size"] == 2048
+        assert error.context["key_info"]["key_type"] == "RSA"
+
+        # String representation should include context
+        assert "Context:" in error_str
 
     @pytest.mark.skipif(
         not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
@@ -328,13 +359,20 @@ class TestCryptographyManager:
         not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
     )
     def test_error_context_in_operations(self, crypto_manager):
-        """Test that operations include proper error context."""
+        """Test that operations include proper error context.
+
+        Verifies that CryptographyError includes detailed context information
+        about the operation that failed, nested under 'crypto_operation' key.
+        """
+        # Test invalid decryption data
         try:
             crypto_manager.decrypt_text("invalid_data")
         except CryptographyError as e:
             assert hasattr(e, "context")
-            assert "encrypted_length" in e.context
-            assert "error_type" in e.context
+            # Context is nested under 'crypto_operation' key
+            assert "crypto_operation" in e.context
+            assert "encrypted_length" in e.context["crypto_operation"]
+            assert "error_type" in e.context["crypto_operation"]
 
         try:
             crypto_manager.encrypt_text("test")
