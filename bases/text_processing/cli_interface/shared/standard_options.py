@@ -50,6 +50,7 @@ FromClipboardOption = Annotated[
     bool,
     typer.Option(
         "--from-clipboard",
+        "-c",
         help="Read input from clipboard",
     ),
 ]
@@ -58,6 +59,7 @@ ToClipboardOption = Annotated[
     bool,
     typer.Option(
         "--to-clipboard",
+        "-C",
         help="Write output to clipboard",
     ),
 ]

@@ -57,7 +57,7 @@ def transform_text(
             ),
         ] = None,
         show_rules: Annotated[
-            bool, typer.Option("--show-rules", help="Show available rules and exit")
+            bool, typer.Option("--show-rules", "-r", help="Show available rules and exit")
         ] = False,
     ) -> None:
         """Apply **transformation rules** to input text.

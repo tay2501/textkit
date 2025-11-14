@@ -60,7 +60,7 @@ uv run python main.py text transform '/ue' -i "日本語"
 # Output: \u65e5\u672c\u8a9e
 
 # From clipboard (reads, converts, saves automatically)
-uv run python main.py text transform '/h2u'
+uv run python main.py text transform '/h2u' -c
 ```
 
 ## 🎯 Key Features
@@ -126,10 +126,13 @@ echo "old_term and TODO items" | uv run python main.py text transform '/tsv repl
 
 **Clipboard Processing** (reads from clipboard, processes, saves back):
 ```bash
-# Process clipboard content directly
-uv run python main.py text transform '/h2u'
-uv run python main.py text transform '/l'
-uv run python main.py text encode -f shift_jis -t utf-8
+# Process clipboard content directly (short form with -c)
+uv run python main.py text transform '/h2u' -c
+uv run python main.py text transform '/l' -c
+uv run python main.py text encode -f shift_jis -t utf-8 -c
+
+# Long form (also works)
+uv run python main.py text transform '/h2u' --from-clipboard
 ```
 
 **Pipe-Friendly Operations** with `--quiet` flag:
@@ -160,7 +163,8 @@ uv run python main.py clip clear
 ```bash
 # View all available transformation rules
 uv run python main.py rules list
-uv run python main.py rules list --search "case"  # Search specific rules
+uv run python main.py rules list -s "case"        # Search specific rules (short form)
+uv run python main.py rules list --search "case"  # Search specific rules (long form)
 
 # Common transformations
 uv run python main.py text transform '/l' -i "HELLO"      # lowercase
@@ -189,11 +193,13 @@ uv run python main.py text encode -f auto -t utf-8 -i "text"
 ```bash
 # Encrypt text (RSA+AES hybrid encryption)
 uv run python main.py crypto encrypt -i "secret message"
-uv run python main.py crypto encrypt --from-clipboard
+uv run python main.py crypto encrypt -c              # From clipboard (short form)
+uv run python main.py crypto encrypt --from-clipboard  # From clipboard (long form)
 
 # Decrypt text
 uv run python main.py crypto decrypt -i "encrypted_base64_text"
-uv run python main.py crypto decrypt --from-clipboard
+uv run python main.py crypto decrypt -c              # From clipboard (short form)
+uv run python main.py crypto decrypt --from-clipboard  # From clipboard (long form)
 ```
 
 ### Getting Help
@@ -202,7 +208,8 @@ uv run python main.py crypto decrypt --from-clipboard
 # Comprehensive help with examples
 uv run python main.py --help
 uv run python main.py text transform --help
-uv run python main.py text transform --show-rules  # Quick rule reference
+uv run python main.py text transform -r            # Quick rule reference (short form)
+uv run python main.py text transform --show-rules  # Quick rule reference (long form)
 ```
 
 ## 🔧 Advanced Usage
@@ -212,6 +219,7 @@ uv run python main.py text transform --show-rules  # Quick rule reference
 **`--quiet` / `-q` flag**: Suppresses log messages for pipe-friendly operations
 ```bash
 uv run python main.py --quiet text transform '/l' -i "HELLO"
+uv run python main.py -q text transform '/l' -i "HELLO"  # Short form
 TEXTKIT_QUIET=1 uv run python main.py text transform '/l' -i "HELLO"
 ```
 
@@ -219,6 +227,42 @@ TEXTKIT_QUIET=1 uv run python main.py text transform '/l' -i "HELLO"
 - **stdout**: Command result only (perfect for piping)
 - **stderr**: Logs and messages (not piped)
 - **--quiet**: Suppresses stderr for clean pipes
+
+### Short Flags for Efficiency
+
+**Common short flags** (saves 25-40% keystrokes):
+```bash
+# Clipboard operations
+-c  --from-clipboard    # Read from clipboard
+-C  --to-clipboard      # Write to clipboard
+
+# Input/Output
+-i  --input             # Input text
+-o  --output            # Output destination
+
+# Encoding (text encode only)
+-f  --from-encoding     # Source encoding
+-t  --to-encoding       # Target encoding
+
+# Other operations
+-r  --show-rules        # Display transformation rules
+-s  --search            # Search/filter keyword
+-e  --error             # Error handling mode
+-v  --verbose           # Verbose output
+-q  --quiet             # Quiet mode
+```
+
+**Usage examples:**
+```bash
+# Before (long form - 60 characters)
+uv run python main.py text transform '/t/l' --from-clipboard --to-clipboard
+
+# After (short form - 36 characters, 40% reduction)
+uv run python main.py text transform '/t/l' -c -C
+
+# Combine with other short flags
+uv run python main.py text encode -f shift_jis -t utf-8 -c -C
+```
 
 ### Shell Tab Completion
 
