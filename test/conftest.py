@@ -6,8 +6,8 @@ following pytest 8.4+ best practices and Python 3.13+ type hints.
 
 import sys
 import tempfile
+from collections.abc import Generator
 from pathlib import Path
-from typing import Any, Generator
 from unittest.mock import MagicMock
 
 import pytest
@@ -84,7 +84,7 @@ def test_data_dir(project_root_path: Path) -> Path:
 
 
 @pytest.fixture(scope="module")
-def temp_workspace() -> Generator[Path, None, None]:
+def temp_workspace() -> Generator[Path]:
     """Provide a temporary workspace directory for the entire test module.
 
     Yields:
@@ -100,7 +100,7 @@ def temp_workspace() -> Generator[Path, None, None]:
 
 
 @pytest.fixture(autouse=True)
-def setup_logging() -> Generator[None, None, None]:
+def setup_logging() -> Generator[None]:
     """Setup and teardown logging for each test.
 
     Automatically applied to all tests via autouse=True.
@@ -114,7 +114,7 @@ def setup_logging() -> Generator[None, None, None]:
 
 
 @pytest.fixture
-def temp_dir() -> Generator[Path, None, None]:
+def temp_dir() -> Generator[Path]:
     """Provide a temporary directory for a single test function.
 
     Yields:

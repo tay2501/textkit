@@ -248,11 +248,18 @@ class TestInputOutputManager:
 
     def test_validate_text_encoding_unicode_error(self, io_manager):
         """Test text encoding validation with unicode error."""
-        # Mock a unicode error scenario
-        with patch.object(str, "encode", side_effect=UnicodeError("Test error")):
-            with pytest.raises(IOError) as exc_info:
-                io_manager.validate_text_encoding("test")
-            assert "Text encoding validation failed" in str(exc_info.value)
+        # Python 3.13+ doesn't allow mocking methods on immutable built-in types
+        # Create a custom str subclass that raises UnicodeError on encode
+        class BrokenString(str):
+            def encode(self, encoding='utf-8', errors='strict'):
+                raise UnicodeEncodeError(
+                    encoding, self, 0, len(self), "Test encoding error"
+                )
+
+        test_str = BrokenString("test")
+        with pytest.raises(IOError) as exc_info:
+            io_manager.validate_text_encoding(test_str)
+        assert "Text encoding validation failed" in str(exc_info.value)
 
     @pytest.mark.skipif(not CLIPBOARD_AVAILABLE, reason="clipboard not available")
     def test_safe_copy_to_clipboard_success(self, io_manager):

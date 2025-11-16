@@ -11,7 +11,6 @@ import tracemalloc
 from pathlib import Path
 
 import pytest
-
 from textkit.text_core.transformers.string_transformer import StringTransformer
 
 
@@ -27,7 +26,7 @@ class TestSQLTSVConversion:
     def sample_sql(self, sql_test_data_dir):
         """Load sample SQL script."""
         sql_file = sql_test_data_dir / "sample_sql_script.sql"
-        with open(sql_file, "r", encoding="utf-8") as f:
+        with open(sql_file, encoding="utf-8") as f:
             return f.read()
 
     def test_schema_conversion_live_to_stg(self, sql_test_data_dir, sample_sql):
@@ -40,7 +39,7 @@ class TestSQLTSVConversion:
         print(f"\nUsing TSV file: {tsv_file}")
 
         # Count patterns in TSV
-        with open(tsv_file, "r", encoding="utf-8") as f:
+        with open(tsv_file, encoding="utf-8") as f:
             pattern_count = sum(1 for line in f if line.strip())
         print(f"TSV patterns: {pattern_count} rules")
 
@@ -97,7 +96,7 @@ class TestSQLTSVConversion:
         assert "DEV_USR.SALES" in result, "PROD_USR.SALES should be converted"
         assert len(conversions_verified) >= 5, "At least 5 conversions should be verified"
 
-        print(f"\n[OK] All schema conversions completed successfully!")
+        print("\n[OK] All schema conversions completed successfully!")
 
     def test_table_name_conversion(self, sql_test_data_dir, sample_sql):
         """Test table name conversion (TABLE1 -> TABLE9, etc.)."""
@@ -109,7 +108,7 @@ class TestSQLTSVConversion:
         print(f"\nUsing TSV file: {tsv_file}")
 
         # Count patterns in TSV
-        with open(tsv_file, "r", encoding="utf-8") as f:
+        with open(tsv_file, encoding="utf-8") as f:
             pattern_count = sum(1 for line in f if line.strip())
         print(f"TSV patterns: {pattern_count} rules")
 
@@ -158,7 +157,7 @@ class TestSQLTSVConversion:
         assert "DEV_USR.NEW_CUSTOMERS" in result, "OLD_CUSTOMERS should be converted"
         assert len(conversions_verified) >= 3, "At least 3 conversions should be verified"
 
-        print(f"\n[OK] All table name conversions completed successfully!")
+        print("\n[OK] All table name conversions completed successfully!")
 
     def test_comprehensive_sql_conversion(self, sql_test_data_dir, sample_sql):
         """Test comprehensive SQL conversion including schemas, tables, procedures, etc."""
@@ -170,7 +169,7 @@ class TestSQLTSVConversion:
         print(f"\nUsing TSV file: {tsv_file}")
 
         # Count patterns in TSV
-        with open(tsv_file, "r", encoding="utf-8") as f:
+        with open(tsv_file, encoding="utf-8") as f:
             pattern_count = sum(1 for line in f if line.strip())
         print(f"TSV patterns: {pattern_count} rules")
 
@@ -266,7 +265,7 @@ class TestSQLTSVConversion:
         assert "VW_CLIENT_ORDERS" in result or "VW_ITEM_STOCK" in result, "View conversion should occur"
         assert total_verified >= 10, f"At least 10 conversions should be verified, got {total_verified}"
 
-        print(f"\n[OK] All comprehensive conversions completed successfully!")
+        print("\n[OK] All comprehensive conversions completed successfully!")
 
     def test_case_sensitive_sql_conversion(self, sql_test_data_dir, sample_sql):
         """Test case-sensitive SQL conversion."""
@@ -303,7 +302,7 @@ class TestSQLTSVConversion:
         assert len(result_insensitive) > 0, "Case-insensitive conversion should produce output"
         assert len(result_sensitive) > 0, "Case-sensitive conversion should produce output"
 
-        print(f"\n[OK] Case sensitivity tests completed successfully!")
+        print("\n[OK] Case sensitivity tests completed successfully!")
 
     def test_sql_conversion_performance_summary(self, sql_test_data_dir, sample_sql):
         """Generate performance summary for SQL conversions."""
@@ -324,7 +323,7 @@ class TestSQLTSVConversion:
 
         for test_name, tsv_file in tsv_files:
             # Count rules
-            with open(tsv_file, "r", encoding="utf-8") as f:
+            with open(tsv_file, encoding="utf-8") as f:
                 rule_count = sum(1 for line in f if line.strip())
 
             # Measure performance

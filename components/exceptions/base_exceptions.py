@@ -42,7 +42,7 @@ class BaseTextProcessingError(Exception):
         self.cause = cause
         self.timestamp = datetime.now(UTC)
 
-    def add_context(self, key: str, value: Any) -> "BaseTextProcessingError":
+    def add_context(self, key: str, value: Any) -> BaseTextProcessingError:
         """Add context information to the exception.
 
         Args:

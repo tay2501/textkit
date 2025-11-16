@@ -125,7 +125,6 @@ class StringTransformer(BaseTransformer):
             - Regex mode: Single-pass O(n) using alternation
         """
         import csv
-        import re
         from pathlib import Path
 
         # Validate arguments
@@ -146,7 +145,7 @@ class StringTransformer(BaseTransformer):
                 raise ValueError(f"TSV file not found: {tsv_file}")
 
             replacements = []
-            with open(file_path, "r", encoding="utf-8", newline="") as f:
+            with open(file_path, encoding="utf-8", newline="") as f:
                 reader = csv.reader(f, delimiter="\t")
                 for line_num, row in enumerate(reader, start=1):
                     # Skip empty lines
@@ -176,7 +175,7 @@ class StringTransformer(BaseTransformer):
         except FileNotFoundError:
             raise ValueError(f"TSV file not found: {tsv_file}") from None
         except Exception as e:
-            raise IOError(f"Failed to read TSV file {tsv_file}: {e}") from e
+            raise OSError(f"Failed to read TSV file {tsv_file}: {e}") from e
 
         # Apply replacements based on mode
         if regex_mode:

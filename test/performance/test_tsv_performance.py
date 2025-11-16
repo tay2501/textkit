@@ -12,10 +12,8 @@ import csv
 import time
 import tracemalloc
 from pathlib import Path
-from typing import List, Tuple
 
 import pytest
-
 from textkit.text_core.transformers.string_transformer import StringTransformer
 
 
@@ -27,7 +25,7 @@ class TestTSVPerformance:
         """Create temporary directory for TSV test files."""
         return tmp_path / "tsv_test_data"
 
-    def generate_tsv_patterns(self, output_file: Path, count: int = 10000) -> List[Tuple[str, str]]:
+    def generate_tsv_patterns(self, output_file: Path, count: int = 10000) -> list[tuple[str, str]]:
         """Generate TSV file with various replacement patterns.
 
         Args:
@@ -89,7 +87,7 @@ class TestTSVPerformance:
 
         return patterns
 
-    def generate_regex_tsv_patterns(self, output_file: Path, count: int = 1000) -> List[Tuple[str, str]]:
+    def generate_regex_tsv_patterns(self, output_file: Path, count: int = 1000) -> list[tuple[str, str]]:
         """Generate TSV file with regex replacement patterns.
 
         Args:
@@ -141,7 +139,7 @@ class TestTSVPerformance:
 
         return patterns
 
-    def generate_test_input(self, patterns: List[Tuple[str, str]], sample_size: int = 100) -> str:
+    def generate_test_input(self, patterns: list[tuple[str, str]], sample_size: int = 100) -> str:
         """Generate test input text containing samples from patterns.
 
         Args:
@@ -499,7 +497,7 @@ class TestTSVPerformance:
             for i in range(500):
                 writer.writerow([f"func{i}()", f"function{i}()"])
 
-        print(f"Generated 10,000 mixed rules")
+        print("Generated 10,000 mixed rules")
 
         # Generate comprehensive test input
         test_lines = []

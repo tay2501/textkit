@@ -16,7 +16,6 @@ Best Practices Applied:
 - Detailed docstrings explaining test intent
 """
 
-from typing import Type
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -80,7 +79,7 @@ class TestMainApplication:
     def test_main_propagates_various_exceptions(
         self,
         mock_run_cli: MagicMock,
-        exception_class: Type[Exception],
+        exception_class: type[Exception],
         error_message: str,
     ) -> None:
         """Test that various exceptions are properly propagated from run_cli.

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-from pathlib import Path
 
 import pytest
 from textkit.config_manager import ConfigurationManager
@@ -115,7 +114,7 @@ class TestParallelCryptoEngine:
         # All encrypted texts should be different
         assert len(set(encrypted)) == len(encrypted)
         # None should match original
-        for enc, orig in zip(encrypted, texts):
+        for enc, orig in zip(encrypted, texts, strict=False):
             assert enc != orig
 
     @pytest.mark.asyncio
