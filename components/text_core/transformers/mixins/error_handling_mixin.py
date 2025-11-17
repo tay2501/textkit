@@ -55,7 +55,7 @@ class ErrorHandlingMixin:
         )
 
         if error:
-            raise self._wrap_transformation_error(error, rule_name, text) from e
+            raise self._wrap_transformation_error(error, rule_name, text) from error
         return result
 
     def _wrap_transformation_error(

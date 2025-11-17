@@ -250,7 +250,7 @@ class PerformanceMixin:
                 "error": None,
             }
 
-            for iteration in range(iterations):
+            for _iteration in range(iterations):
                 start_time = time.perf_counter()
                 try:
                     result = self.transform(text, rule_name)

@@ -9,6 +9,9 @@ Examples:
 
 from __future__ import annotations
 
+import contextlib
+import logging
+import os
 import sys
 from pathlib import Path
 
@@ -16,21 +19,17 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Disable all logging for clean CLI output
-import os
-
 os.environ["TEXTKIT_LOG_LEVEL"] = "CRITICAL"
-import logging
-
 logging.basicConfig(level=logging.CRITICAL)
 for logger_name in ["structlog", "textkit", "components"]:
     logging.getLogger(logger_name).setLevel(logging.CRITICAL)
     logging.getLogger(logger_name).disabled = True
 
-import contextlib
-
+# Third-party imports
 import typer
 from rich.console import Console
 
+# Local imports
 from components.io_handler import InputOutputManager
 from components.text_core import TextTransformationEngine
 

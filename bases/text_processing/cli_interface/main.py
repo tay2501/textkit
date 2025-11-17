@@ -200,8 +200,6 @@ Examples:
                                 else "Unexpected"
                             )
                             logger.error(f"{error_type} error: {e}")
-                        except Exception as e:
-                            logger.error(f"Transformation error: {e}")
 
                 except KeyboardInterrupt:
                     logger.info("\nUse 'quit' or 'exit' to leave interactive mode.")

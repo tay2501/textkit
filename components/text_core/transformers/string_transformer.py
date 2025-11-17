@@ -237,7 +237,7 @@ class StringTransformer(BaseTransformer):
             return text
 
         # Build pattern dictionary for lookup
-        pattern_map = {pattern: replacement for pattern, replacement in replacements}
+        dict(replacements)
 
         # Create alternation pattern: (pattern1)|(pattern2)|...
         # Group each pattern to identify which matched

@@ -276,7 +276,7 @@ class TestTSVPerformance:
         print("\n--- Test 2b: Regex with case-sensitive mode ---")
         start_time = time.perf_counter()
 
-        result_case = transformer._tsv_replacements(
+        transformer._tsv_replacements(
             test_input, [str(tsv_file), "-r", "-c"]
         )
 
@@ -462,7 +462,6 @@ class TestTSVPerformance:
 
         # Generate comprehensive TSV file
         tsv_file = temp_tsv_dir / "comprehensive_10k.tsv"
-        patterns = []
 
         with open(tsv_file, "w", encoding="utf-8", newline="") as f:
             writer = csv.writer(f, delimiter="\t")

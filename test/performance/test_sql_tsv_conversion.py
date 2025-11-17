@@ -330,7 +330,7 @@ class TestSQLTSVConversion:
             tracemalloc.start()
             start_time = time.perf_counter()
 
-            result = transformer._tsv_replacements(sample_sql, [str(tsv_file)])
+            transformer._tsv_replacements(sample_sql, [str(tsv_file)])
 
             elapsed = time.perf_counter() - start_time
             current, peak = tracemalloc.get_traced_memory()

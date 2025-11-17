@@ -71,7 +71,7 @@ def set(
                 text = sys.stdin.read().rstrip("\n")
             else:
                 console.print("[red]Error:[/red] No text provided")
-                raise typer.Exit(code=1) from e
+                raise typer.Exit(code=1)
 
         io_manager.set_clipboard_text(text)
         console.print("[green]Clipboard updated[/green]")

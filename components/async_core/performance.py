@@ -337,7 +337,7 @@ class PerformanceMonitor:
 
         # Return all stats
         return {
-            operation: self.get_stats(operation) for operation in self._stats.keys()
+            operation: self.get_stats(operation) for operation in self._stats
         }
 
     def get_recent_metrics(self, count: int = 100) -> list[dict[str, Any]]:
@@ -612,7 +612,7 @@ class AsyncBenchmark:
         func: Callable,
         args: tuple,
         kwargs: dict,
-        concurrent_calls: list[int] = [1, 5, 10, 20, 50],
+        concurrent_calls: list[int] = None,
         duration_seconds: float = 10.0,
     ) -> dict[str, Any]:
         """Perform stress testing with varying concurrency levels.
@@ -627,6 +627,8 @@ class AsyncBenchmark:
         Returns:
             Stress test results
         """
+        if concurrent_calls is None:
+            concurrent_calls = [1, 5, 10, 20, 50]
         logger.info(
             "stress_test_starting",
             function=func.__name__,

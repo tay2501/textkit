@@ -209,7 +209,7 @@ class RuleParser:
 
         # Check for duplicate rules
         rule_names = [rule.name for rule in rules]
-        duplicates = set([name for name in rule_names if rule_names.count(name) > 1])
+        duplicates = {name for name in rule_names if rule_names.count(name) > 1}
         if duplicates:
             raise ValidationError(
                 f"Duplicate rules found: {', '.join(duplicates)}"

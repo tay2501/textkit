@@ -399,14 +399,14 @@ async def test_error_handling():
     # Test invalid transformation rule
     try:
         await async_engine.transform_async("test", "invalid_rule")
-        assert False, "Should have raised an exception for invalid rule"
+        raise AssertionError("Should have raised an exception for invalid rule")
     except Exception:
         pass  # Expected
 
     # Test reading non-existent file
     try:
         await io_manager.read_file_async("/non/existent/file.txt")
-        assert False, "Should have raised an exception for non-existent file"
+        raise AssertionError("Should have raised an exception for non-existent file")
     except Exception:
         pass  # Expected
 

@@ -127,7 +127,7 @@ class HelpManager:
             return self._content_cache[cache_key]
 
         # Find generator for topic
-        for generator_name, generator in self._generators.items():
+        for _generator_name, generator in self._generators.items():
             if topic in generator.get_supported_topics():
                 sections = generator.generate_help(context)
                 self._content_cache[cache_key] = sections
@@ -159,7 +159,7 @@ class HelpManager:
         if topic:
             # Remove cached entries for specific topic
             keys_to_remove = [
-                key for key in self._content_cache.keys() if key.startswith(f"{topic}:")
+                key for key in self._content_cache if key.startswith(f"{topic}:")
             ]
             for key in keys_to_remove:
                 del self._content_cache[key]

@@ -59,5 +59,4 @@ class ConfigManagerProtocol(Protocol):
 __all__ = [
     "ConfigurableComponent",
     "ConfigManagerProtocol",
-    "ConfigT",
 ]

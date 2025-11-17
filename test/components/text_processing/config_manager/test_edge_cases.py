@@ -91,7 +91,7 @@ class TestConfigManagerEdgeCases:
             {"mixed": {"str": "test", "num": 42}},  # Mixed types
         ]
 
-        for config in test_configs:
+        for _config in test_configs:
             # Should handle all configurations gracefully
             manager = ConfigManager()
             assert manager is not None
@@ -241,7 +241,7 @@ class TestConfigIntegration:
             {"database": {"host": "localhost", "port": 5432}},
         ]
 
-        for config in valid_configs:
+        for _config in valid_configs:
             try:
                 manager = ConfigurationManager()
                 # Should validate successfully
@@ -257,7 +257,7 @@ class TestConfigIntegration:
             {"invalid_structure": {"deeply": {"nested": {"too": {"much": True}}}}},
         ]
 
-        for config in invalid_configs:
+        for _config in invalid_configs:
             try:
                 # Should either handle gracefully or raise appropriate error
                 manager = ConfigurationManager()
@@ -339,7 +339,7 @@ class TestConfigSecurity:
             "private_key_data",
         ]
 
-        for data in sensitive_data:
+        for _data in sensitive_data:
             try:
                 manager = ConfigManager()
                 # Should handle sensitive data appropriately
