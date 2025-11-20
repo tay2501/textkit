@@ -380,12 +380,12 @@ class TestConfigurationManager:
         dummy_file = temp_dir / "dummy_file.txt"
         dummy_file.write_text("test")
 
-        with patch(
-            "pathlib.Path.mkdir", side_effect=PermissionError("Cannot create directory")
+        with (
+            patch("pathlib.Path.mkdir", side_effect=PermissionError("Cannot create directory")),
+            pytest.raises(PermissionError),
         ):
             # Should raise error during initialization
-            with pytest.raises(PermissionError):
-                ConfigurationManager(config_dir=dummy_file)
+            ConfigurationManager(config_dir=dummy_file)
 
     def test_unicode_handling(self, config_manager, temp_dir):
         """Test handling of Unicode content in configuration files."""

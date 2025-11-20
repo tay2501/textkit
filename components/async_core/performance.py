@@ -627,6 +627,34 @@ class AsyncBenchmark:
         Returns:
             Stress test results
         """
+
+        async def _stress_worker(
+            test_func: Callable,
+            test_args: tuple,
+            test_kwargs: dict,
+            counters: dict[str, int],
+            durations_list: list[float],
+        ) -> None:
+            """Execute a single stress test iteration.
+
+            Args:
+                test_func: Function to test
+                test_args: Function arguments
+                test_kwargs: Function keyword arguments
+                counters: Dictionary containing completed, successful, and error counts
+                durations_list: List to append execution durations
+            """
+            start_time = time.perf_counter()
+            try:
+                await test_func(*test_args, **test_kwargs)
+                counters["successful"] += 1
+            except Exception:
+                counters["errors"] += 1
+
+            duration = time.perf_counter() - start_time
+            durations_list.append(duration)
+            counters["completed"] += 1
+
         if concurrent_calls is None:
             concurrent_calls = [1, 5, 10, 20, 50]
         logger.info(
@@ -644,27 +672,10 @@ class AsyncBenchmark:
 
         for concurrency in concurrent_calls:
             phase_start = time.perf_counter()
-            completed_calls = 0
-            successful_calls = 0
-            error_count = 0
+            counters = {"completed": 0, "successful": 0, "errors": 0}
             durations = []
 
             logger.info("stress_phase_starting", concurrency=concurrency)
-
-            # Run stress test for specified duration
-            async def stress_worker():
-                nonlocal completed_calls, successful_calls, error_count
-
-                start_time = time.perf_counter()
-                try:
-                    await func(*args, **kwargs)
-                    successful_calls += 1
-                except Exception:
-                    error_count += 1
-
-                duration = time.perf_counter() - start_time
-                durations.append(duration)
-                completed_calls += 1
 
             # Create concurrent workers
             tasks = []
@@ -673,7 +684,9 @@ class AsyncBenchmark:
             while time.perf_counter() < end_time:
                 # Maintain target concurrency
                 while len(tasks) < concurrency and time.perf_counter() < end_time:
-                    task = asyncio.create_task(stress_worker())
+                    task = asyncio.create_task(
+                        _stress_worker(func, args, kwargs, counters, durations)
+                    )
                     tasks.append(task)
 
                 # Clean up completed tasks
@@ -689,6 +702,9 @@ class AsyncBenchmark:
                 await asyncio.gather(*tasks, return_exceptions=True)
 
             phase_duration = time.perf_counter() - phase_start
+            completed_calls = counters["completed"]
+            successful_calls = counters["successful"]
+            error_count = counters["errors"]
 
             # Calculate phase statistics
             phase_stats = {

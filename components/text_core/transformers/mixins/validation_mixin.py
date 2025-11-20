@@ -142,17 +142,16 @@ class ValidationMixin:
             # Check allowed values
             if allowed_values:
                 for position, allowed in allowed_values.items():
-                    if position < len(args):
-                        if args[position] not in allowed:
-                            raise ParameterValidationError(
-                                f"Argument at position {position} must be one of: {', '.join(allowed)}",
-                                parameter_name=f"args[{position}]",
-                                parameter_value=args[position],
-                                constraints={
-                                    "allowed_values": allowed,
-                                    "position": position,
-                                },
-                            )
+                    if position < len(args) and args[position] not in allowed:
+                        raise ParameterValidationError(
+                            f"Argument at position {position} must be one of: {', '.join(allowed)}",
+                            parameter_name=f"args[{position}]",
+                            parameter_value=args[position],
+                            constraints={
+                                "allowed_values": allowed,
+                                "position": position,
+                            },
+                        )
 
             return args
 
