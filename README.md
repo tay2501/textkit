@@ -75,8 +75,17 @@ uv run python main.py text transform '/h2u' -i "my-test-file"  # → my_test_fil
 uv run python main.py text transform '/u2h' -i "my_test_file"  # → my-test-file
 
 # Unicode Escape ↔ Text (JSON string encoding)
+# Option 1: Short aliases (string_transformer)
 uv run python main.py text transform '/ue' -i "日本語"         # → \u65e5\u672c\u8a9e
 uv run python main.py text transform '/ud' -i '\u65e5\u672c\u8a9e'  # → 日本語
+
+# Option 2: Full names with comprehensive encoding support (encoding_transformer)
+uv run python main.py text transform '/unicode-encode' -i "日本語"
+uv run python main.py text transform '/unicode-decode' -i '\u65e5\u672c\u8a9e'
+
+# Supports multilingual, emoji, and complex Unicode
+uv run python main.py text transform '/unicode-decode' -i '\u4e16\u754c Hello 😀'
+# → 世界 Hello 😀
 
 # Pipeline composition
 echo "my-file-name" | uv run python main.py --quiet text transform '/h2u'

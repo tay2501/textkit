@@ -112,6 +112,20 @@ class EncodingTransformer(EnhancedBaseTransformer):
                 function=self._detect_encoding_transform,
                 rule_type=TransformationRuleType.BASIC,
             ),
+            "unicode-decode": TransformationRule(
+                name="unicode-decode",
+                description="Decode Unicode escape sequences to characters",
+                example=r"'\u3042' → 'あ'",
+                function=self._unicode_decode_transform,
+                rule_type=TransformationRuleType.BASIC,
+            ),
+            "unicode-encode": TransformationRule(
+                name="unicode-encode",
+                description="Encode characters to Unicode escape sequences",
+                example=r"'あ' → '\u3042'",
+                function=self._unicode_encode_transform,
+                rule_type=TransformationRuleType.BASIC,
+            ),
         }
 
     # ========================================================================
@@ -252,6 +266,63 @@ class EncodingTransformer(EnhancedBaseTransformer):
             return f"Detected encoding: {detected}"
         except UnicodeError:
             return "Detected encoding: utf-8 (already decoded)"
+
+    @ErrorHandlingMixin.error_handler("unicode-decode")
+    @LoggingMixin.logged_transformation("unicode-decode")
+    def _unicode_decode_transform(self, text: str) -> str:
+        """Decode Unicode escape sequences to actual characters.
+
+        Converts Unicode escape sequences like \\u3042 to their actual
+        character representations (e.g., あ).
+
+        Args:
+            text: Text containing Unicode escape sequences
+
+        Returns:
+            Decoded text with actual Unicode characters
+
+        Example:
+            >>> _unicode_decode_transform(r'\\u3042\\u3044\\u3046')
+            'あいう'
+        """
+        try:
+            # Use unicode_escape codec to decode escape sequences
+            # Handle both raw strings and already-escaped strings
+            decoded = text.encode().decode("unicode_escape")
+            return decoded
+        except (UnicodeDecodeError, UnicodeEncodeError) as e:
+            raise EncodingTransformationError(
+                f"Failed to decode Unicode escape sequences: {e}",
+                {"operation": "unicode-decode", "input_preview": text[:50]},
+            ) from e
+
+    @ErrorHandlingMixin.error_handler("unicode-encode")
+    @LoggingMixin.logged_transformation("unicode-encode")
+    def _unicode_encode_transform(self, text: str) -> str:
+        """Encode characters to Unicode escape sequences.
+
+        Converts Unicode characters to their escape sequence representations
+        (e.g., あ → \\u3042).
+
+        Args:
+            text: Text with Unicode characters
+
+        Returns:
+            Text with characters encoded as Unicode escape sequences
+
+        Example:
+            >>> _unicode_encode_transform('あいう')
+            '\\u3042\\u3044\\u3046'
+        """
+        try:
+            # Encode to unicode_escape, then decode back to string
+            encoded = text.encode("unicode_escape").decode("ascii")
+            return encoded
+        except (UnicodeDecodeError, UnicodeEncodeError) as e:
+            raise EncodingTransformationError(
+                f"Failed to encode to Unicode escape sequences: {e}",
+                {"operation": "unicode-encode", "input_preview": text[:50]},
+            ) from e
 
     @ErrorHandlingMixin.error_handler("iconv")
     def _iconv_transform(
