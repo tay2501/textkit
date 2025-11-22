@@ -5,6 +5,8 @@ Simplified character encoding transformer that leverages
 the enhanced base transformer and mixins for clean, maintainable code.
 """
 
+from typing import Any
+
 from textkit.exceptions import EncodingTransformationError
 
 from ..types import TransformationRule, TransformationRuleType
@@ -281,6 +283,13 @@ class EncodingTransformer(EnhancedBaseTransformer):
         Returns:
             Decoded text with actual Unicode characters
 
+        Raises:
+            EncodingTransformationError: If decoding fails
+
+        Security:
+            Does not log full input content to prevent sensitive data leakage.
+            Only logs error position and problematic characters.
+
         Example:
             >>> _unicode_decode_transform(r'\\u3042\\u3044\\u3046')
             'あいう'
@@ -291,9 +300,18 @@ class EncodingTransformer(EnhancedBaseTransformer):
             decoded = text.encode().decode("unicode_escape")
             return decoded
         except (UnicodeDecodeError, UnicodeEncodeError) as e:
+            # Extract minimal error context for debugging
+            error_context = self._extract_error_context(text, e)
+
             raise EncodingTransformationError(
                 f"Failed to decode Unicode escape sequences: {e}",
-                {"operation": "unicode-decode", "input_preview": text[:50]},
+                {
+                    "operation": "unicode-decode",
+                    "input_size_bytes": len(text.encode("utf-8")),
+                    "error_position": error_context["position"],
+                    "problematic_chars": error_context["chars"],
+                    "char_codepoints": error_context["codepoints"],
+                },
             ) from e
 
     @ErrorHandlingMixin.error_handler("unicode-encode")
@@ -310,6 +328,13 @@ class EncodingTransformer(EnhancedBaseTransformer):
         Returns:
             Text with characters encoded as Unicode escape sequences
 
+        Raises:
+            EncodingTransformationError: If encoding fails
+
+        Security:
+            Does not log full input content to prevent sensitive data leakage.
+            Only logs error position and problematic characters.
+
         Example:
             >>> _unicode_encode_transform('あいう')
             '\\u3042\\u3044\\u3046'
@@ -319,9 +344,18 @@ class EncodingTransformer(EnhancedBaseTransformer):
             encoded = text.encode("unicode_escape").decode("ascii")
             return encoded
         except (UnicodeDecodeError, UnicodeEncodeError) as e:
+            # Extract minimal error context for debugging
+            error_context = self._extract_error_context(text, e)
+
             raise EncodingTransformationError(
                 f"Failed to encode to Unicode escape sequences: {e}",
-                {"operation": "unicode-encode", "input_preview": text[:50]},
+                {
+                    "operation": "unicode-encode",
+                    "input_size_bytes": len(text.encode("utf-8")),
+                    "error_position": error_context["position"],
+                    "problematic_chars": error_context["chars"],
+                    "char_codepoints": error_context["codepoints"],
+                },
             ) from e
 
     @ErrorHandlingMixin.error_handler("iconv")
@@ -416,3 +450,72 @@ class EncodingTransformer(EnhancedBaseTransformer):
             pass
 
         return "utf-8"  # Final fallback  # Final fallback  # Final fallback
+
+    def _extract_error_context(
+        self, text: str, error: Exception, context_chars: int = 5
+    ) -> dict[str, Any]:
+        """Extract minimal error context for debugging without exposing sensitive data.
+
+        This method provides a security-conscious approach to error logging by
+        capturing only a small window of text around the error position, along
+        with Unicode codepoint representations. This prevents full text leakage
+        while still providing sufficient information for debugging.
+
+        Args:
+            text: Full input text where the error occurred
+            error: Exception object containing position information (start/end attributes)
+            context_chars: Number of characters before and after error to include (default: 5)
+
+        Returns:
+            Dictionary containing:
+                - position: Error position as "start-end" or single number
+                - chars: Small window of text around error (max 2*context_chars + error_length)
+                - codepoints: Unicode codepoints in U+XXXX format for safe logging
+
+        Security:
+            Returns only a small window around the error position, not the entire
+            input text. This prevents sensitive data leakage in logs.
+
+        Example:
+            >>> error = UnicodeDecodeError('utf-8', b'\\x80', 0, 1, 'invalid start byte')
+            >>> context = self._extract_error_context("test\\x80data", error, context_chars=3)
+            >>> # Returns: {
+            >>> #   "position": "4-5",
+            >>> #   "chars": "st\\x80da",
+            >>> #   "codepoints": ["U+0073", "U+0074", "U+0080", "U+0064", "U+0061"]
+            >>> # }
+        """
+        start_pos = getattr(error, "start", None)
+        end_pos = getattr(error, "end", None)
+
+        if start_pos is None:
+            return {
+                "position": "unknown",
+                "chars": "",
+                "codepoints": [],
+            }
+
+        # Calculate window boundaries
+        window_start = max(0, start_pos - context_chars)
+        window_end = (
+            min(len(text), end_pos + context_chars)
+            if end_pos is not None
+            else min(len(text), start_pos + context_chars)
+        )
+
+        # Extract small window around error
+        problematic_text = text[window_start:window_end]
+
+        # Convert to Unicode codepoints for safe logging
+        codepoints = [f"U+{ord(c):04X}" for c in problematic_text]
+
+        # Format position string
+        position_str = (
+            f"{start_pos}-{end_pos}" if end_pos is not None else str(start_pos)
+        )
+
+        return {
+            "position": position_str,
+            "chars": problematic_text,
+            "codepoints": codepoints,
+        }
