@@ -63,6 +63,45 @@ uv run python main.py text transform '/ue' -i "日本語"
 uv run python main.py text transform '/h2u' -c
 ```
 
+## 🔐 Security Configuration
+
+TextKit uses RSA-4096 and AES-256-GCM for secure text encryption. Private keys are protected with passphrase-based encryption.
+
+### Initial Setup
+
+1. **Generate a secure passphrase:**
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(48))"
+```
+
+2. **Add to `.env` file:**
+```bash
+# .env (never commit this file to version control)
+TEXTKIT_KEY_PASSPHRASE=<your-generated-passphrase>
+```
+
+3. **Verify setup:**
+```bash
+uv run python -c "from components.crypto_engine.core import CryptographyManager; CryptographyManager().ensure_key_pair(); print('Crypto configured successfully')"
+```
+
+### Security Best Practices
+
+- ✅ Use passphrases with at least 32 characters (48+ recommended)
+- ✅ Use different passphrases for dev/staging/production
+- ✅ Rotate passphrases quarterly
+- ✅ Store production passphrases in secret management systems (AWS Secrets Manager, HashiCorp Vault)
+- ❌ Never commit `.env` files to version control
+- ❌ Never hardcode passphrases in source code
+
+### Encryption Features
+
+- **RSA-4096** for key exchange
+- **AES-256-GCM** for data encryption (AEAD - Authenticated Encryption with Associated Data)
+- **PBKDF2** passphrase-based key encryption
+- **Tampering detection** via GCM authentication tags
+- **Secure file permissions** (0o600 for private keys, 0o644 for public keys)
+
 ## 🎯 Key Features
 
 ### 🔄 Character Conversion

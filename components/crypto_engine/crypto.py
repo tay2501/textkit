@@ -12,10 +12,11 @@ import secrets
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
 
-from ..exceptions import ConfigurationError, CryptographyError
+import structlog
 
-# Import logging utilities
-from ..utils.unified_logger import get_logger
+from ..exceptions import ConfigurationError, CryptographyError  # type: ignore[import-not-found]
+
+logger = structlog.get_logger(__name__)
 from .types import ConfigManagerProtocol, ConfigurableComponent
 
 try:
@@ -219,8 +220,7 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
                 CryptographyError,
             ):
                 # Keys don't exist or are corrupted, regenerate
-                logger = get_logger(__name__)
-                logger.info("Generating new RSA key pair...")
+                logger.info("Generating new RSA key pair")
                 return self._generate_key_pair()
 
         except Exception as e:
@@ -294,9 +294,8 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
                 # Windows doesn't support chmod the same way
                 pass
 
-            logger = get_logger(__name__)
             logger.info(
-                "RSA key pair saved securely:",
+                "RSA key pair saved securely",
                 private_key_path=str(self.private_key_path),
                 public_key_path=str(self.public_key_path),
             )

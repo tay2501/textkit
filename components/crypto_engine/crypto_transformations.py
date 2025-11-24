@@ -14,9 +14,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .types import CryptoManagerProtocol
 
-from ..exceptions import TransformationError
-from .constants import CRYPTO_CONSTANTS, ERROR_CONTEXT_KEYS
-from .transformation_base import TransformationBase
+from ..exceptions import TransformationError  # type: ignore[import-not-found]
+from .constants import CRYPTO_CONSTANTS, ERROR_CONTEXT_KEYS  # type: ignore[import-not-found]
+from .transformation_base import TransformationBase  # type: ignore[import-not-found]
 
 
 class CryptoTransformations(TransformationBase):
@@ -106,8 +106,8 @@ class CryptoTransformations(TransformationBase):
                 )
 
             # EAFP: Try encryption directly
-            encrypted_bytes = self.crypto_manager.encrypt(text.encode("utf-8"))
-            result = base64.b64encode(encrypted_bytes).decode("ascii")
+            # CryptoManagerProtocol.encrypt_text returns Base64 encoded string
+            result = self.crypto_manager.encrypt_text(text)
             self._output_text = result
             return result
 
@@ -151,9 +151,8 @@ class CryptoTransformations(TransformationBase):
                 )
 
             # EAFP: Try decryption directly
-            encrypted_bytes = base64.b64decode(encrypted_text.encode("ascii"))
-            decrypted_bytes = self.crypto_manager.decrypt(encrypted_bytes)
-            result = decrypted_bytes.decode("utf-8")
+            # CryptoManagerProtocol.decrypt_text expects Base64 encoded string
+            result = self.crypto_manager.decrypt_text(encrypted_text)
             self._output_text = result
             return result
 

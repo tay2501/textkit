@@ -10,9 +10,9 @@ from __future__ import annotations
 import hashlib
 from typing import Any
 
-from ..exceptions import TransformationError
-from .constants import ERROR_CONTEXT_KEYS
-from .transformation_base import TransformationBase
+from ..exceptions import TransformationError  # type: ignore[import-not-found]
+from .constants import ERROR_CONTEXT_KEYS  # type: ignore[import-not-found]
+from .transformation_base import TransformationBase  # type: ignore[import-not-found]
 
 
 class HashTransformations(TransformationBase):

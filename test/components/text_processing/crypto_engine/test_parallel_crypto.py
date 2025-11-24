@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 
 import pytest
 from textkit.config_manager import ConfigurationManager
@@ -12,6 +13,21 @@ from textkit.crypto_engine import (
     ParallelCryptoEngine,
 )
 from textkit.exceptions import CryptoTransformationError
+
+
+@pytest.fixture(autouse=True)
+def setup_test_passphrase():
+    """Set up test passphrase environment variable for all tests."""
+    original_passphrase = os.environ.get("TEXTKIT_KEY_PASSPHRASE")
+    os.environ["TEXTKIT_KEY_PASSPHRASE"] = (
+        "test-passphrase-for-development-only-minimum-32-chars-long"
+    )
+    yield
+    # Restore original passphrase if it existed
+    if original_passphrase is not None:
+        os.environ["TEXTKIT_KEY_PASSPHRASE"] = original_passphrase
+    else:
+        os.environ.pop("TEXTKIT_KEY_PASSPHRASE", None)
 
 
 @pytest.mark.skipif(
@@ -29,10 +45,19 @@ class TestParallelCryptoEngine:
         return config_dir
 
     @pytest.fixture
-    def crypto_manager(self, config_dir):
-        """Create CryptographyManager instance."""
+    def crypto_manager(self, tmp_path):
+        """Create CryptographyManager instance with temporary key directory."""
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+        key_dir = tmp_path / "rsa"
+        key_dir.mkdir()
+
         config = ConfigurationManager(config_dir)
         manager = CryptographyManager(config)
+        # Override key directory to use temp path
+        manager.key_directory = key_dir
+        manager.private_key_path = key_dir / "private_key.pem"
+        manager.public_key_path = key_dir / "public_key.pem"
         manager.ensure_key_pair()
         return manager
 

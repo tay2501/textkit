@@ -5,26 +5,35 @@ from __future__ import annotations
 from typing import Protocol
 
 # Re-export from config_manager for backwards compatibility
-from ..config_manager.types import ConfigManagerProtocol, ConfigurableComponent
+from ..config_manager.types import ConfigManagerProtocol, ConfigurableComponent  # type: ignore[import-not-found]
 
 
 class CryptoManagerProtocol(Protocol):
-    """Protocol for cryptography manager implementations."""
+    """Protocol for cryptography manager implementations.
 
-    def encrypt(self, data: str, key: str | None = None) -> str:
-        """Encrypt data with optional key."""
+    This protocol matches the interface of CryptographyManager from core.py.
+    """
+
+    def encrypt_text(self, text: str) -> str:
+        """Encrypt text using hybrid RSA+AES encryption.
+
+        Args:
+            text: Plain text to encrypt
+
+        Returns:
+            Base64 encoded encrypted text
+        """
         ...
 
-    def decrypt(self, encrypted_data: str, key: str | None = None) -> str:
-        """Decrypt data with optional key."""
-        ...
+    def decrypt_text(self, encrypted_text: str) -> str:
+        """Decrypt Base64 encoded encrypted text.
 
-    def generate_key(self) -> str:
-        """Generate a new encryption key."""
-        ...
+        Args:
+            encrypted_text: Base64 encoded encrypted text
 
-    def hash_data(self, data: str, algorithm: str = "sha256") -> str:
-        """Hash data using specified algorithm."""
+        Returns:
+            Decrypted plain text
+        """
         ...
 
 

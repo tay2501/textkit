@@ -8,11 +8,11 @@ optimized for Python 3.13+ with async/await and concurrent processing.
 from __future__ import annotations
 
 import asyncio
-from typing import Any
+from typing import Any, cast
 
 import structlog
-from textkit.crypto_engine import CryptographyManager
-from textkit.exceptions import CryptoTransformationError
+from textkit.crypto_engine import CryptographyManager  # type: ignore[import-not-found]
+from textkit.exceptions import CryptoTransformationError  # type: ignore[import-not-found]
 
 logger = structlog.get_logger(__name__)
 
@@ -79,7 +79,7 @@ class ParallelCryptoEngine:
                 encrypted = await loop.run_in_executor(
                     None, self.crypto_manager.encrypt_text, text
                 )
-                return encrypted
+                return cast(str, encrypted)
             except Exception as e:
                 raise CryptoTransformationError(
                     f"Async encryption failed: {e}",
@@ -107,7 +107,7 @@ class ParallelCryptoEngine:
                 decrypted = await loop.run_in_executor(
                     None, self.crypto_manager.decrypt_text, encrypted_text
                 )
-                return decrypted
+                return cast(str, decrypted)
             except Exception as e:
                 raise CryptoTransformationError(
                     f"Async decryption failed: {e}",

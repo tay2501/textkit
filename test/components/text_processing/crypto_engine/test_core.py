@@ -1,3 +1,4 @@
+import os
 import shutil
 import tempfile
 from pathlib import Path
@@ -10,6 +11,21 @@ from textkit.crypto_engine.core import (
     CryptographyError,
     CryptographyManager,
 )
+
+
+@pytest.fixture(autouse=True)
+def setup_test_passphrase():
+    """Set up test passphrase environment variable for all tests."""
+    original_passphrase = os.environ.get("TEXTKIT_KEY_PASSPHRASE")
+    os.environ["TEXTKIT_KEY_PASSPHRASE"] = (
+        "test-passphrase-for-development-only-minimum-32-chars-long"
+    )
+    yield
+    # Restore original passphrase if it existed
+    if original_passphrase is not None:
+        os.environ["TEXTKIT_KEY_PASSPHRASE"] = original_passphrase
+    else:
+        os.environ.pop("TEXTKIT_KEY_PASSPHRASE", None)
 
 
 class TestCryptographyManager:
@@ -30,6 +46,8 @@ class TestCryptographyManager:
             "rsa": {
                 "key_size": 2048,  # Smaller key for faster tests
                 "aes_key_size": 32,
+                "nonce_size": 12,  # GCM nonce size
+                "passphrase_env_var": "TEXTKIT_KEY_PASSPHRASE",
             }
         }
         return config_manager
@@ -46,8 +64,10 @@ class TestCryptographyManager:
                 "key_size": 2048,  # Smaller for faster tests
                 "public_exponent": 65537,
                 "aes_key_size": 32,
-                "aes_iv_size": 16,
+                "nonce_size": 12,  # GCM nonce size
+                "aes_iv_size": 16,  # Deprecated but kept for compatibility
                 "key_directory": "rsa",
+                "passphrase_env_var": "TEXTKIT_KEY_PASSPHRASE",
             }
             manager.key_directory = temp_dir / "rsa"
             manager.private_key_path = manager.key_directory / "private_key.pem"
@@ -66,8 +86,10 @@ class TestCryptographyManager:
                 "key_size": 2048,
                 "public_exponent": 65537,
                 "aes_key_size": 32,
-                "aes_iv_size": 16,
+                "nonce_size": 12,  # GCM nonce size
+                "aes_iv_size": 16,  # Deprecated but kept for compatibility
                 "key_directory": "rsa",
+                "passphrase_env_var": "TEXTKIT_KEY_PASSPHRASE",
             }
             manager.key_directory = temp_dir / "rsa"
             manager.private_key_path = manager.key_directory / "private_key.pem"
@@ -353,7 +375,8 @@ class TestCryptographyManager:
 
         with pytest.raises(CryptographyError) as exc_info:
             crypto_manager._load_key_pair()
-        assert "Failed to load key pair" in str(exc_info.value)
+        # Updated to match new specific error message
+        assert "Key files not found" in str(exc_info.value)
 
     @pytest.mark.skipif(
         not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
