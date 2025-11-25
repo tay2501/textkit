@@ -198,7 +198,17 @@ uv run python main.py --quiet text transform '/l'
 # Microsoft clip compatible (pipe input)
 echo "Hello" | uv run python main.py clip
 
-# Unix-style subcommands
+# Recommended: Verb-based commands (industry standard)
+uv run python main.py clipboard paste              # Get from clipboard (pbpaste-style)
+uv run python main.py clipboard copy "Hello!"      # Copy to clipboard (pbcopy-style)
+uv run python main.py clipboard clear              # Clear clipboard
+uv run python main.py clipboard status             # Check clipboard status
+
+# Short form (efficient)
+uv run python main.py cb paste
+uv run python main.py cb copy "Hello, World!"
+
+# Legacy format (still supported)
 uv run python main.py clip get
 uv run python main.py clip set "Hello, World!"
 uv run python main.py clip clear
@@ -209,10 +219,13 @@ uv run python main.py clip clear
 ### Text Transformation
 
 ```bash
-# View all available transformation rules
+# View all available transformation rules (recommended - direct command)
+uv run python main.py rules
+uv run python main.py rules -s "case"        # Search specific rules (short form)
+uv run python main.py rules --search "case"  # Search specific rules (long form)
+
+# Legacy format (still supported)
 uv run python main.py rules list
-uv run python main.py rules list -s "case"        # Search specific rules (short form)
-uv run python main.py rules list --search "case"  # Search specific rules (long form)
 
 # Common transformations
 uv run python main.py text transform '/l' -i "HELLO"      # lowercase

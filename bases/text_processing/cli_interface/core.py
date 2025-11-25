@@ -72,8 +72,8 @@ Built using Polylith's modular design for high maintainability and reusability:
 **Getting Started:**
 
 ```bash
-# 1. View available transformation rules
-textkit rules list
+# 1. View available transformation rules (direct command)
+textkit rules
 
 # 2. Transform text: trim whitespace and convert to lowercase
 textkit text transform '/t/l' -i "  HELLO WORLD  "
@@ -103,13 +103,17 @@ textkit
 ├── crypto        Cryptographic operations
 │   ├── encrypt   RSA+AES hybrid encryption
 │   └── decrypt   RSA+AES hybrid decryption
-├── rules         Explore transformation rules
-│   └── list      Display all available rules with examples
-├── clip          Clipboard management (Microsoft clip compatible)
-│   ├── get       Read from clipboard
-│   ├── set       Write to clipboard
+├── rules         Explore transformation rules (direct listing)
+│   └── list      [Legacy] Display all available rules with examples
+├── clipboard     Clipboard operations (recommended - pbcopy/pbpaste style)
+│   ├── paste     Get content from clipboard
+│   ├── copy      Copy text to clipboard
+│   ├── get       [Legacy] Read from clipboard
+│   ├── set       [Legacy] Write to clipboard
 │   ├── clear     Clear clipboard
 │   └── status    Check clipboard status
+├── cb            Short alias for clipboard (efficient typing)
+├── clip          [Legacy] Microsoft clip compatible
 ├── status        Display application status and configuration
 └── version       Show version and system information
 ```
@@ -121,8 +125,11 @@ textkit
 textkit text transform '/t/s' -i "getUserData"  # → get_user_data
 textkit text transform '/t/p' -i "user_name"    # → UserName
 
-# Workflow 2: Process clipboard content
-textkit clip get | textkit text transform '/t/l' | textkit clip set
+# Workflow 2: Process clipboard content (new recommended way)
+textkit clipboard paste | textkit text transform '/t/l' | textkit clipboard copy
+
+# Or use short form for efficiency
+textkit cb paste | textkit text transform '/t/l' | textkit cb copy
 
 # Workflow 3: Convert file encoding
 cat shift_jis_file.txt | textkit text encode -f shift_jis -t utf-8 > utf8_file.txt
@@ -135,12 +142,13 @@ echo "password123" | textkit crypto encrypt --to-clipboard
 - Use `-q` or `--quiet` to suppress logs (ideal for piping)
 - All commands support `--help` for detailed usage
 - Chain transformation rules: `/t/l/p` applies trim, lowercase, then PascalCase
-- Use `textkit rules list -s "keyword"` to search specific transformations
-- Clipboard operations are Microsoft clip compatible on Windows
+- Use `textkit rules -s "keyword"` to search specific transformations (or `rules list` for legacy)
+- Clipboard: Use `clipboard`/`cb` for new code, `clip` for backward compatibility
+- Try `textkit cb paste` and `textkit cb copy` for efficient clipboard operations
 
 **Related Resources:**
 - Full documentation: See individual command help with `--help`
-- Search rules: `textkit rules list --search "case"`
+- Search rules: `textkit rules --search "case"` (or `textkit rules list --search "case"`)
 - Project repository: Built with Polylith architecture principles
 """,
     epilog="""
@@ -148,13 +156,14 @@ Examples:
   textkit text transform '/t/l' -i '  TEXT  '  # Trim and lowercase → text
   textkit text encode -f auto -t utf-8 -i "日本語"  # Auto-detect encoding → UTF-8
   textkit crypto encrypt --from-clipboard       # Encrypt clipboard content
-  textkit rules list --search 'case'            # Search case-related rules
-  textkit clip get | textkit text transform '/u' | textkit clip set  # Uppercase clipboard
+  textkit rules --search 'case'                 # Search case-related rules (direct command)
+  textkit cb paste | textkit text transform '/u' | textkit cb copy  # Uppercase clipboard (efficient)
 
 Related Commands:
   textkit text --help       Detailed text processing help
   textkit crypto --help     Cryptographic operations help
-  textkit rules list        View all 40+ transformation rules
+  textkit rules             View all 40+ transformation rules (direct)
+  textkit clipboard --help  Clipboard operations help
 
 Documentation: Use --help on any command for detailed information and examples
 """,

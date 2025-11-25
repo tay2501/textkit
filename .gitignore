@@ -376,3 +376,5 @@ config.local.py
 # Test outputs
 test-output/
 .test-results/
+
+.work/

@@ -44,6 +44,95 @@ def create_rules_subcommand(
     )
 
     # ========================================================================
+    # Default callback - Direct listing when no subcommand specified
+    # ========================================================================
+
+    @rules_app.callback(invoke_without_command=True)
+    def rules_default(
+        ctx: typer.Context,
+        search: Annotated[
+            str | None, typer.Option("--search", "-s", help="Filter rules by keyword")
+        ] = None,
+    ) -> None:
+        """Display available transformation rules with examples.
+
+        This is the default behavior when no subcommand is specified,
+        making 'textkit rules' equivalent to 'textkit rules list'.
+
+        **Rule Categories:**
+
+        - Text Case: lowercase, uppercase, PascalCase, camelCase, etc.
+        - String Operations: trim, reverse, replace, SQL IN format
+        - Encoding: URL encode/decode, Base64 encode/decode
+        - Japanese: Hiragana/Katakana conversion, Zenkaku/Hankaku
+        - Cryptographic: hash generation (MD5, SHA256, etc.)
+
+        **Usage Examples:**
+
+        ```bash
+        # List all rules (new recommended way)
+        textkit rules
+
+        # Search for specific rules
+        textkit rules --search "case"
+        textkit rules -s "japanese"
+
+        # Legacy format (still supported)
+        textkit rules list
+        ```
+
+        **Tips:**
+        - Use `--search` to filter rules by name or description
+        - Combine multiple rules like '/t/l/p' in transform commands
+        """
+        # If a subcommand is invoked, don't execute default behavior
+        if ctx.invoked_subcommand is not None:
+            return
+
+        try:
+            app_instance = get_app_func()
+            rules = app_instance.get_available_rules()
+
+            table = Table(title="Available Transformation Rules", show_header=True)
+            table.add_column("Rule", style="cyan", width=8)
+            table.add_column("Name", style="green", width=20)
+            table.add_column("Description", style="white", width=40)
+            table.add_column("Example", style="yellow", width=15)
+
+            for rule_key, rule_info in rules.items():
+                # Apply search filter
+                if (
+                    search
+                    and search.lower() not in rule_info.name.lower()
+                    and search.lower() not in rule_info.description.lower()
+                ):
+                    continue
+
+                table.add_row(
+                    f"/{rule_key}",
+                    rule_info.name,
+                    rule_info.description,
+                    getattr(rule_info, "example", "N/A"),
+                )
+
+            console.print(table)
+
+            # Show usage examples
+            console.print("\n[bold]Usage Examples:[/bold]")
+            console.print(
+                "  [cyan]textkit text transform '/t/l'[/cyan] - Trim and lowercase"
+            )
+            console.print(
+                "  [cyan]textkit text transform '/u/R'[/cyan] - Uppercase and reverse"
+            )
+            console.print(
+                "  [cyan]echo 'text' | textkit text transform '/p'[/cyan] - PascalCase from pipe"
+            )
+
+        except Exception as e:
+            handle_cli_error_func(e, "rules display")
+
+    # ========================================================================
     # rules list - Display all available transformation rules
     # ========================================================================
 

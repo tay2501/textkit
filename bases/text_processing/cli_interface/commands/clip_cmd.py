@@ -222,6 +222,66 @@ def register_clip_commands(
             logger.error("clip_set_error", error=str(e), error_type=type(e).__name__)
             handle_cli_error_func(e, "clip set")
 
+    # ========================================================================
+    # Verb-based aliases (recommended): paste/copy
+    # ========================================================================
+
+    @clip_app.command("paste")
+    def paste_from_clipboard() -> None:
+        """Paste content from clipboard (alias for 'get').
+
+        This is the recommended verb-based command following
+        industry standards (pbpaste, wl-paste).
+
+        **Examples:**
+
+        ```bash
+        # Display clipboard content
+        textkit clipboard paste
+        textkit cb paste
+
+        # Save to file
+        textkit clipboard paste > output.txt
+        ```
+
+        **Related Commands:**
+        - `textkit clip get` - Legacy command (still supported)
+        - `textkit clipboard copy` - Copy to clipboard
+        """
+        # Delegate to get_clipboard implementation
+        get_clipboard()
+
+    @clip_app.command("copy")
+    def copy_to_clipboard(
+        text: Annotated[str, typer.Argument(help="Text to copy to clipboard")],
+    ) -> None:
+        """Copy text to clipboard (alias for 'set').
+
+        This is the recommended verb-based command following
+        industry standards (pbcopy, wl-copy).
+
+        **Examples:**
+
+        ```bash
+        # Copy text to clipboard
+        textkit clipboard copy "Hello, World!"
+        textkit cb copy "Hello, World!"
+
+        # Copy from file
+        textkit clipboard copy "$(cat file.txt)"
+        ```
+
+        **Args:**
+
+        - **text**: The text to copy to clipboard
+
+        **Related Commands:**
+        - `textkit clip set` - Legacy command (still supported)
+        - `textkit clipboard paste` - Paste from clipboard
+        """
+        # Delegate to set_clipboard implementation
+        set_clipboard(text)
+
     @clip_app.command("status")
     def clipboard_status() -> None:
         """Show clipboard system status.
@@ -273,5 +333,10 @@ def register_clip_commands(
             logger.error("clip_status_error", error=str(e), error_type=type(e).__name__)
             handle_cli_error_func(e, "clip status")
 
-    # Add clip subcommand to main app
-    app.add_typer(clip_app, name="clip")
+    # Add clip subcommand to main app with multiple aliases
+    # - clip: Legacy/compatibility name (Microsoft clip.exe compatible)
+    # - clipboard: Recommended full name (clear and descriptive)
+    # - cb: Short alias for power users (typing efficiency)
+    app.add_typer(clip_app, name="clip")        # Legacy (backward compatibility)
+    app.add_typer(clip_app, name="clipboard")  # Recommended (clear naming)
+    app.add_typer(clip_app, name="cb")         # Short alias (efficiency)
