@@ -239,8 +239,9 @@ The CLI application supports tab completion for enhanced development experience:
 
 Features:
 
-* **Command completion**: Tab-complete available commands (transform, encrypt, decrypt, rules, status, version)
-* **Option completion**: Tab-complete command options (--help, --name, -r)
+* **Command completion**: Tab-complete available commands (text, crypto, rules, clipboard/cb/clip, status, version)
+* **Subcommand completion**: Tab-complete subcommands (transform, encode, encrypt, decrypt, paste, copy, etc.)
+* **Option completion**: Tab-complete command options (--help, --name, -r, --search)
 * **Transform rules completion**: Tab-complete transformation rules (fh, hf, tr, iconv, etc.)
 * **Help text display**: Show descriptions alongside suggestions (shell-dependent)
 * **Context-aware**: Intelligent suggestions based on current command context
@@ -253,6 +254,73 @@ Available transform rules include:
 * **Line endings**: ``unix-to-windows``, ``windows-to-unix``, ``tr``
 * **Encoding**: ``iconv``, ``sjis-to-utf8``, ``to-utf8``
 * **Text processing**: Case transformations, trimming, formatting
+
+Command Line Usage Examples
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Text Processing
+^^^^^^^^^^^^^^^
+
+Apply transformation rules to text:
+
+.. code-block:: console
+
+    # Transform text using rules (recommended)
+    $ uv run python main.py text transform '/t/l' -i "  HELLO WORLD  "
+
+    # Encoding conversion (iconv-compatible)
+    $ uv run python main.py text encode -f utf-8 -t shift_jis -i "こんにちは"
+
+Rules Management
+^^^^^^^^^^^^^^^^
+
+Explore available transformation rules:
+
+.. code-block:: console
+
+    # List all rules (recommended - direct command)
+    $ uv run python main.py rules
+
+    # Search for specific rules
+    $ uv run python main.py rules --search "case"
+    $ uv run python main.py rules -s "encode"
+
+    # Legacy format (still supported)
+    $ uv run python main.py rules list
+
+Clipboard Operations
+^^^^^^^^^^^^^^^^^^^^
+
+Manage clipboard content:
+
+.. code-block:: console
+
+    # Recommended: Verb-based commands (pbcopy/pbpaste style)
+    $ uv run python main.py clipboard paste
+    $ uv run python main.py clipboard copy "Hello, World!"
+    $ uv run python main.py clipboard clear
+    $ uv run python main.py clipboard status
+
+    # Short form (efficient typing)
+    $ uv run python main.py cb paste
+    $ uv run python main.py cb copy "Quick text"
+
+    # Legacy format (still supported)
+    $ uv run python main.py clip get
+    $ uv run python main.py clip set "Legacy text"
+
+Cryptographic Operations
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Encrypt and decrypt sensitive data:
+
+.. code-block:: console
+
+    # Encrypt text (RSA+AES hybrid encryption)
+    $ uv run python main.py crypto encrypt -i "Secret message"
+
+    # Decrypt text
+    $ uv run python main.py crypto decrypt -i "encrypted_data"
 
 Recommended IDE Setup
 ~~~~~~~~~~~~~~~~~~~~~
