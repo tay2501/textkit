@@ -28,10 +28,14 @@ if TYPE_CHECKING:
     )
 
 try:
-    from textkit.exceptions import CryptoTransformationError as CryptographyError  # type: ignore[import-not-found]
+    from textkit.exceptions import (
+        CryptoTransformationError as CryptographyError,  # type: ignore[import-not-found]
+    )
 except ImportError:
     # Fallback for local development
-    from ..exceptions import CryptoTransformationError as CryptographyError  # type: ignore[no-redef,import-not-found]
+    from ..exceptions import (
+        CryptoTransformationError as CryptographyError,  # type: ignore[no-redef,import-not-found]
+    )
 
 # Cryptography imports with availability check
 try:

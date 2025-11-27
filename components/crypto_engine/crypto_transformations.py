@@ -15,7 +15,10 @@ if TYPE_CHECKING:
     from .types import CryptoManagerProtocol
 
 from ..exceptions import TransformationError  # type: ignore[import-not-found]
-from .constants import CRYPTO_CONSTANTS, ERROR_CONTEXT_KEYS  # type: ignore[import-not-found]
+from .constants import (  # type: ignore[import-not-found]
+    CRYPTO_CONSTANTS,
+    ERROR_CONTEXT_KEYS,
+)
 from .transformation_base import TransformationBase  # type: ignore[import-not-found]
 
 

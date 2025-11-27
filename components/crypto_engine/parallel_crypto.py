@@ -12,7 +12,9 @@ from typing import Any, cast
 
 import structlog
 from textkit.crypto_engine import CryptographyManager  # type: ignore[import-not-found]
-from textkit.exceptions import CryptoTransformationError  # type: ignore[import-not-found]
+from textkit.exceptions import (
+    CryptoTransformationError,  # type: ignore[import-not-found]
+)
 
 logger = structlog.get_logger(__name__)
 

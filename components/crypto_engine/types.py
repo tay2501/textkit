@@ -5,7 +5,10 @@ from __future__ import annotations
 from typing import Protocol
 
 # Re-export from config_manager for backwards compatibility
-from ..config_manager.types import ConfigManagerProtocol, ConfigurableComponent  # type: ignore[import-not-found]
+from ..config_manager.types import (  # type: ignore[import-not-found]
+    ConfigManagerProtocol,
+    ConfigurableComponent,
+)
 
 
 class CryptoManagerProtocol(Protocol):

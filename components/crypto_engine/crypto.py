@@ -14,10 +14,13 @@ from typing import TYPE_CHECKING, Any, Final
 
 import structlog
 
-from ..exceptions import ConfigurationError, CryptographyError  # type: ignore[import-not-found]
+from ..exceptions import (  # type: ignore[import-not-found]
+    ConfigurationError,
+    CryptographyError,
+)
+from .types import ConfigManagerProtocol, ConfigurableComponent
 
 logger = structlog.get_logger(__name__)
-from .types import ConfigManagerProtocol, ConfigurableComponent
 
 try:
     from cryptography.hazmat.backends import default_backend
