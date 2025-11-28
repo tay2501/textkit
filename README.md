@@ -3,7 +3,7 @@
 
 # TextKit
 
-![Python](https://img.shields.io/badge/python-3.13+-blue.svg)
+![Python](https://img.shields.io/badge/python-3.13--3.14-blue.svg)
 ![License](https://img.shields.io/badge/license-AGPL--3.0-green.svg)
 [![GitHub Stars](https://img.shields.io/github/stars/tay2501/textkit?style=social)](https://github.com/tay2501/textkit)
 
@@ -65,22 +65,53 @@ uv run python main.py text transform '/h2u' -c
 
 ## 🔐 Security Configuration
 
-TextKit uses RSA-4096 and AES-256-GCM for secure text encryption. Private keys are protected with passphrase-based encryption.
+TextKit uses RSA-4096 and AES-256-GCM for secure text encryption with **hierarchical passphrase management**.
+
+### Passphrase Storage (Layered Security)
+
+TextKit automatically uses the most secure available backend:
+
+1. **🔒 TPM 2.0** (Tier 1 - Recommended)
+   - Hardware-protected storage
+   - Memory-dump resistant
+   - Requires: `tpm2-pytss` library
+
+2. **🔑 OS Keyring** (Tier 2 - Secure)
+   - **Windows**: Credential Locker (DPAPI-based)
+   - **macOS**: Keychain (hardware-encrypted)
+   - **Linux**: SecretService/KWallet
+   - Already installed: `keyring>=25.7.0`
+
+3. **⚠️ Environment Variable** (Tier 3 - Fallback)
+   - Legacy support, displays security warning
+   - Vulnerable to memory dumps and process listings
 
 ### Initial Setup
 
-1. **Generate a secure passphrase:**
+**Recommended: Use OS Keyring (secure and easy)**
+
+```bash
+# Set passphrase securely (auto-selects best backend)
+uv run python main.py crypto set-passphrase
+
+# Check which backend is active
+uv run python main.py crypto passphrase-status
+```
+
+**Alternative: Manual environment variable setup**
+
+1. Generate a secure passphrase:
 ```bash
 python -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
 
-2. **Add to `.env` file:**
+2. Add to `.env` file:
 ```bash
 # .env (never commit this file to version control)
 TEXTKIT_KEY_PASSPHRASE=<your-generated-passphrase>
 ```
 
-3. **Verify setup:**
+3. Verify setup:
 ```bash
 uv run python -c "from components.crypto_engine.core import CryptographyManager; CryptographyManager().ensure_key_pair(); print('Crypto configured successfully')"
 ```
@@ -90,6 +121,7 @@ uv run python -c "from components.crypto_engine.core import CryptographyManager;
 - ✅ Use passphrases with at least 32 characters (48+ recommended)
 - ✅ Use different passphrases for dev/staging/production
 - ✅ Rotate passphrases quarterly
+- ✅ **Prefer OS Keyring or TPM over environment variables**
 - ✅ Store production passphrases in secret management systems (AWS Secrets Manager, HashiCorp Vault)
 - ❌ Never commit `.env` files to version control
 - ❌ Never hardcode passphrases in source code
@@ -98,9 +130,10 @@ uv run python -c "from components.crypto_engine.core import CryptographyManager;
 
 - **RSA-4096** for key exchange
 - **AES-256-GCM** for data encryption (AEAD - Authenticated Encryption with Associated Data)
-- **PBKDF2** passphrase-based key encryption
+- **PBKDF2** passphrase-based key encryption (with OS Keyring/TPM protection)
 - **Tampering detection** via GCM authentication tags
 - **Secure file permissions** (0o600 for private keys, 0o644 for public keys)
+- **Memory-dump resistance** with TPM 2.0 or OS Keyring
 
 ## 🎯 Key Features
 
@@ -373,7 +406,10 @@ See [bin/README.md](bin/README.md) for details.
 ### Quick Start
 
 ```bash
-# Format code
+# Format code (Ruff replaces Black)
+uv run ruff format .
+
+# Lint and auto-fix
 uv run ruff check . --fix
 
 # Type checking
@@ -389,7 +425,8 @@ uv run pytest --cov
 ### Task Completion Checklist
 
 Before submitting changes:
-- [ ] `uv run ruff check . --fix` - Format and lint
+- [ ] `uv run ruff format .` - Format code (Black replacement)
+- [ ] `uv run ruff check . --fix` - Lint and auto-fix
 - [ ] `uv run mypy components bases` - Type checking passes
 - [ ] `uv run pytest --cov` - All tests pass
 - [ ] `uv run poly check` - Workspace integrity verified
@@ -433,16 +470,17 @@ Built with [Polylith architecture](https://polylith.gitbook.io/) for modular, re
 
 ## 🔧 Tech Stack
 
-- **Python 3.12+** with [uv](https://docs.astral.sh/uv/) package manager
-- **CLI**: [Typer](https://typer.tiangolo.com/) + [Rich](https://rich.readthedocs.io/)
+- **Python 3.13-3.14** with [uv](https://docs.astral.sh/uv/) package manager
+- **CLI**: [Typer](https://typer.tiangolo.com/) (>=0.16.1) + [Rich](https://rich.readthedocs.io/) (>=14.1.0)
 - **Key Libraries**:
-  - `stringzilla` - SIMD-accelerated string ops
-  - `charset-normalizer` - Encoding detection
-  - `jaconv` - Japanese text conversion
-  - `cryptography` - RSA+AES encryption
-  - `pyperclip` - Clipboard operations
-- **DI & Logging**: `lagom`, `structlog`
-- **Quality**: `ruff`, `mypy`, `pytest`
+  - `stringzilla` (>=4.0.14) - SIMD-accelerated string ops
+  - `charset-normalizer` (>=3.4.0) - Encoding detection
+  - `jaconv` (>=0.4.0) - Japanese text conversion
+  - `cryptography` (>=45.0.6) - RSA+AES encryption
+  - `keyring` (>=25.7.0) - Secure passphrase storage
+  - `pyperclip` (>=1.9.0) - Clipboard operations
+- **DI & Logging**: `lagom` (>=2.7.7), `structlog` (>=25.4.0)
+- **Quality**: `ruff` (>=0.13.1, replaces flake8/pylint/black/isort), `mypy` (>=1.17.1), `pytest` (>=8.4.1)
 
 ## 📄 License
 
