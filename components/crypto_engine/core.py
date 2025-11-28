@@ -13,6 +13,7 @@ import secrets
 from pathlib import Path
 from typing import TYPE_CHECKING, Final, cast
 
+from .passphrase_manager import PassphraseBackend, SecurePassphraseManager
 from .protocols import (
     ConfigManagerProtocol,
     RSAConfig,
@@ -111,6 +112,11 @@ class CryptographyManager:
         self.key_directory = Path(self.rsa_config["key_directory"])
         self.private_key_path = self.key_directory / "private_key.pem"
         self.public_key_path = self.key_directory / "public_key.pem"
+
+        # Initialize secure passphrase manager with layered security
+        self._passphrase_manager = SecurePassphraseManager(
+            env_var_name=self.rsa_config["passphrase_env_var"]
+        )
 
     def encrypt_text(self, text: str) -> str:
         """Encrypt text using hybrid AES-256-GCM + RSA-4096 encryption.
@@ -310,44 +316,49 @@ class CryptographyManager:
         self.key_directory.mkdir(mode=0o700, exist_ok=True)
 
     def _get_key_passphrase(self) -> bytes:
-        """Get private key encryption passphrase from environment.
+        """Get private key encryption passphrase using secure layered approach.
 
         Returns:
             UTF-8 encoded passphrase
 
         Raises:
-            CryptographyError: If passphrase not set or too short
+            CryptographyError: If passphrase not available or too short
 
         Security Notes:
+            - Uses TPM 2.0 if available (hardware-protected)
+            - Falls back to OS Keyring (Credential Locker/Keychain/SecretService)
+            - Environment variable as last resort (displays warning)
             - Passphrase must be at least 32 characters (enforced by PBKDF2)
-            - Use `secrets.token_urlsafe(48)` to generate secure passphrases
-            - Never hardcode passphrases in source code
+
+        Security Improvements:
+            - Reduces memory dump attack surface
+            - Uses OS-native credential storage when available
+            - Maintains backward compatibility with environment variables
         """
-        passphrase_var = self.rsa_config.get(
-            "passphrase_env_var",
-            self.DEFAULT_PASSPHRASE_ENV_VAR
-        )
-        passphrase = os.environ.get(passphrase_var)
+        try:
+            passphrase, backend = self._passphrase_manager.get_passphrase()
 
-        if not passphrase:
+            if len(passphrase) < self.MINIMUM_PASSPHRASE_LENGTH:
+                raise CryptographyError(
+                    f"Passphrase too short (minimum {self.MINIMUM_PASSPHRASE_LENGTH} characters, "
+                    f"got {len(passphrase)})",
+                    {
+                        "required_length": self.MINIMUM_PASSPHRASE_LENGTH,
+                        "actual_length": len(passphrase),
+                    },
+                )
+
+            return passphrase
+
+        except ValueError as e:
+            passphrase_var = self.rsa_config.get(
+                "passphrase_env_var", self.DEFAULT_PASSPHRASE_ENV_VAR
+            )
             raise CryptographyError(
-                f"Private key passphrase not set. "
-                f"Set environment variable: {passphrase_var}\n"
+                f"Private key passphrase not set. Set environment variable: {passphrase_var}\n"
                 f"Generate with: python -c \"import secrets; print(secrets.token_urlsafe(48))\"",
-                {"required_env_var": passphrase_var}
-            )
-
-        if len(passphrase) < self.MINIMUM_PASSPHRASE_LENGTH:
-            raise CryptographyError(
-                f"Passphrase too short (minimum {self.MINIMUM_PASSPHRASE_LENGTH} characters, "
-                f"got {len(passphrase)})",
-                {
-                    "required_length": self.MINIMUM_PASSPHRASE_LENGTH,
-                    "actual_length": len(passphrase)
-                }
-            )
-
-        return passphrase.encode("utf-8")
+                {"required_env_var": passphrase_var},
+            ) from e
 
     def _generate_and_save_key_pair(self) -> RSAKeyPair:
         """Generate new RSA key pair and save to files."""

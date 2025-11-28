@@ -195,6 +195,160 @@ def create_crypto_subcommand(
         except Exception as e:
             handle_cli_error_func(e, "text decryption")
 
+    # ========================================================================
+    # crypto set-passphrase - Set encryption passphrase securely
+    # ========================================================================
+
+    @crypto_app.command("set-passphrase")
+    def set_passphrase(
+        backend: Annotated[
+            str,
+            typer.Option(
+                "--backend",
+                "-b",
+                help="Storage backend (auto=best available, keyring=OS secure storage, env=environment variable)",
+            ),
+        ] = "auto",
+    ) -> None:
+        """Set encryption passphrase securely.
+
+        **Security Backends (Priority Order):**
+
+        1. **TPM 2.0** (highest security, requires tpm2-pytss)
+           - Hardware-protected, memory-dump resistant
+           - Requires TPM 2.0 chip
+
+        2. **OS Keyring** (high security, requires keyring)
+           - Windows: Credential Locker (DPAPI-based)
+           - macOS: Keychain (hardware-encrypted)
+           - Linux: SecretService/KWallet
+
+        3. **Environment Variable** (insecure fallback)
+           - Vulnerable to memory dumps
+           - Only use for development/testing
+
+        **Usage Examples:**
+
+        ```bash
+        # Auto-select best available backend (recommended)
+        textkit crypto set-passphrase
+
+        # Explicitly use OS keyring
+        textkit crypto set-passphrase --backend keyring
+
+        # TPM 2.0 (if available)
+        textkit crypto set-passphrase --backend tpm
+
+        # Environment variable (insecure, not recommended)
+        textkit crypto set-passphrase --backend env
+        ```
+
+        **Tips:**
+        - First-time setup: Use default 'auto' backend
+        - Install keyring for better security: `uv add keyring`
+        - Install tpm2-pytss for maximum security: `uv add tpm2-pytss`
+        """
+        import secrets
+
+        from components.crypto_engine.passphrase_manager import (
+            PassphraseBackend,
+            SecurePassphraseManager,
+        )
+
+        # Map CLI option to backend
+        backend_map = {
+            "auto": None,
+            "tpm": PassphraseBackend.TPM,
+            "keyring": PassphraseBackend.KEYRING,
+            "env": PassphraseBackend.ENV_VAR,
+        }
+
+        if backend not in backend_map:
+            console.print(
+                f"[red]Error: Invalid backend '{backend}'. "
+                f"Choose from: auto, tpm, keyring, env[/red]"
+            )
+            raise typer.Exit(1)
+
+        try:
+            console.print("[bold cyan]Secure Passphrase Setup[/bold cyan]\n")
+
+            # Generate secure passphrase
+            passphrase = secrets.token_urlsafe(48)
+
+            manager = SecurePassphraseManager()
+            used_backend = manager.set_passphrase(passphrase, backend_map[backend])
+
+            console.print(f"[green]Passphrase stored using:[/green] {used_backend.value}")
+
+            if used_backend == PassphraseBackend.ENV_VAR:
+                console.print(
+                    "\n[yellow]WARNING: Environment variable storage is insecure![/yellow]\n"
+                    "   [yellow]Install better security:[/yellow]\n"
+                    "   - [cyan]uv add keyring[/cyan] (OS secure storage)\n"
+                    "   - [cyan]uv add tpm2-pytss[/cyan] (hardware protection)\n"
+                )
+
+        except Exception as e:
+            console.print(f"[red]Error: {e}[/red]")
+            raise typer.Exit(1)
+
+    # ========================================================================
+    # crypto passphrase-status - Check passphrase backend status
+    # ========================================================================
+
+    @crypto_app.command("passphrase-status")
+    def passphrase_status() -> None:
+        """Check which passphrase backend is currently active.
+
+        **Backend Security Levels:**
+
+        - **TPM 2.0**: ★★★★★ (Highest - hardware-protected)
+        - **OS Keyring**: ★★★★☆ (High - OS-native secure storage)
+        - **Environment Variable**: ★☆☆☆☆ (Insecure - vulnerable to memory dumps)
+
+        **Usage Examples:**
+
+        ```bash
+        # Check current status
+        textkit crypto passphrase-status
+        ```
+
+        **Tips:**
+        - Run this to verify your security configuration
+        - Upgrade to keyring/TPM for better protection
+        """
+        from components.crypto_engine.passphrase_manager import SecurePassphraseManager
+
+        try:
+            manager = SecurePassphraseManager()
+
+            console.print("[bold cyan]Passphrase Backend Status[/bold cyan]\n")
+
+            # Check each backend
+            backends = [
+                ("TPM 2.0", manager._is_tpm_available(), "Highest"),
+                ("OS Keyring", manager._is_keyring_available(), "High"),
+                ("Environment Var", True, "Insecure"),
+            ]
+
+            for name, available, security in backends:
+                status = "[green]Available[/green]" if available else "[red]Not Available[/red]"
+                console.print(f"  {name:20} {status:35} Security: {security}")
+
+            # Show current backend
+            console.print("")
+            try:
+                _, current = manager.get_passphrase()
+                console.print(f"[bold green]Currently using:[/bold green] {current.value}")
+            except ValueError:
+                console.print("[yellow]No passphrase configured![/yellow]")
+                console.print("[cyan]Run: textkit crypto set-passphrase[/cyan]")
+
+        except Exception as e:
+            console.print(f"[red]Error: {e}[/red]")
+            raise typer.Exit(1)
+
     return crypto_app
 
 
