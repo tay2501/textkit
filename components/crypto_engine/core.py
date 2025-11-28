@@ -148,7 +148,7 @@ class CryptographyManager:
         if not isinstance(text, str):
             raise CryptographyError(
                 f"Input must be str, got {type(text).__name__}",
-                {"input_type": type(text).__name__}
+                {"input_type": type(text).__name__},
             )
 
         try:
@@ -160,7 +160,7 @@ class CryptographyManager:
             cipher = Cipher(
                 algorithms.AES(aes_key),
                 modes.GCM(nonce),  # CHANGED: CBC(aes_iv) → GCM(nonce)
-                backend=default_backend()
+                backend=default_backend(),
             )
             encryptor = cipher.encryptor()
 
@@ -197,10 +197,7 @@ class CryptographyManager:
             context: dict[str, str | int] = {"error_type": type(e).__name__}
             if isinstance(text, str):
                 context["text_length"] = len(text)
-            raise CryptographyError(
-                f"Encryption failed: {e}",
-                context
-            ) from e
+            raise CryptographyError(f"Encryption failed: {e}", context) from e
 
     def decrypt_text(self, encrypted_text: str) -> str:
         """Decrypt text using hybrid AES-256-GCM + RSA-4096 decryption.
@@ -262,7 +259,7 @@ class CryptographyManager:
             cipher = Cipher(
                 algorithms.AES(aes_key),
                 modes.GCM(nonce, tag),  # CHANGED: CBC(aes_iv) → GCM(nonce, tag)
-                backend=default_backend()
+                backend=default_backend(),
             )
             decryptor = cipher.decryptor()
 
@@ -356,7 +353,7 @@ class CryptographyManager:
             )
             raise CryptographyError(
                 f"Private key passphrase not set. Set environment variable: {passphrase_var}\n"
-                f"Generate with: python -c \"import secrets; print(secrets.token_urlsafe(48))\"",
+                f'Generate with: python -c "import secrets; print(secrets.token_urlsafe(48))"',
                 {"required_env_var": passphrase_var},
             ) from e
 
@@ -411,7 +408,7 @@ class CryptographyManager:
             private_pem = private_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PrivateFormat.PKCS8,
-                encryption_algorithm=serialization.BestAvailableEncryption(passphrase)
+                encryption_algorithm=serialization.BestAvailableEncryption(passphrase),
                 # CHANGED: NoEncryption() → BestAvailableEncryption(passphrase)
             )
 
@@ -498,7 +495,7 @@ class CryptographyManager:
                 {
                     "private_key_exists": self.private_key_path.exists(),
                     "public_key_exists": self.public_key_path.exists(),
-                }
+                },
             ) from e
         except Exception as e:
             raise CryptographyError(

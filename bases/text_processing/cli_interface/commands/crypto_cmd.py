@@ -279,7 +279,9 @@ def create_crypto_subcommand(
             manager = SecurePassphraseManager()
             used_backend = manager.set_passphrase(passphrase, backend_map[backend])
 
-            console.print(f"[green]Passphrase stored using:[/green] {used_backend.value}")
+            console.print(
+                f"[green]Passphrase stored using:[/green] {used_backend.value}"
+            )
 
             if used_backend == PassphraseBackend.ENV_VAR:
                 console.print(
@@ -333,14 +335,20 @@ def create_crypto_subcommand(
             ]
 
             for name, available, security in backends:
-                status = "[green]Available[/green]" if available else "[red]Not Available[/red]"
+                status = (
+                    "[green]Available[/green]"
+                    if available
+                    else "[red]Not Available[/red]"
+                )
                 console.print(f"  {name:20} {status:35} Security: {security}")
 
             # Show current backend
             console.print("")
             try:
                 _, current = manager.get_passphrase()
-                console.print(f"[bold green]Currently using:[/bold green] {current.value}")
+                console.print(
+                    f"[bold green]Currently using:[/bold green] {current.value}"
+                )
             except ValueError:
                 console.print("[yellow]No passphrase configured![/yellow]")
                 console.print("[cyan]Run: textkit crypto set-passphrase[/cyan]")

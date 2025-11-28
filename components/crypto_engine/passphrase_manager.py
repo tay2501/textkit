@@ -210,8 +210,7 @@ class SecurePassphraseManager:
                 "Consider installing 'keyring' or using TPM."
             )
             print(
-                f"Set environment variable:\n"
-                f"export {self.env_var_name}='{passphrase}'"
+                f"Set environment variable:\nexport {self.env_var_name}='{passphrase}'"
             )
 
         return backend
@@ -233,7 +232,9 @@ class SecurePassphraseManager:
         sealed_path = "/textkit/crypto_passphrase"
 
         # Create sealed object
-        fapi.create_seal(path=sealed_path, data=passphrase.encode("utf-8"), exists_ok=True)
+        fapi.create_seal(
+            path=sealed_path, data=passphrase.encode("utf-8"), exists_ok=True
+        )
         logger.info(f"Passphrase sealed in TPM at: {sealed_path}")
 
     def _set_in_keyring(self, passphrase: str) -> None:

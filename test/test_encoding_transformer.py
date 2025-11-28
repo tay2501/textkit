@@ -366,7 +366,7 @@ class TestEncodingTransformer:
         input_text = "café"
         result = self.transformer.transform(input_text, "unicode-encode")
         # Python's unicode_escape uses \xNN for Latin-1 range (U+0000-U+00FF)
-        assert (r"\u00e9" in result or r"\xe9" in result)
+        assert r"\u00e9" in result or r"\xe9" in result
         assert isinstance(result, str)
 
     def test_unicode_decode_non_latin_scripts(self):

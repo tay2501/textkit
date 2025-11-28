@@ -337,6 +337,6 @@ def register_clip_commands(
     # - clip: Legacy/compatibility name (Microsoft clip.exe compatible)
     # - clipboard: Recommended full name (clear and descriptive)
     # - cb: Short alias for power users (typing efficiency)
-    app.add_typer(clip_app, name="clip")        # Legacy (backward compatibility)
+    app.add_typer(clip_app, name="clip")  # Legacy (backward compatibility)
     app.add_typer(clip_app, name="clipboard")  # Recommended (clear naming)
-    app.add_typer(clip_app, name="cb")         # Short alias (efficiency)
+    app.add_typer(clip_app, name="cb")  # Short alias (efficiency)

@@ -32,9 +32,7 @@ class TestMainApplication:
     """
 
     @patch("main.run_cli")
-    def test_main_delegates_to_cli_successfully(
-        self, mock_run_cli: MagicMock
-    ) -> None:
+    def test_main_delegates_to_cli_successfully(self, mock_run_cli: MagicMock) -> None:
         """Test that main() successfully delegates execution to run_cli().
 
         Arrange: Mock the run_cli function
@@ -49,9 +47,7 @@ class TestMainApplication:
         mock_run_cli.assert_called_with()
 
     @patch("main.run_cli")
-    def test_main_propagates_keyboard_interrupt(
-        self, mock_run_cli: MagicMock
-    ) -> None:
+    def test_main_propagates_keyboard_interrupt(self, mock_run_cli: MagicMock) -> None:
         """Test that KeyboardInterrupt is propagated for graceful shutdown.
 
         Arrange: Mock run_cli to raise KeyboardInterrupt

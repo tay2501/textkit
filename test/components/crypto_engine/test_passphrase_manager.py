@@ -85,7 +85,9 @@ class TestSecurePassphraseManager:
     def test_is_keyring_available_false(self):
         """Test keyring availability check when not available."""
         # Test when keyring.get_keyring raises exception
-        with patch("keyring.get_keyring", side_effect=Exception("Backend not available")):
+        with patch(
+            "keyring.get_keyring", side_effect=Exception("Backend not available")
+        ):
             assert SecurePassphraseManager._is_keyring_available() is False
 
     def test_is_tpm_available_false(self):

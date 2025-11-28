@@ -31,9 +31,9 @@ class TestSQLTSVConversion:
 
     def test_schema_conversion_live_to_stg(self, sql_test_data_dir, sample_sql):
         """Test LIVE_USR to STG_USR schema conversion."""
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("TEST 1: Schema Conversion (LIVE_USR -> STG_USR)")
-        print("="*80)
+        print("=" * 80)
 
         tsv_file = sql_test_data_dir / "schema_conversion.tsv"
         print(f"\nUsing TSV file: {tsv_file}")
@@ -43,7 +43,9 @@ class TestSQLTSVConversion:
             pattern_count = sum(1 for line in f if line.strip())
         print(f"TSV patterns: {pattern_count} rules")
 
-        print(f"Input SQL size: {len(sample_sql)} characters, {len(sample_sql.splitlines())} lines")
+        print(
+            f"Input SQL size: {len(sample_sql)} characters, {len(sample_sql.splitlines())} lines"
+        )
 
         # Create transformer
         transformer = StringTransformer()
@@ -91,18 +93,22 @@ class TestSQLTSVConversion:
             print(f"  - {conv}")
 
         # Assertions
-        assert "STG_USR.TABLE1" in result, "LIVE_USR.TABLE1 should be converted to STG_USR.TABLE1"
+        assert "STG_USR.TABLE1" in result, (
+            "LIVE_USR.TABLE1 should be converted to STG_USR.TABLE1"
+        )
         assert "STG_USR.CUSTOMERS" in result, "LIVE_USR.CUSTOMERS should be converted"
         assert "DEV_USR.SALES" in result, "PROD_USR.SALES should be converted"
-        assert len(conversions_verified) >= 5, "At least 5 conversions should be verified"
+        assert len(conversions_verified) >= 5, (
+            "At least 5 conversions should be verified"
+        )
 
         print("\n[OK] All schema conversions completed successfully!")
 
     def test_table_name_conversion(self, sql_test_data_dir, sample_sql):
         """Test table name conversion (TABLE1 -> TABLE9, etc.)."""
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("TEST 2: Table Name Conversion (DEV_USR.TABLE1 -> DEV_USR.TABLE9)")
-        print("="*80)
+        print("=" * 80)
 
         tsv_file = sql_test_data_dir / "table_conversion.tsv"
         print(f"\nUsing TSV file: {tsv_file}")
@@ -142,7 +148,9 @@ class TestSQLTSVConversion:
         if "DEV_USR.TABLE10" in result:
             conversions_verified.append("DEV_USR.TABLE2 -> DEV_USR.TABLE10")
         if "DEV_USR.NEW_CUSTOMERS" in result:
-            conversions_verified.append("DEV_USR.OLD_CUSTOMERS -> DEV_USR.NEW_CUSTOMERS")
+            conversions_verified.append(
+                "DEV_USR.OLD_CUSTOMERS -> DEV_USR.NEW_CUSTOMERS"
+            )
         if "TEST_APP.TBL_USER_V2" in result:
             conversions_verified.append("TEST_APP.TBL_USER_V1 -> TEST_APP.TBL_USER_V2")
         if "STG_USR.BACKUP_2024" in result:
@@ -155,15 +163,17 @@ class TestSQLTSVConversion:
         # Assertions
         assert "DEV_USR.TABLE9" in result, "TABLE1 should be converted to TABLE9"
         assert "DEV_USR.NEW_CUSTOMERS" in result, "OLD_CUSTOMERS should be converted"
-        assert len(conversions_verified) >= 3, "At least 3 conversions should be verified"
+        assert len(conversions_verified) >= 3, (
+            "At least 3 conversions should be verified"
+        )
 
         print("\n[OK] All table name conversions completed successfully!")
 
     def test_comprehensive_sql_conversion(self, sql_test_data_dir, sample_sql):
         """Test comprehensive SQL conversion including schemas, tables, procedures, etc."""
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("TEST 3: Comprehensive SQL Conversion")
-        print("="*80)
+        print("=" * 80)
 
         tsv_file = sql_test_data_dir / "comprehensive_sql_conversion.tsv"
         print(f"\nUsing TSV file: {tsv_file}")
@@ -173,7 +183,9 @@ class TestSQLTSVConversion:
             pattern_count = sum(1 for line in f if line.strip())
         print(f"TSV patterns: {pattern_count} rules")
 
-        print(f"Input SQL size: {len(sample_sql)} characters, {len(sample_sql.splitlines())} lines")
+        print(
+            f"Input SQL size: {len(sample_sql)} characters, {len(sample_sql.splitlines())} lines"
+        )
 
         # Create transformer
         transformer = StringTransformer()
@@ -193,7 +205,9 @@ class TestSQLTSVConversion:
         print(f"[OK] Processing time: {elapsed_time:.3f} seconds")
         print(f"[OK] Peak memory usage: {peak / 1024 / 1024:.2f} MB")
         print(f"[OK] Output size: {len(result)} characters")
-        print(f"[OK] Average time per rule: {elapsed_time / pattern_count * 1000:.4f} ms")
+        print(
+            f"[OK] Average time per rule: {elapsed_time / pattern_count * 1000:.4f} ms"
+        )
 
         # Verify different types of conversions
         print("\n--- Verification Results ---")
@@ -204,48 +218,76 @@ class TestSQLTSVConversion:
             "Function conversions": [],
             "View conversions": [],
             "Index conversions": [],
-            "Other conversions": []
+            "Other conversions": [],
         }
 
         # Schema conversions
         if "STG_USR.TABLE1" in result:
-            verification_results["Schema conversions"].append("LIVE_USR.TABLE1 -> STG_USR.TABLE1")
+            verification_results["Schema conversions"].append(
+                "LIVE_USR.TABLE1 -> STG_USR.TABLE1"
+            )
         if "DEV_USR.SALES" in result:
-            verification_results["Schema conversions"].append("PROD_USR.SALES -> DEV_USR.SALES")
+            verification_results["Schema conversions"].append(
+                "PROD_USR.SALES -> DEV_USR.SALES"
+            )
         if "TEST_APP.USER_DATA" in result:
-            verification_results["Schema conversions"].append("PROD_APP.USER_DATA -> TEST_APP.USER_DATA")
+            verification_results["Schema conversions"].append(
+                "PROD_APP.USER_DATA -> TEST_APP.USER_DATA"
+            )
 
         # Table conversions
         if "DEV_USR.TABLE9" in result:
-            verification_results["Table conversions"].append("DEV_USR.TABLE1 -> DEV_USR.TABLE9")
+            verification_results["Table conversions"].append(
+                "DEV_USR.TABLE1 -> DEV_USR.TABLE9"
+            )
         if "DEV_USR.NEW_CUSTOMERS" in result:
-            verification_results["Table conversions"].append("DEV_USR.OLD_CUSTOMERS -> DEV_USR.NEW_CUSTOMERS")
+            verification_results["Table conversions"].append(
+                "DEV_USR.OLD_CUSTOMERS -> DEV_USR.NEW_CUSTOMERS"
+            )
 
         # Stored procedure conversions
         if "SP_RETRIEVE_CUSTOMER_INFO" in result:
-            verification_results["Stored procedure conversions"].append("SP_GET_CUSTOMER_DATA -> SP_RETRIEVE_CUSTOMER_INFO")
+            verification_results["Stored procedure conversions"].append(
+                "SP_GET_CUSTOMER_DATA -> SP_RETRIEVE_CUSTOMER_INFO"
+            )
         if "SP_MODIFY_ORDER_STATUS" in result:
-            verification_results["Stored procedure conversions"].append("SP_UPDATE_ORDER_STATUS -> SP_MODIFY_ORDER_STATUS")
+            verification_results["Stored procedure conversions"].append(
+                "SP_UPDATE_ORDER_STATUS -> SP_MODIFY_ORDER_STATUS"
+            )
         if "SP_HANDLE_PAYMENT" in result:
-            verification_results["Stored procedure conversions"].append("SP_PROCESS_PAYMENT -> SP_HANDLE_PAYMENT")
+            verification_results["Stored procedure conversions"].append(
+                "SP_PROCESS_PAYMENT -> SP_HANDLE_PAYMENT"
+            )
 
         # Function conversions
         if "FN_COMPUTE_TAX" in result:
-            verification_results["Function conversions"].append("FN_CALCULATE_TAX -> FN_COMPUTE_TAX")
+            verification_results["Function conversions"].append(
+                "FN_CALCULATE_TAX -> FN_COMPUTE_TAX"
+            )
         if "FN_RETRIEVE_DISCOUNT" in result:
-            verification_results["Function conversions"].append("FN_GET_DISCOUNT -> FN_RETRIEVE_DISCOUNT")
+            verification_results["Function conversions"].append(
+                "FN_GET_DISCOUNT -> FN_RETRIEVE_DISCOUNT"
+            )
 
         # View conversions
         if "VW_CLIENT_ORDERS" in result:
-            verification_results["View conversions"].append("VW_CUSTOMER_ORDERS -> VW_CLIENT_ORDERS")
+            verification_results["View conversions"].append(
+                "VW_CUSTOMER_ORDERS -> VW_CLIENT_ORDERS"
+            )
         if "VW_ITEM_STOCK" in result:
-            verification_results["View conversions"].append("VW_PRODUCT_INVENTORY -> VW_ITEM_STOCK")
+            verification_results["View conversions"].append(
+                "VW_PRODUCT_INVENTORY -> VW_ITEM_STOCK"
+            )
 
         # Index conversions
         if "IDX_CLIENT_ID" in result:
-            verification_results["Index conversions"].append("IDX_CUSTOMER_ID -> IDX_CLIENT_ID")
+            verification_results["Index conversions"].append(
+                "IDX_CUSTOMER_ID -> IDX_CLIENT_ID"
+            )
         if "IDX_PURCHASE_DATE" in result:
-            verification_results["Index conversions"].append("IDX_ORDER_DATE -> IDX_PURCHASE_DATE")
+            verification_results["Index conversions"].append(
+                "IDX_ORDER_DATE -> IDX_PURCHASE_DATE"
+            )
 
         # Display results
         total_verified = 0
@@ -260,18 +302,26 @@ class TestSQLTSVConversion:
 
         # Assertions
         assert "STG_USR.TABLE1" in result, "Schema conversion should occur"
-        assert "SP_RETRIEVE_CUSTOMER_INFO" in result or "SP_MODIFY_ORDER_STATUS" in result, "Stored procedure conversion should occur"
-        assert "FN_COMPUTE_TAX" in result or "FN_RETRIEVE_DISCOUNT" in result, "Function conversion should occur"
-        assert "VW_CLIENT_ORDERS" in result or "VW_ITEM_STOCK" in result, "View conversion should occur"
-        assert total_verified >= 10, f"At least 10 conversions should be verified, got {total_verified}"
+        assert (
+            "SP_RETRIEVE_CUSTOMER_INFO" in result or "SP_MODIFY_ORDER_STATUS" in result
+        ), "Stored procedure conversion should occur"
+        assert "FN_COMPUTE_TAX" in result or "FN_RETRIEVE_DISCOUNT" in result, (
+            "Function conversion should occur"
+        )
+        assert "VW_CLIENT_ORDERS" in result or "VW_ITEM_STOCK" in result, (
+            "View conversion should occur"
+        )
+        assert total_verified >= 10, (
+            f"At least 10 conversions should be verified, got {total_verified}"
+        )
 
         print("\n[OK] All comprehensive conversions completed successfully!")
 
     def test_case_sensitive_sql_conversion(self, sql_test_data_dir, sample_sql):
         """Test case-sensitive SQL conversion."""
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("TEST 4: Case-Sensitive SQL Conversion")
-        print("="*80)
+        print("=" * 80)
 
         tsv_file = sql_test_data_dir / "comprehensive_sql_conversion.tsv"
 
@@ -289,37 +339,54 @@ class TestSQLTSVConversion:
         # Test case-sensitive
         print("\n--- Test 4b: Case-sensitive conversion (-c flag) ---")
         start_time = time.perf_counter()
-        result_sensitive = transformer._tsv_replacements(sample_sql, [str(tsv_file), "-c"])
+        result_sensitive = transformer._tsv_replacements(
+            sample_sql, [str(tsv_file), "-c"]
+        )
         elapsed_sensitive = time.perf_counter() - start_time
         print(f"[OK] Processing time: {elapsed_sensitive:.3f} seconds")
         print(f"[OK] Output size: {len(result_sensitive)} characters")
 
         # Compare results
         print("\n--- Comparison ---")
-        print(f"Case-insensitive conversions: {sample_sql.count('LIVE_USR') - result_insensitive.count('LIVE_USR')}")
-        print(f"Case-sensitive conversions: {sample_sql.count('LIVE_USR') - result_sensitive.count('LIVE_USR')}")
+        print(
+            f"Case-insensitive conversions: {sample_sql.count('LIVE_USR') - result_insensitive.count('LIVE_USR')}"
+        )
+        print(
+            f"Case-sensitive conversions: {sample_sql.count('LIVE_USR') - result_sensitive.count('LIVE_USR')}"
+        )
 
-        assert len(result_insensitive) > 0, "Case-insensitive conversion should produce output"
-        assert len(result_sensitive) > 0, "Case-sensitive conversion should produce output"
+        assert len(result_insensitive) > 0, (
+            "Case-insensitive conversion should produce output"
+        )
+        assert len(result_sensitive) > 0, (
+            "Case-sensitive conversion should produce output"
+        )
 
         print("\n[OK] Case sensitivity tests completed successfully!")
 
     def test_sql_conversion_performance_summary(self, sql_test_data_dir, sample_sql):
         """Generate performance summary for SQL conversions."""
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("TEST 5: Performance Summary")
-        print("="*80)
+        print("=" * 80)
 
         tsv_files = [
             ("Schema Conversion", sql_test_data_dir / "schema_conversion.tsv"),
             ("Table Conversion", sql_test_data_dir / "table_conversion.tsv"),
-            ("Comprehensive Conversion", sql_test_data_dir / "comprehensive_sql_conversion.tsv"),
+            (
+                "Comprehensive Conversion",
+                sql_test_data_dir / "comprehensive_sql_conversion.tsv",
+            ),
         ]
 
         transformer = StringTransformer()
 
-        print("\n| Test Type                    | Rules | Time (sec) | Memory (MB) | Throughput (chars/sec) |")
-        print("|------------------------------|-------|------------|-------------|------------------------|")
+        print(
+            "\n| Test Type                    | Rules | Time (sec) | Memory (MB) | Throughput (chars/sec) |"
+        )
+        print(
+            "|------------------------------|-------|------------|-------------|------------------------|"
+        )
 
         for test_name, tsv_file in tsv_files:
             # Count rules
@@ -338,7 +405,9 @@ class TestSQLTSVConversion:
 
             throughput = len(sample_sql) / elapsed if elapsed > 0 else 0
 
-            print(f"| {test_name:28} | {rule_count:5} | {elapsed:10.3f} | {peak/1024/1024:11.2f} | {throughput:22,.0f} |")
+            print(
+                f"| {test_name:28} | {rule_count:5} | {elapsed:10.3f} | {peak / 1024 / 1024:11.2f} | {throughput:22,.0f} |"
+            )
 
         print("\n[OK] Performance summary completed!")
 

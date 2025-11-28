@@ -336,9 +336,7 @@ class PerformanceMonitor:
             }
 
         # Return all stats
-        return {
-            operation: self.get_stats(operation) for operation in self._stats
-        }
+        return {operation: self.get_stats(operation) for operation in self._stats}
 
     def get_recent_metrics(self, count: int = 100) -> list[dict[str, Any]]:
         """Get recent performance metrics.

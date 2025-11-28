@@ -248,10 +248,11 @@ class TestInputOutputManager:
 
     def test_validate_text_encoding_unicode_error(self, io_manager):
         """Test text encoding validation with unicode error."""
+
         # Python 3.13+ doesn't allow mocking methods on immutable built-in types
         # Create a custom str subclass that raises UnicodeError on encode
         class BrokenString(str):
-            def encode(self, encoding='utf-8', errors='strict'):
+            def encode(self, encoding="utf-8", errors="strict"):
                 raise UnicodeEncodeError(
                     encoding, self, 0, len(self), "Test encoding error"
                 )

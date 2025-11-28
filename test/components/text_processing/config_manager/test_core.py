@@ -381,7 +381,10 @@ class TestConfigurationManager:
         dummy_file.write_text("test")
 
         with (
-            patch("pathlib.Path.mkdir", side_effect=PermissionError("Cannot create directory")),
+            patch(
+                "pathlib.Path.mkdir",
+                side_effect=PermissionError("Cannot create directory"),
+            ),
             pytest.raises(PermissionError),
         ):
             # Should raise error during initialization

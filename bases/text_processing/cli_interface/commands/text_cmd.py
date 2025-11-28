@@ -72,7 +72,8 @@ def create_text_subcommand(
         output: OutputPathOption = None,
         to_clipboard: ToClipboardOption = False,
         show_rules: Annotated[
-            bool, typer.Option("--show-rules", "-r", help="Show available rules and exit")
+            bool,
+            typer.Option("--show-rules", "-r", help="Show available rules and exit"),
         ] = False,
     ) -> None:
         """Apply transformation rules to input text.

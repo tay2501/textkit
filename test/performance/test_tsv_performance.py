@@ -1,4 +1,4 @@
-﻿"""Performance test for TSV replacements with 10,000 rules.
+"""Performance test for TSV replacements with 10,000 rules.
 
 Tests various patterns including:
 - Literal text replacements
@@ -25,7 +25,9 @@ class TestTSVPerformance:
         """Create temporary directory for TSV test files."""
         return tmp_path / "tsv_test_data"
 
-    def generate_tsv_patterns(self, output_file: Path, count: int = 10000) -> list[tuple[str, str]]:
+    def generate_tsv_patterns(
+        self, output_file: Path, count: int = 10000
+    ) -> list[tuple[str, str]]:
         """Generate TSV file with various replacement patterns.
 
         Args:
@@ -62,8 +64,20 @@ class TestTSVPerformance:
                 patterns.append((old, new))
 
             # Pattern 4: Unicode - Japanese terms (10% - 1000 rules)
-            japanese_old = ["こんにちは", "ありがとう", "さようなら", "おはよう", "こんばんは"]
-            japanese_new = ["Hello", "Thank you", "Goodbye", "Good morning", "Good evening"]
+            japanese_old = [
+                "こんにちは",
+                "ありがとう",
+                "さようなら",
+                "おはよう",
+                "こんばんは",
+            ]
+            japanese_new = [
+                "Hello",
+                "Thank you",
+                "Goodbye",
+                "Good morning",
+                "Good evening",
+            ]
             for i in range(1000):
                 old = f"{japanese_old[i % 5]}{i:04d}"
                 new = f"{japanese_new[i % 5]}{i:04d}"
@@ -87,7 +101,9 @@ class TestTSVPerformance:
 
         return patterns
 
-    def generate_regex_tsv_patterns(self, output_file: Path, count: int = 1000) -> list[tuple[str, str]]:
+    def generate_regex_tsv_patterns(
+        self, output_file: Path, count: int = 1000
+    ) -> list[tuple[str, str]]:
         """Generate TSV file with regex replacement patterns.
 
         Args:
@@ -139,7 +155,9 @@ class TestTSVPerformance:
 
         return patterns
 
-    def generate_test_input(self, patterns: list[tuple[str, str]], sample_size: int = 100) -> str:
+    def generate_test_input(
+        self, patterns: list[tuple[str, str]], sample_size: int = 100
+    ) -> str:
         """Generate test input text containing samples from patterns.
 
         Args:
@@ -161,15 +179,17 @@ class TestTSVPerformance:
 
         # Add some text that won't be replaced
         for i in range(20):
-            lines.append(f"This is unmatched text line {i} that should remain unchanged.")
+            lines.append(
+                f"This is unmatched text line {i} that should remain unchanged."
+            )
 
         return "\n".join(lines)
 
     def test_literal_replacement_10k_rules(self, temp_tsv_dir, tmp_path):
         """Test literal replacement with 10,000 rules."""
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("TEST 1: Literal Replacement with 10,000 rules")
-        print("="*80)
+        print("=" * 80)
 
         # Create directory
         temp_tsv_dir.mkdir(parents=True, exist_ok=True)
@@ -182,7 +202,9 @@ class TestTSVPerformance:
 
         # Generate test input
         test_input = self.generate_test_input(patterns, sample_size=100)
-        print(f"Test input size: {len(test_input)} characters, {len(test_input.splitlines())} lines")
+        print(
+            f"Test input size: {len(test_input)} characters, {len(test_input.splitlines())} lines"
+        )
 
         # Create transformer
         transformer = StringTransformer()
@@ -205,10 +227,14 @@ class TestTSVPerformance:
 
         # Verify some replacements occurred
         replacement_count = sum(1 for old, new in patterns[:100] if new in result)
-        print(f"[OK] Verified replacements: {replacement_count}/100 sample patterns found")
+        print(
+            f"[OK] Verified replacements: {replacement_count}/100 sample patterns found"
+        )
 
         assert len(result) > 0, "Result should not be empty"
-        assert elapsed_time < 30.0, f"Processing took too long: {elapsed_time:.3f}s (expected < 30s)"
+        assert elapsed_time < 30.0, (
+            f"Processing took too long: {elapsed_time:.3f}s (expected < 30s)"
+        )
 
         # Test 1b: Case-sensitive literal replacement
         print("\n--- Test 1b: Case-sensitive literal replacement ---")
@@ -226,9 +252,9 @@ class TestTSVPerformance:
 
     def test_regex_replacement_1k_rules(self, temp_tsv_dir, tmp_path):
         """Test regex replacement with 1,000 rules."""
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("TEST 2: Regex Replacement with 1,000 rules")
-        print("="*80)
+        print("=" * 80)
 
         # Create directory
         temp_tsv_dir.mkdir(parents=True, exist_ok=True)
@@ -243,7 +269,7 @@ class TestTSVPerformance:
         test_lines = []
         for i in range(1, 101):
             test_lines.append(f"Testing num_{i}_12345 in this line")
-            test_lines.append(f"Check word{i} and word{i+1} here")
+            test_lines.append(f"Check word{i} and word{i + 1} here")
             test_lines.append(f"Email: user{i}@old-domain.com")
 
         test_input = "\n".join(test_lines)
@@ -276,18 +302,16 @@ class TestTSVPerformance:
         print("\n--- Test 2b: Regex with case-sensitive mode ---")
         start_time = time.perf_counter()
 
-        transformer._tsv_replacements(
-            test_input, [str(tsv_file), "-r", "-c"]
-        )
+        transformer._tsv_replacements(test_input, [str(tsv_file), "-r", "-c"])
 
         elapsed_time = time.perf_counter() - start_time
         print(f"[OK] Processing time: {elapsed_time:.3f} seconds")
 
     def test_unicode_replacement_patterns(self, temp_tsv_dir, tmp_path):
         """Test Unicode pattern replacement."""
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("TEST 3: Unicode Patterns with Mixed Rules")
-        print("="*80)
+        print("=" * 80)
 
         # Create directory
         temp_tsv_dir.mkdir(parents=True, exist_ok=True)
@@ -301,10 +325,16 @@ class TestTSVPerformance:
 
             # Japanese patterns (3000 rules)
             japanese_words = [
-                ("こんにちは", "Hello"), ("ありがとう", "Thanks"), ("さようなら", "Bye"),
-                ("おはよう", "Morning"), ("こんばんは", "Evening"), ("すみません", "Sorry"),
-                ("はい", "Yes"), ("いいえ", "No"), ("お願いします", "Please"),
-                ("ごめんなさい", "Apologize")
+                ("こんにちは", "Hello"),
+                ("ありがとう", "Thanks"),
+                ("さようなら", "Bye"),
+                ("おはよう", "Morning"),
+                ("こんばんは", "Evening"),
+                ("すみません", "Sorry"),
+                ("はい", "Yes"),
+                ("いいえ", "No"),
+                ("お願いします", "Please"),
+                ("ごめんなさい", "Apologize"),
             ]
             for i in range(3000):
                 old, new = japanese_words[i % len(japanese_words)]
@@ -368,13 +398,15 @@ class TestTSVPerformance:
         assert "Hello" in result, "Japanese should be replaced"
         assert "EMOJI_" in result, "Emoji should be replaced"
         assert "Chinese" in result, "Chinese should be replaced"
-        assert "Test_" in result and "Exam" in result, "Mixed Unicode should be replaced"
+        assert "Test_" in result and "Exam" in result, (
+            "Mixed Unicode should be replaced"
+        )
 
     def test_special_characters_patterns(self, temp_tsv_dir, tmp_path):
         """Test special character patterns."""
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("TEST 4: Special Characters Patterns")
-        print("="*80)
+        print("=" * 80)
 
         # Create directory
         temp_tsv_dir.mkdir(parents=True, exist_ok=True)
@@ -421,7 +453,9 @@ class TestTSVPerformance:
         for i in range(50):
             test_lines.append(f"SELECT * FROM user{i}.table{i}.column WHERE id = {i}")
             test_lines.append(f"File path: C:/old/path/{i}/file.txt")
-            test_lines.append(f"API call: https://api.old.com/v1/resource/{i}?param=value")
+            test_lines.append(
+                f"API call: https://api.old.com/v1/resource/{i}?param=value"
+            )
             test_lines.append(f"Function call: func_{i}(arg1, arg2)")
 
         test_input = "\n".join(test_lines)
@@ -446,16 +480,18 @@ class TestTSVPerformance:
         print(f"[OK] Output size: {len(result)} characters")
 
         # Verify special character replacements
-        assert "schema" in result and "newtable" in result, "SQL patterns should be replaced"
+        assert "schema" in result and "newtable" in result, (
+            "SQL patterns should be replaced"
+        )
         assert "D:/new/path" in result, "Path should be replaced"
         assert "api.new.com/v2" in result, "URL should be replaced"
         assert "new_func_" in result, "Function names should be replaced"
 
     def test_mixed_comprehensive_10k(self, temp_tsv_dir, tmp_path):
         """Comprehensive test with 10k mixed patterns."""
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("TEST 5: Comprehensive Mixed Patterns (10,000 rules)")
-        print("="*80)
+        print("=" * 80)
 
         # Create directory
         temp_tsv_dir.mkdir(parents=True, exist_ok=True)
@@ -539,9 +575,9 @@ class TestTSVPerformance:
         assert "EMJ" in result, "Emoji should be replaced"
         assert "function" in result, "Function names should be replaced"
 
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("All tests completed successfully!")
-        print("="*80)
+        print("=" * 80)
 
 
 if __name__ == "__main__":
