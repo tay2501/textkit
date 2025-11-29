@@ -284,6 +284,27 @@ uv run python main.py text encode -f auto -t utf-8 -i "text"
 
 ### Encryption/Decryption
 
+TextKit provides RSA-4096 + AES-256-GCM hybrid encryption for secure text processing.
+
+#### First-Time Setup
+
+Before using encryption, set up a passphrase (see [Security Configuration](#-security-configuration) for details):
+
+```bash
+# Step 1: Set passphrase securely (uses OS Keyring/TPM automatically)
+uv run python main.py crypto set-passphrase
+
+# Step 2: Verify passphrase backend
+uv run python main.py crypto passphrase-status
+# Example output: "Using OS Keyring for passphrase (high security)"
+
+# Step 3: Test encryption
+uv run python main.py crypto encrypt -i "test message"
+# Output: Base64-encoded encrypted text
+```
+
+#### Basic Usage
+
 ```bash
 # Encrypt text (RSA+AES hybrid encryption)
 uv run python main.py crypto encrypt -i "secret message"
@@ -295,6 +316,49 @@ uv run python main.py crypto decrypt -i "encrypted_base64_text"
 uv run python main.py crypto decrypt -c              # From clipboard (short form)
 uv run python main.py crypto decrypt --from-clipboard  # From clipboard (long form)
 ```
+
+#### Practical Workflow
+
+```bash
+# 1. Encrypt sensitive data and copy to clipboard
+uv run python main.py crypto encrypt -i "API_KEY=secret123" -C
+
+# 2. Share encrypted text (from clipboard) safely via email/chat
+# Recipient can decrypt with:
+uv run python main.py crypto decrypt -c
+
+# 3. Pipeline integration
+echo "password123" | uv run python main.py crypto encrypt > encrypted.txt
+cat encrypted.txt | uv run python main.py crypto decrypt
+```
+
+#### Troubleshooting
+
+**Error: "Failed to load private key. Check passphrase"**
+```bash
+# Verify passphrase is set
+uv run python main.py crypto passphrase-status
+
+# If not set, configure it:
+uv run python main.py crypto set-passphrase
+
+# For environment variable setup (fallback):
+# See Security Configuration section below
+```
+
+**Error: "TPM support not available"**
+- This is informational only - TextKit automatically falls back to OS Keyring (still secure)
+- To enable TPM: `uv add tpm2-pytss`
+
+**Error: "Invalid encrypted data"**
+- Ensure input is valid Base64-encoded encrypted text
+- Check for truncation or corruption during copy/paste
+- Verify using the same key pair (don't delete `rsa_private_key.pem`)
+
+**Security Notes:**
+- Private keys are stored in project root (`rsa_private_key.pem` with 0o600 permissions)
+- Encrypted output is Base64-encoded for safe transmission
+- See [Security Configuration](#-security-configuration) for passphrase management
 
 ### Getting Help
 
