@@ -212,41 +212,41 @@ def create_crypto_subcommand(
     ) -> None:
         """Set encryption passphrase securely.
 
-        **Security Backends (Priority Order):**
+        **Platform-Optimized Security Backends:**
 
-        1. **TPM 2.0** (highest security, requires tpm2-pytss)
-           - Hardware-protected, memory-dump resistant
-           - Requires TPM 2.0 chip
+        **Windows 11 Pro:**
+        - OS Keyring (DPAPI + TPM 2.0) - Recommended & Default
+        - Environment Variable (insecure fallback)
 
-        2. **OS Keyring** (high security, requires keyring)
-           - Windows: Credential Locker (DPAPI-based)
-           - macOS: Keychain (hardware-encrypted)
-           - Linux: SecretService/KWallet
+        **macOS Tahoe (macOS 26.1):**
+        - OS Keyring (Keychain + Secure Enclave) - Recommended & Default
+        - Environment Variable (insecure fallback)
 
-        3. **Environment Variable** (insecure fallback)
-           - Vulnerable to memory dumps
-           - Only use for development/testing
+        **Linux (Ubuntu, Debian, CentOS, RedHat):**
+        - OS Keyring (SecretService/KWallet) - Recommended & Default
+        - TPM 2.0 (tpm2-pytss) - Maximum security (requires hardware)
+        - Environment Variable (insecure fallback)
 
         **Usage Examples:**
 
         ```bash
-        # Auto-select best available backend (recommended)
+        # Auto-select best available backend (recommended for all platforms)
         textkit crypto set-passphrase
 
-        # Explicitly use OS keyring
-        textkit crypto set-passphrase --backend keyring
-
-        # TPM 2.0 (if available)
+        # Linux only: Explicitly use TPM 2.0 (requires tpm2-pytss installation)
         textkit crypto set-passphrase --backend tpm
 
-        # Environment variable (insecure, not recommended)
+        # Development/testing only (insecure)
         textkit crypto set-passphrase --backend env
         ```
 
         **Tips:**
-        - First-time setup: Use default 'auto' backend
-        - Install keyring for better security: `uv add keyring`
-        - Install tpm2-pytss for maximum security: `uv add tpm2-pytss`
+        - Windows/macOS: Use default 'auto' backend (OS Keyring)
+        - Linux: Use 'auto' for OS Keyring, or 'tpm' for maximum security
+        - Production: Never use 'env' backend
+
+        **Note:** TPM 2.0 direct access (tpm2-pytss) is only supported on Linux.
+        Windows/macOS leverage hardware security via OS Keyring (DPAPI/Secure Enclave).
         """
         import secrets
 

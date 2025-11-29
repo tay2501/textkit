@@ -65,66 +65,127 @@ uv run python main.py text transform '/h2u' -c
 
 ## 🔐 Security Configuration
 
-TextKit uses RSA-4096 and AES-256-GCM for secure text encryption with **hierarchical passphrase management**.
+TextKit uses RSA-4096 and AES-256-GCM for secure text encryption with **platform-optimized passphrase management**.
 
-### Passphrase Storage (Layered Security)
+### Platform-Specific Security Backends
 
-TextKit automatically uses the most secure available backend:
+#### 🪟 Windows 11 Pro (Primary Platform)
 
-1. **🔒 TPM 2.0** (Tier 1 - Recommended)
-   - Hardware-protected storage
-   - Memory-dump resistant
-   - Requires: `tpm2-pytss` library
+**Recommended: OS Keyring (Windows Credential Locker)**
 
-2. **🔑 OS Keyring** (Tier 2 - Secure)
-   - **Windows**: Credential Locker (DPAPI-based)
-   - **macOS**: Keychain (hardware-encrypted)
-   - **Linux**: SecretService/KWallet
-   - Already installed: `keyring>=25.7.0`
+Windows 11 Pro uses DPAPI-based Credential Locker for secure passphrase storage:
 
-3. **⚠️ Environment Variable** (Tier 3 - Fallback)
-   - Legacy support, displays security warning
-   - Vulnerable to memory dumps and process listings
-
-### Initial Setup
-
-**Recommended: Use OS Keyring (secure and easy)**
+- ✅ **Hardware-backed protection** (TPM 2.0 integrated via DPAPI)
+- ✅ **User account binding** (survives password changes)
+- ✅ **Memory-dump resistant** (kernel-level protection)
+- ✅ **Already installed** (`keyring>=25.7.0`)
 
 ```bash
-# Set passphrase securely (auto-selects best backend)
+# Setup (automatic, no additional dependencies)
 uv run python main.py crypto set-passphrase
 
-# Check which backend is active
+# Verify
 uv run python main.py crypto passphrase-status
+# Output: "Using OS Keyring for passphrase (high security)"
 ```
 
-**Alternative: Manual environment variable setup**
+**Note:** Windows 11 Pro's TPM 2.0 is automatically leveraged by DPAPI. Direct TPM access via `tpm2-pytss` is not supported on Windows ([see details](https://github.com/tpm2-software/tpm2-pytss/issues/597)).
 
-1. Generate a secure passphrase:
+---
+
+#### 🍎 macOS Tahoe (macOS 26.1)
+
+**Recommended: OS Keyring (Keychain + Secure Enclave)**
+
+macOS uses Keychain with Secure Enclave hardware protection:
+
+- ✅ **Secure Enclave** (Apple's hardware security module)
+- ✅ **Biometric binding** (Touch ID/Face ID integration)
+- ✅ **iCloud Keychain sync** (optional)
+
 ```bash
-python -c "import secrets; print(secrets.token_urlsafe(48))"
+# Setup (automatic)
+uv run python main.py crypto set-passphrase
+
+# Verify
+uv run python main.py crypto passphrase-status
+# Output: "Using OS Keyring for passphrase (high security)"
 ```
 
-2. Add to `.env` file:
+---
+
+#### 🐧 Linux (Ubuntu, Debian, CentOS, RedHat)
+
+**Option 1: OS Keyring (SecretService/KWallet) - Recommended**
+
 ```bash
-# .env (never commit this file to version control)
-TEXTKIT_KEY_PASSPHRASE=<your-generated-passphrase>
+# Install keyring backend (if not available)
+# Ubuntu/Debian
+sudo apt-get install gnome-keyring
+# or
+sudo apt-get install kwalletmanager
+
+# Setup
+uv run python main.py crypto set-passphrase
 ```
 
-3. Verify setup:
+**Option 2: TPM 2.0 - Maximum Security (Advanced)**
+
+For systems with TPM 2.0 hardware and advanced security requirements:
+
 ```bash
-uv run python -c "from components.crypto_engine.core import CryptographyManager; CryptographyManager().ensure_key_pair(); print('Crypto configured successfully')"
+# Install TPM 2.0 support
+# Ubuntu/Debian
+sudo apt-get install libtss2-dev
+uv add tpm2-pytss
+
+# Setup with TPM backend
+uv run python main.py crypto set-passphrase --backend tpm
+```
+
+**Requirements:**
+- TPM 2.0 hardware chip
+- tpm2-tss >= 2.4.0
+- Root/sudo access for initial setup
+
+---
+
+### Security Comparison
+
+| Backend | Windows 11 Pro | macOS Tahoe | Linux | Security Level |
+|---------|---------------|-------------|-------|----------------|
+| **OS Keyring** | ✅ DPAPI+TPM | ✅ Secure Enclave | ✅ SecretService | 🔑 High |
+| **TPM 2.0 Direct** | ❌ Not supported | N/A | ✅ tpm2-pytss | 🔒 Highest |
+| **Environment Var** | ⚠️ Fallback | ⚠️ Fallback | ⚠️ Fallback | ⚠️ Insecure |
+
+### Initial Setup (All Platforms)
+
+```bash
+# Step 1: Set passphrase securely (auto-selects best backend)
+uv run python main.py crypto set-passphrase
+
+# Step 2: Verify passphrase backend
+uv run python main.py crypto passphrase-status
+
+# Step 3: Test encryption
+uv run python main.py crypto encrypt -i "test message"
 ```
 
 ### Security Best Practices
 
+**All Platforms:**
 - ✅ Use passphrases with at least 32 characters (48+ recommended)
 - ✅ Use different passphrases for dev/staging/production
 - ✅ Rotate passphrases quarterly
-- ✅ **Prefer OS Keyring or TPM over environment variables**
-- ✅ Store production passphrases in secret management systems (AWS Secrets Manager, HashiCorp Vault)
+- ✅ **Always prefer OS Keyring over environment variables**
 - ❌ Never commit `.env` files to version control
 - ❌ Never hardcode passphrases in source code
+
+**Production Environments:**
+- Windows: Use Group Policy for Credential Manager
+- macOS: Use MDM for Keychain policies
+- Linux: Use TPM 2.0 with tpm2-pytss for maximum security
+- Cloud: AWS Secrets Manager, Azure Key Vault, HashiCorp Vault
 
 ### Encryption Features
 
@@ -133,7 +194,7 @@ uv run python -c "from components.crypto_engine.core import CryptographyManager;
 - **PBKDF2** passphrase-based key encryption (with OS Keyring/TPM protection)
 - **Tampering detection** via GCM authentication tags
 - **Secure file permissions** (0o600 for private keys, 0o644 for public keys)
-- **Memory-dump resistance** with TPM 2.0 or OS Keyring
+- **Memory-dump resistance** with OS Keyring or TPM 2.0
 
 ## 🎯 Key Features
 
@@ -335,28 +396,55 @@ cat encrypted.txt | uv run python main.py crypto decrypt
 #### Troubleshooting
 
 **Error: "Failed to load private key. Check passphrase"**
+
+This typically occurs when the passphrase has changed or keys were generated with a different passphrase.
+
 ```bash
-# Verify passphrase is set
+# Step 1: Verify passphrase backend status
 uv run python main.py crypto passphrase-status
 
-# If not set, configure it:
+# Step 2: If passphrase changed, regenerate keys
+# IMPORTANT: This will create new keys. Backup old keys if needed.
+rm rsa/private_key.pem rsa/public_key.pem
 uv run python main.py crypto set-passphrase
-
-# For environment variable setup (fallback):
-# See Security Configuration section below
+uv run python main.py crypto encrypt -i "test"  # Generate new keys
 ```
 
-**Error: "TPM support not available"**
-- This is informational only - TextKit automatically falls back to OS Keyring (still secure)
-- To enable TPM: `uv add tpm2-pytss`
+**Error: "TPM support not available (tpm2-pytss not installed)"**
+
+Platform-specific guidance:
+
+- **Windows 11 Pro / macOS**: This is informational only. OS Keyring provides equivalent security (DPAPI/Secure Enclave).
+- **Linux**: Install TPM support if needed:
+  ```bash
+  sudo apt-get install libtss2-dev
+  uv add tpm2-pytss
+  uv run python main.py crypto set-passphrase --backend tpm
+  ```
 
 **Error: "Invalid encrypted data"**
 - Ensure input is valid Base64-encoded encrypted text
 - Check for truncation or corruption during copy/paste
-- Verify using the same key pair (don't delete `rsa_private_key.pem`)
+- Verify using the same key pair (don't delete `rsa/private_key.pem`)
+
+**Platform-Specific Issues:**
+
+*Windows 11 Pro:*
+- Ensure Windows Credential Manager service is running
+- Check if your account has proper permissions
+- Run `services.msc` and verify "Credential Manager" is started
+
+*macOS Tahoe:*
+- Grant terminal/app access to Keychain in System Settings → Privacy & Security
+- May require initial password authentication for Keychain access
+
+*Linux:*
+- Ensure D-Bus is running for SecretService: `systemctl status dbus`
+- Install keyring backend: `sudo apt-get install gnome-keyring` or `kwalletmanager`
+- For TPM issues, check TPM availability: `ls /dev/tpm*`
 
 **Security Notes:**
-- Private keys are stored in project root (`rsa_private_key.pem` with 0o600 permissions)
+- Private keys are stored in `rsa/` directory (`private_key.pem` with 0o600 permissions)
 - Encrypted output is Base64-encoded for safe transmission
 - See [Security Configuration](#-security-configuration) for passphrase management
 
