@@ -1105,6 +1105,7 @@ dependencies = [
     { name = "stringzilla" },
     { name = "structlog" },
     { name = "typer" },
+    { name = "typing-extensions" },
     { name = "watchdog" },
 ]
 
@@ -1158,6 +1159,7 @@ requires-dist = [
     { name = "stringzilla", specifier = ">=4.0.14" },
     { name = "structlog", specifier = ">=25.4.0" },
     { name = "typer", specifier = ">=0.16.1" },
+    { name = "typing-extensions", specifier = ">=4.15.0" },
     { name = "watchdog", specifier = ">=6.0.0" },
 ]
 provides-extras = ["dev", "docs"]

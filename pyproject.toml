@@ -25,6 +25,7 @@ dependencies = [
     "stringzilla>=4.0.14",
     "lagom>=2.7.7",
     "keyring>=25.7.0",
+    "typing-extensions>=4.15.0",
 ]
 
 [project.optional-dependencies]
