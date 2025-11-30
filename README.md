@@ -544,6 +544,144 @@ uv run python main.py text transform '/normalize' -i "Mixed\r\nLine\nEndings"
 uv run python main.py text transform '/rsz old new' -i "Replace old text"
 ```
 
+### Logging & Debugging
+
+TextKit uses [structlog](https://www.structlog.org/) for structured logging with automatic file rotation and dual output (console + file).
+
+#### Log File Configuration
+
+**Default Settings:**
+- **Location**: `logs/textkit.log` (project root)
+- **Format**: JSON (machine-readable, parseable)
+- **Rotation**: Automatic at 1MB file size
+- **Retention**: 30 backup files (~30 days)
+- **Output**: Dual (stderr + rotating file)
+
+**Log Output Modes:**
+
+```bash
+# Development mode (TTY detected)
+# - Colored stderr output for readability
+# - JSON file output for debugging
+uv run python main.py text transform '/l' -i "HELLO"
+
+# Quiet mode (pipe-friendly, file-only logging)
+# - Suppresses stderr output
+# - Logs only to file
+uv run python main.py --quiet text transform '/l' -i "HELLO"
+TEXTKIT_QUIET=1 uv run python main.py text transform '/l' -i "HELLO"
+
+# Production mode (non-TTY, e.g., systemd)
+# - JSON stderr output for log aggregators
+# - JSON file output for backup
+./main.py text transform '/l' -i "HELLO" 2>&1 | logger
+```
+
+#### Viewing Logs
+
+```bash
+# View latest log entries (tail)
+tail -f logs/textkit.log
+
+# View formatted JSON logs (requires jq)
+tail -f logs/textkit.log | jq '.'
+
+# Search logs by event
+grep '"event":"encryption"' logs/textkit.log | jq '.'
+
+# Count errors by level
+grep '"level":"error"' logs/textkit.log | wc -l
+
+# View rotated logs
+ls -lh logs/textkit.log*
+# Example output:
+# -rw-r--r-- 1 user user  856K Nov 30 10:00 logs/textkit.log
+# -rw-r--r-- 1 user user  1.0M Nov 29 15:30 logs/textkit.log.1
+# -rw-r--r-- 1 user user  1.0M Nov 28 12:00 logs/textkit.log.2
+```
+
+#### Log Rotation Details
+
+**Automatic Rotation:**
+- Triggers when log file reaches 1MB
+- Renames current log to `textkit.log.1`
+- Shifts older logs: `.1` → `.2`, `.2` → `.3`, etc.
+- Deletes logs older than `.30` (30-day retention)
+
+**Manual Rotation:**
+```bash
+# Rotate immediately (if needed)
+mv logs/textkit.log logs/textkit.log.1
+# Application creates new log file automatically
+
+# Clean old logs manually
+rm logs/textkit.log.{10..30}  # Keep only last 10 days
+
+# Archive logs
+tar -czf logs-archive-$(date +%Y%m).tar.gz logs/textkit.log.*
+```
+
+#### Production Best Practices
+
+**For systemd services** (Linux):
+```ini
+# /etc/systemd/system/textkit.service
+[Service]
+ExecStart=/usr/local/bin/textkit text transform '/l' -i "input"
+StandardOutput=journal
+StandardError=journal
+```
+
+**For external log rotation** (logrotate):
+```conf
+# /etc/logrotate.d/textkit
+/path/to/textkit/logs/textkit.log {
+    size 1M
+    rotate 30
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0644 user user
+}
+```
+
+**For centralized logging** (Graylog, ELK Stack):
+```bash
+# Forward JSON logs to Graylog GELF input
+tail -f logs/textkit.log | nc graylog.example.com 12201
+
+# Forward to Elasticsearch via Logstash
+# Configure Logstash input to read from logs/textkit.log
+```
+
+#### Troubleshooting
+
+**Issue: Log file not created**
+- Check directory permissions: `ls -ld logs/`
+- Ensure logs/ directory exists (auto-created on import)
+- Check disk space: `df -h .`
+
+**Issue: Logs not rotating**
+- Check log file size: `ls -lh logs/textkit.log`
+- Rotation triggers at exactly 1MB (1,048,576 bytes)
+- Check write permissions: `ls -l logs/textkit.log*`
+
+**Issue: Too many log files**
+- Current retention: 30 backups
+- To reduce: Modify `backupCount` in `components/config_manager/settings.py`
+- Manual cleanup: `rm logs/textkit.log.{15..30}`
+
+**Issue: Performance impact**
+- File logging is asynchronous and minimal overhead
+- Use `--quiet` mode to reduce stderr output
+- For high-throughput scenarios, consider external logging tools
+
+**References:**
+- [structlog documentation](https://www.structlog.org/)
+- [Python RotatingFileHandler](https://docs.python.org/3/library/logging.handlers.html#rotatingfilehandler)
+- [Twelve-Factor App: Logs](https://12factor.net/logs)
+
 ### Standalone CLI Tools
 
 Simple Unix-philosophy tools in `bin/`:

@@ -162,8 +162,8 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             if not text:
                 raise CryptographyError("Cannot decrypt empty text")
 
-            # Decode base64
-            combined_data = base64.b64decode(text.encode("ascii"))
+            # Decode base64 (base64.b64decode accepts str directly in Python 3)
+            combined_data = base64.b64decode(text)
 
             # Extract components
             key_size = self.rsa_config["key_size"] // 8

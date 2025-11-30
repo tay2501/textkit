@@ -20,18 +20,30 @@ logger = structlog.get_logger(__name__)
 
 
 def configure_logging() -> None:
-    """Configure structured logging for the application.
+    """Configure structured logging with file rotation.
 
-    Uses modern structlog patterns with environment-aware configuration.
-    Respects TEXTKIT_QUIET environment variable to suppress logging.
+    Features:
+    - Dual output: stderr + rotating log files
+    - 1MB file size limit with automatic rotation
+    - 30-day retention (30 backup files)
+    - JSON format for file logs
+    - Respects TEXTKIT_QUIET environment variable
+
+    Log file location: logs/textkit.log (project root)
     """
     import logging
     import os
     import sys
+    from logging.handlers import RotatingFileHandler
 
     # Check if already configured to avoid double configuration
     if structlog.is_configured():
         return
+
+    # Create logs directory
+    log_dir = Path(__file__).parent.parent.parent / "logs"
+    log_dir.mkdir(exist_ok=True)
+    log_file = log_dir / "textkit.log"
 
     # Check quiet mode (for pipe-friendly operation)
     quiet_mode = os.environ.get("TEXTKIT_QUIET", "0") == "1"
@@ -45,15 +57,39 @@ def configure_logging() -> None:
         structlog.processors.TimeStamper(fmt="iso", utc=True),
     ]
 
-    # Determine log level based on quiet mode
+    # Create rotating file handler (1MB, 30 backups = ~30 days retention)
+    file_handler = RotatingFileHandler(
+        filename=str(log_file),
+        maxBytes=1 * 1024 * 1024,  # 1MB per file
+        backupCount=30,  # Keep 30 backup files
+        encoding="utf-8",
+    )
+    file_handler.setLevel(logging.INFO)
+
+    # JSON formatter for file logs
+    try:
+        import orjson
+
+        json_renderer = structlog.processors.JSONRenderer(serializer=orjson.dumps)
+    except ImportError:
+        json_renderer = structlog.processors.JSONRenderer()
+
+    # Determine log level and processors based on environment
     if quiet_mode:
-        # Quiet mode: Suppress all logs except CRITICAL
-        log_level = logging.CRITICAL
-        processors = shared_processors + [structlog.dev.ConsoleRenderer()]
-        logger_factory = structlog.WriteLoggerFactory(file=sys.stderr)
-        wrapper_class = structlog.make_filtering_bound_logger(logging.CRITICAL)
+        # Quiet mode: Minimal stderr output, full file logging
+        log_level = logging.INFO
+        processors = shared_processors + [json_renderer]
+        logger_factory = structlog.stdlib.LoggerFactory()
+        wrapper_class = structlog.make_filtering_bound_logger(logging.INFO)
+
+        # Configure stdlib logging for file output only
+        logging.basicConfig(
+            handlers=[file_handler],
+            level=logging.INFO,
+            format="%(message)s",
+        )
     elif sys.stderr.isatty():
-        # Development: Pretty console output with colors
+        # Development: Colored stderr + JSON file
         log_level = logging.DEBUG
         processors = shared_processors + [
             structlog.dev.ConsoleRenderer(
@@ -64,22 +100,44 @@ def configure_logging() -> None:
         ]
         logger_factory = structlog.WriteLoggerFactory(file=sys.stderr)
         wrapper_class = structlog.make_filtering_bound_logger(logging.DEBUG)
+
+        # Add file handler with JSON format
+        json_file_handler = RotatingFileHandler(
+            filename=str(log_file),
+            maxBytes=1 * 1024 * 1024,
+            backupCount=30,
+            encoding="utf-8",
+        )
+        json_file_handler.setLevel(logging.INFO)
+
+        # Configure dual output: stderr (colored) + file (JSON)
+        logging.basicConfig(
+            handlers=[
+                logging.StreamHandler(sys.stderr),
+                json_file_handler,
+            ],
+            level=logging.DEBUG,
+            format="%(message)s",
+        )
     else:
-        # Production: Structured JSON output
+        # Production: JSON stderr + JSON file
         log_level = logging.INFO
-        try:
-            import orjson
-
-            json_renderer = structlog.processors.JSONRenderer(serializer=orjson.dumps)
-        except ImportError:
-            json_renderer = structlog.processors.JSONRenderer()
-
         processors = shared_processors + [
             structlog.processors.dict_tracebacks,
             json_renderer,
         ]
         logger_factory = structlog.stdlib.LoggerFactory()
         wrapper_class = structlog.make_filtering_bound_logger(logging.INFO)
+
+        # Configure dual output: both JSON format
+        logging.basicConfig(
+            handlers=[
+                logging.StreamHandler(sys.stderr),
+                file_handler,
+            ],
+            level=logging.INFO,
+            format="%(message)s",
+        )
 
     # Configure structlog
     structlog.configure(
@@ -88,13 +146,6 @@ def configure_logging() -> None:
         logger_factory=logger_factory,
         context_class=dict,
         cache_logger_on_first_use=True,
-    )
-
-    # Configure standard library logging
-    logging.basicConfig(
-        format="%(message)s",
-        stream=sys.stderr,
-        level=log_level,
     )
 
 
