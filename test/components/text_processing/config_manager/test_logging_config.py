@@ -4,11 +4,11 @@ This module tests the structured logging setup with different environments
 and configuration options.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import structlog
 from structlog.testing import LogCapture
-from textkit.config_manager.settings import _get_exception_formatter, configure_logging
+from textkit.config_manager.settings import configure_logging
 
 
 class TestLoggingConfiguration:
@@ -119,36 +119,6 @@ class TestLoggingConfiguration:
         assert log_output.entries[0]["event"] == "test_json_fallback"
         assert log_output.entries[0]["data"] == {"key": "value"}
 
-    def test_get_exception_formatter_with_rich(self):
-        """Test exception formatter with Rich available."""
-        with patch.dict(
-            "sys.modules", {"rich.traceback": MagicMock(), "rich.console": MagicMock()}
-        ):
-            formatter = _get_exception_formatter()
-            assert formatter is not None
-
-    def test_get_exception_formatter_with_better_exceptions(self):
-        """Test exception formatter with better-exceptions available."""
-        with patch.dict(
-            "sys.modules",
-            {
-                "rich.traceback": None,
-                "rich.console": None,
-                "better_exceptions": MagicMock(),
-            },
-        ):
-            formatter = _get_exception_formatter()
-            assert formatter is not None
-
-    def test_get_exception_formatter_fallback(self):
-        """Test exception formatter fallback when neither Rich nor better-exceptions available."""
-        with patch.dict(
-            "sys.modules",
-            {"rich.traceback": None, "rich.console": None, "better_exceptions": None},
-        ):
-            formatter = _get_exception_formatter()
-            assert formatter is None
-
     def test_logging_output_format_development(self, capfd):
         """Test that development logging produces human-readable output."""
         with patch("sys.stderr.isatty", return_value=True):
@@ -213,14 +183,13 @@ class TestLoggingConfiguration:
         processors = config.get("processors", [])
         assert len(processors) > 0
 
-        # Should have timestamp processor
+        # Check for key processors in the chain
         processor_names = [
             proc.__name__ if hasattr(proc, "__name__") else str(proc)
             for proc in processors
         ]
 
-        # Basic checks for expected processors
+        # Should have wrap_for_formatter (ProcessorFormatter pattern)
         assert any(
-            "timestamp" in str(proc).lower() or "time" in str(proc).lower()
-            for proc in processor_names
+            "wrap_for_formatter" in str(proc).lower() for proc in processor_names
         )

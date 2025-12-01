@@ -20,23 +20,39 @@ logger = structlog.get_logger(__name__)
 
 
 def configure_logging() -> None:
-    """Configure structured logging with file rotation.
+    """Configure structured logging with best practices.
+
+    Uses the official structlog recommended pattern:
+    - logging.config.dictConfig for unified configuration
+    - ProcessorFormatter for stdlib/structlog integration
+    - foreign_pre_chain for consistent processing
+    - CallsiteParameterAdder for automatic filename/lineno tracking
+    - gzip compression for rotated logs
+
+    Environment Variables:
+        TEXTKIT_QUIET: "1" for file-only output (no stderr)
+        TEXTKIT_LOG_LEVEL: DEBUG/INFO/WARNING/ERROR/CRITICAL
+        TEXTKIT_LOG_FORMAT: console/json (override auto-detection)
 
     Features:
-    - Dual output: stderr + rotating log files
-    - 1MB file size limit with automatic rotation
-    - 30-day retention (30 backup files)
-    - JSON format for file logs
-    - Respects TEXTKIT_QUIET environment variable
+        - Auto-detection: console (colors) in TTY, JSON in production
+        - Dual output: stderr + rotating file (1MB, 30 backups, gzip)
+        - Rich exception formatting in development
+        - orjson optimization (2-3x faster than stdlib)
+        - Structured tracebacks in production
 
-    Log file location: logs/textkit.log (project root)
+    References:
+        https://www.structlog.org/en/stable/standard-library.html
+        https://www.structlog.org/en/stable/logging-best-practices.html
     """
-    import logging
+    import gzip
+    import logging.config
     import os
+    import shutil
     import sys
-    from logging.handlers import RotatingFileHandler
+    from pathlib import Path
 
-    # Check if already configured to avoid double configuration
+    # Avoid double configuration
     if structlog.is_configured():
         return
 
@@ -45,145 +61,159 @@ def configure_logging() -> None:
     log_dir.mkdir(exist_ok=True)
     log_file = log_dir / "textkit.log"
 
-    # Check quiet mode (for pipe-friendly operation)
+    # Environment variables
     quiet_mode = os.environ.get("TEXTKIT_QUIET", "0") == "1"
+    log_level = os.environ.get("TEXTKIT_LOG_LEVEL", "INFO").upper()
+    log_format = os.environ.get("TEXTKIT_LOG_FORMAT", "auto").lower()
 
-    # Environment-aware processor selection
-    shared_processors = [
-        structlog.contextvars.merge_contextvars,
-        structlog.processors.add_log_level,
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
-        structlog.processors.TimeStamper(fmt="iso", utc=True),
-    ]
+    # Auto-detect console vs JSON
+    if log_format == "auto":
+        log_format = "console" if sys.stderr.isatty() else "json"
 
-    # Create rotating file handler (1MB, 30 backups = ~30 days retention)
-    file_handler = RotatingFileHandler(
-        filename=str(log_file),
-        maxBytes=1 * 1024 * 1024,  # 1MB per file
-        backupCount=30,  # Keep 30 backup files
-        encoding="utf-8",
-    )
-    file_handler.setLevel(logging.INFO)
+    # Rich exception formatter (development)
+    def get_rich_formatter() -> Any:
+        """Get Rich traceback formatter if available."""
+        try:
+            from rich.console import Console
+            from rich.traceback import Traceback
 
-    # JSON formatter for file logs
+            console = Console(stderr=True)
+
+            def rich_formatter(exc_info: Any) -> str:
+                """Format exception using Rich."""
+                try:
+                    tb = Traceback.from_exception(*exc_info)
+                    with console.capture() as capture:
+                        console.print(tb)
+                    return capture.get()
+                except Exception:
+                    import traceback
+
+                    return "".join(traceback.format_exception(*exc_info))
+
+            return rich_formatter
+        except ImportError:
+            return None
+
+    # gzip compression for rotated logs
+    def compress_rotated_logs(source: str, dest: str) -> None:
+        """Compress rotated log files with gzip."""
+        with open(source, "rb") as f_in:
+            with gzip.open(f"{dest}.gz", "wb") as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        Path(source).unlink()
+
+    # orjson for performance (2-3x faster than stdlib)
+    # Note: orjson.dumps returns bytes, need to decode to str for logging
     try:
         import orjson
 
-        json_renderer = structlog.processors.JSONRenderer(serializer=orjson.dumps)
+        def json_serializer(obj: Any, **kwargs: Any) -> str:
+            """Serialize to JSON string using orjson."""
+            return orjson.dumps(obj).decode("utf-8")
+
     except ImportError:
-        json_renderer = structlog.processors.JSONRenderer()
+        json_serializer = None
 
-    # Determine log level and processors based on environment
-    if quiet_mode:
-        # Quiet mode: Minimal stderr output, full file logging
-        log_level = logging.INFO
-        processors = shared_processors + [json_renderer]
-        logger_factory = structlog.stdlib.LoggerFactory()
-        wrapper_class = structlog.make_filtering_bound_logger(logging.INFO)
+    # Shared processors (foreign_pre_chain)
+    # These process both structlog and stdlib logging messages
+    shared_processors = [
+        structlog.contextvars.merge_contextvars,
+        structlog.stdlib.add_log_level,
+        structlog.processors.TimeStamper(fmt="iso", utc=True),
+    ]
 
-        # Configure stdlib logging for file output only
-        logging.basicConfig(
-            handlers=[file_handler],
-            level=logging.INFO,
-            format="%(message)s",
-        )
-    elif sys.stderr.isatty():
-        # Development: Colored stderr + JSON file
-        log_level = logging.DEBUG
-        processors = shared_processors + [
-            structlog.dev.ConsoleRenderer(
-                colors=True,
-                exception_formatter=_get_exception_formatter(),
-                timestamp_key="timestamp",
-            ),
-        ]
-        logger_factory = structlog.WriteLoggerFactory(file=sys.stderr)
-        wrapper_class = structlog.make_filtering_bound_logger(logging.DEBUG)
+    # logging.config.dictConfig - Official recommended pattern
+    logging.config.dictConfig(
+        {
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {
+                "json": {
+                    "()": structlog.stdlib.ProcessorFormatter,
+                    "processors": [
+                        structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+                        structlog.processors.dict_tracebacks,
+                        (
+                            structlog.processors.JSONRenderer(
+                                serializer=json_serializer
+                            )
+                            if json_serializer
+                            else structlog.processors.JSONRenderer()
+                        ),
+                    ],
+                    "foreign_pre_chain": shared_processors,
+                },
+                "console": {
+                    "()": structlog.stdlib.ProcessorFormatter,
+                    "processors": [
+                        structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+                        structlog.dev.ConsoleRenderer(
+                            colors=True,
+                            exception_formatter=get_rich_formatter(),
+                        ),
+                    ],
+                    "foreign_pre_chain": shared_processors,
+                },
+            },
+            "handlers": {
+                "console": {
+                    "class": "logging.StreamHandler",
+                    "level": log_level,
+                    "formatter": "console" if log_format == "console" else "json",
+                    "stream": "ext://sys.stderr",
+                },
+                "file": {
+                    "class": "logging.handlers.RotatingFileHandler",
+                    "level": "INFO",
+                    "formatter": "json",
+                    "filename": str(log_file),
+                    "maxBytes": 1 * 1024 * 1024,  # 1MB
+                    "backupCount": 30,  # 30-day retention
+                    "encoding": "utf-8",
+                },
+            },
+            "loggers": {
+                "": {
+                    "handlers": ["file"] if quiet_mode else ["console", "file"],
+                    "level": log_level,
+                    "propagate": True,
+                }
+            },
+        }
+    )
 
-        # Add file handler with JSON format
-        json_file_handler = RotatingFileHandler(
-            filename=str(log_file),
-            maxBytes=1 * 1024 * 1024,
-            backupCount=30,
-            encoding="utf-8",
-        )
-        json_file_handler.setLevel(logging.INFO)
+    # Enable gzip compression for rotated logs
+    import logging.handlers
 
-        # Configure dual output: stderr (colored) + file (JSON)
-        logging.basicConfig(
-            handlers=[
-                logging.StreamHandler(sys.stderr),
-                json_file_handler,
-            ],
-            level=logging.DEBUG,
-            format="%(message)s",
-        )
-    else:
-        # Production: JSON stderr + JSON file
-        log_level = logging.INFO
-        processors = shared_processors + [
-            structlog.processors.dict_tracebacks,
-            json_renderer,
-        ]
-        logger_factory = structlog.stdlib.LoggerFactory()
-        wrapper_class = structlog.make_filtering_bound_logger(logging.INFO)
-
-        # Configure dual output: both JSON format
-        logging.basicConfig(
-            handlers=[
-                logging.StreamHandler(sys.stderr),
-                file_handler,
-            ],
-            level=logging.INFO,
-            format="%(message)s",
-        )
+    for handler in logging.root.handlers:
+        if isinstance(handler, logging.handlers.RotatingFileHandler):
+            handler.rotator = compress_rotated_logs
 
     # Configure structlog
     structlog.configure(
-        processors=processors,
-        wrapper_class=wrapper_class,
-        logger_factory=logger_factory,
-        context_class=dict,
+        processors=[
+            structlog.contextvars.merge_contextvars,
+            structlog.stdlib.filter_by_level,
+            structlog.stdlib.add_logger_name,
+            structlog.stdlib.add_log_level,
+            structlog.stdlib.PositionalArgumentsFormatter(),
+            structlog.processors.StackInfoRenderer(),
+            structlog.processors.format_exc_info,
+            structlog.processors.UnicodeDecoder(),
+            structlog.processors.CallsiteParameterAdder(
+                {
+                    structlog.processors.CallsiteParameter.FILENAME,
+                    structlog.processors.CallsiteParameter.FUNC_NAME,
+                    structlog.processors.CallsiteParameter.LINENO,
+                }
+            ),
+            structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+        ],
+        wrapper_class=structlog.stdlib.BoundLogger,
+        logger_factory=structlog.stdlib.LoggerFactory(),
         cache_logger_on_first_use=True,
     )
-
-
-def _get_exception_formatter() -> Any:
-    """Get the best available exception formatter for development.
-
-    Returns:
-        Exception formatter function or None if none available
-    """
-    try:
-        from rich.console import Console
-        from rich.traceback import Traceback
-
-        console = Console(stderr=True)
-
-        def rich_formatter(exc_info: Any) -> str:
-            """Format exception using rich."""
-            try:
-                tb = Traceback.from_exception(*exc_info)
-                with console.capture() as capture:
-                    console.print(tb)
-                return capture.get()
-            except Exception:
-                # Fallback to default formatting
-                import traceback
-
-                return "".join(traceback.format_exception(*exc_info))
-
-        return rich_formatter
-
-    except ImportError:
-        try:
-            import better_exceptions
-
-            return better_exceptions.format_exception
-        except ImportError:
-            # Use default formatting
-            return None
 
 
 # Auto-configure logging when module is imported
