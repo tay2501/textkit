@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import binascii
 import secrets
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -387,10 +388,55 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             >>> decrypted = manager.decrypt_text("pcEQpAskPV...")
             >>> # decrypted is "secret message"
         """
-        # Phase 1: Simplified - base64.b64decode accepts str directly in Python 3
-        encrypted_bytes = base64.b64decode(text)
-        decrypted_bytes = self._decrypt_core(encrypted_bytes)
-        return decrypted_bytes.decode("utf-8")
+        try:
+            # Early validation: Check Base64 string format
+            # Per Python docs and best practices 2025: validate Base64 structure
+            if not text or not text.strip():
+                raise CryptographyError(
+                    "Empty encrypted text provided",
+                    {"hint": "Provide valid Base64-encoded encrypted data"},
+                )
+
+            # Base64 strings must be multiples of 4 in length
+            text_stripped = text.strip()
+            if len(text_stripped) % 4 != 0:
+                raise CryptographyError(
+                    f"Invalid Base64 format: length must be multiple of 4 (got {len(text_stripped)})",
+                    {
+                        "actual_length": len(text_stripped),
+                        "hint": "Ensure input is valid Base64-encoded encrypted data",
+                    },
+                )
+
+            # Calculate minimum expected length for RSA-2048 + AES-GCM
+            # (256 bytes RSA + 12 bytes nonce + 16 bytes tag) * 4/3 ≈ 379 chars
+            key_size_bytes = self.rsa_config["key_size"] // 8
+            min_encrypted_bytes = key_size_bytes + CRYPTO.GCM_NONCE_SIZE + CRYPTO.GCM_TAG_SIZE
+            min_base64_length = (min_encrypted_bytes * 4 + 2) // 3  # Base64 expansion
+
+            if len(text_stripped) < min_base64_length:
+                raise CryptographyError(
+                    f"Encrypted data too short: expected >= {min_base64_length} chars, got {len(text_stripped)} chars",
+                    {
+                        "expected_min_length": min_base64_length,
+                        "actual_length": len(text_stripped),
+                        "hint": "Input does not appear to be valid encrypted data from this application",
+                    },
+                )
+
+            # Phase 1: Use validate=True for secure Base64 decoding (Python 3.4+ best practice)
+            encrypted_bytes = base64.b64decode(text_stripped, validate=True)
+            decrypted_bytes = self._decrypt_core(encrypted_bytes)
+            return decrypted_bytes.decode("utf-8")
+
+        except binascii.Error as e:
+            raise CryptographyError(
+                f"Invalid Base64 encoding: {e}",
+                {
+                    "error_type": "Base64DecodingError",
+                    "hint": "Input must be valid Base64-encoded encrypted data",
+                },
+            ) from e
 
     # ========================================================================
     # Public API: Binary Encryption/Decryption

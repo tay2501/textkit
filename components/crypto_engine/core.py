@@ -8,12 +8,12 @@ with secure key management and comprehensive error handling.
 from __future__ import annotations
 
 import base64
-import os
+import binascii
 import secrets
 from pathlib import Path
 from typing import TYPE_CHECKING, Final, cast
 
-from .passphrase_manager import PassphraseBackend, SecurePassphraseManager
+from .passphrase_manager import SecurePassphraseManager
 from .protocols import (
     ConfigManagerProtocol,
     RSAConfig,
@@ -225,15 +225,47 @@ class CryptographyManager:
             CryptographyError: If decryption fails, tag verification fails, or data corrupted
         """
         try:
-            # Decode from Base64
-            combined_data = base64.b64decode(encrypted_text.encode("ascii"))
+            # Early validation: Check Base64 string format
+            if not encrypted_text or not encrypted_text.strip():
+                raise CryptographyError(
+                    "Empty encrypted text provided",
+                    {"hint": "Provide valid Base64-encoded encrypted data"},
+                )
 
-            # Calculate offsets based on component sizes
+            # Base64 strings must be multiples of 4 in length (Python cryptography best practice 2025)
+            text_stripped = encrypted_text.strip()
+            if len(text_stripped) % 4 != 0:
+                raise CryptographyError(
+                    f"Invalid Base64 format: length must be multiple of 4 (got {len(text_stripped)})",
+                    {
+                        "actual_length": len(text_stripped),
+                        "hint": "Ensure input is valid Base64-encoded encrypted data",
+                    },
+                )
+
+            # Calculate minimum expected length for RSA-4096 + AES-GCM
+            # RSA-4096: 512 bytes, AES-GCM nonce: 12 bytes, tag: 16 bytes = 540 bytes minimum
             rsa_key_size_bytes = self.rsa_config["key_size"] // 8  # 512 for RSA-4096
             nonce_size = self.rsa_config["nonce_size"]  # 12
             tag_size = 16  # AES-GCM tag is always 16 bytes
+            min_encrypted_bytes = rsa_key_size_bytes + nonce_size + tag_size  # 540 bytes
+            # Base64 expansion ratio: 4/3, round up
+            min_base64_length = (min_encrypted_bytes * 4 + 2) // 3  # ~720 chars
 
-            # Calculate offsets
+            if len(text_stripped) < min_base64_length:
+                raise CryptographyError(
+                    f"Encrypted data too short: expected >= {min_base64_length} chars, got {len(text_stripped)} chars",
+                    {
+                        "expected_min_length": min_base64_length,
+                        "actual_length": len(text_stripped),
+                        "hint": "Input does not appear to be valid encrypted data from this application",
+                    },
+                )
+
+            # Use validate=True for secure Base64 decoding (Python 3.4+ best practice)
+            combined_data = base64.b64decode(text_stripped, validate=True)
+
+            # Calculate offsets based on component sizes
             offset1 = rsa_key_size_bytes
             offset2 = offset1 + nonce_size
             offset3 = offset2 + tag_size
@@ -269,6 +301,15 @@ class CryptographyManager:
             # UTF-8 decode (no padding removal needed for GCM)
             return text_bytes.decode("utf-8")
 
+        except binascii.Error as e:
+            # Handle Base64 decoding errors (Python best practice for cryptography)
+            raise CryptographyError(
+                f"Invalid Base64 encoding: {e}",
+                {
+                    "error_type": "Base64DecodingError",
+                    "hint": "Input must be valid Base64-encoded encrypted data",
+                },
+            ) from e
         except CryptographyError:
             # Re-raise our own exceptions
             raise
