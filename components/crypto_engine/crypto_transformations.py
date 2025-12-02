@@ -147,10 +147,17 @@ class CryptoTransformations(TransformationBase):
             self._input_text = encrypted_text
             self._transformation_rule = "decrypt"
 
+            # Early validation: Check for empty or whitespace-only input
+            if not encrypted_text or encrypted_text.strip() == "":
+                raise TransformationError(
+                    "No encrypted text provided. Please encrypt some text first or copy encrypted text to clipboard.",
+                    {"operation": "decrypt"},
+                )
+
             if not self.crypto_manager:
                 raise TransformationError(
                     CRYPTO_CONSTANTS.NO_CRYPTO_MANAGER_ERROR,
-                    {ERROR_CONTEXT_KEYS.OPERATION: "decrypt"},
+                    {"operation": "decrypt"},
                 )
 
             # EAFP: Try decryption directly
@@ -163,24 +170,24 @@ class CryptoTransformations(TransformationBase):
             raise TransformationError(
                 "Invalid Base64 encoded data for decryption",
                 {
-                    ERROR_CONTEXT_KEYS.OPERATION: "decrypt",
-                    ERROR_CONTEXT_KEYS.DATA_FORMAT: "base64",
+                    "operation": "decrypt",
+                    "data_format": "base64",
                 },
             ) from e
         except AttributeError as e:
             raise TransformationError(
                 "Invalid crypto manager interface",
                 {
-                    ERROR_CONTEXT_KEYS.OPERATION: "decrypt",
-                    ERROR_CONTEXT_KEYS.MANAGER_TYPE: type(self.crypto_manager).__name__,
+                    "operation": "decrypt",
+                    "manager_type": type(self.crypto_manager).__name__,
                 },
             ) from e
         except Exception as e:
             raise TransformationError(
                 f"Decryption failed: {e}",
                 {
-                    ERROR_CONTEXT_KEYS.OPERATION: "decrypt",
-                    ERROR_CONTEXT_KEYS.TEXT_LENGTH: len(encrypted_text),
+                    "operation": "decrypt",
+                    "text_length": len(encrypted_text),
                 },
             ) from e
 

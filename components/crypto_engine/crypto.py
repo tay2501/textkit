@@ -14,10 +14,9 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from threading import Lock
-from typing import TYPE_CHECKING, Any, Final, TypedDict
+from typing import TYPE_CHECKING, Any, Final, ReadOnly, TypedDict, TypeIs
 
 import structlog
-from typing_extensions import ReadOnly, TypeIs
 
 from ..exceptions import (  # type: ignore[import-not-found]
     ConfigurationError,
@@ -283,11 +282,25 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             - Constant-time operations (timing attack resistance)
         """
         try:
+            # Early validation: Check for empty data
             if not encrypted_data:
                 raise CryptographyError("Cannot decrypt empty data")
 
-            # Extract components (fixed-size parsing)
+            # Early validation: Check minimum length
             key_size = self.rsa_config["key_size"] // 8
+            min_length = key_size + CRYPTO.GCM_NONCE_SIZE + CRYPTO.GCM_TAG_SIZE
+
+            if len(encrypted_data) < min_length:
+                raise CryptographyError(
+                    f"Invalid encrypted data: too short (expected >= {min_length} bytes, got {len(encrypted_data)} bytes)",
+                    {
+                        "expected_min_length": min_length,
+                        "actual_length": len(encrypted_data),
+                        "hint": "Ensure you encrypted text before trying to decrypt",
+                    },
+                )
+
+            # Extract components (fixed-size parsing)
             offset = 0
 
             encrypted_aes_key = encrypted_data[offset : offset + key_size]
@@ -475,7 +488,7 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
         loop = asyncio.get_event_loop()
         encrypted_bytes = base64.b64decode(text)
         decrypted = await loop.run_in_executor(
-            executor=None, func=self._decrypt_core, encrypted_bytes
+            None, self._decrypt_core, encrypted_bytes
         )
         return decrypted.decode("utf-8")
 

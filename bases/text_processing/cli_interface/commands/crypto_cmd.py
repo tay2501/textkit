@@ -181,6 +181,13 @@ def create_crypto_subcommand(
                     )
                     raise typer.Exit(1)
 
+            # Validate input text is not empty
+            if not input_text or input_text.strip() == "":
+                console.print(
+                    "[yellow]Warning: No text to decrypt. Please provide encrypted text via -i flag or clipboard (-c).[/yellow]"
+                )
+                raise typer.Exit(0)
+
             # Decrypt text
             result = app_instance.decrypt_text(input_text)
 
@@ -469,7 +476,24 @@ def decrypt_text_func(
         """Decrypt text using hybrid cryptography."""
         try:
             app_instance = get_app_func()
-            input_text = get_input_text_func(app_instance, text)
+
+            # Try to get input text
+            try:
+                input_text = get_input_text_func(app_instance, text)
+            except (ValueError, IOError) as e:
+                # Handle case where no input is available
+                console.print(
+                    "[yellow]Warning: No text to decrypt. Please provide text via -i flag or clipboard (-c).[/yellow]"
+                )
+                return
+
+            # Early validation: Check for empty input after retrieval
+            if not input_text or input_text.strip() == "":
+                console.print(
+                    "[yellow]Warning: No text to decrypt. Please provide text via -i flag or clipboard (-c).[/yellow]"
+                )
+                return
+
             result = app_instance.decrypt_text(input_text)
             output_result_func(app_instance, result, output)
         except Exception as e:
