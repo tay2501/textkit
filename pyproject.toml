@@ -26,6 +26,7 @@ dependencies = [
     "lagom>=2.7.7",
     "keyring>=25.7.0",
     "typing-extensions>=4.15.0",
+    "polars>=1.35.2",
 ]
 
 [project.optional-dependencies]
@@ -145,6 +146,7 @@ check_untyped_defs = true
 dev = [
     "mypy>=1.18.2",
     "pytest-asyncio>=1.2.0",
+    "pytest-benchmark>=5.2.3",
     "pytest-cov>=7.0.0",
     "ruff>=0.13.1",
 ]
