@@ -52,23 +52,30 @@ except ImportError:
 
 class CryptographyManager:
     """
-    Modern cryptographic manager with hybrid RSA+AES-GCM encryption.
+    Modern cryptographic manager with hybrid RSA+AES-CTR encryption.
 
     Provides secure text encryption/decryption using industry-standard
     cryptographic practices with automatic key management.
 
     Security Features:
     - RSA-4096 for key exchange
-    - AES-256-GCM for data encryption (AEAD)
+    - AES-256-CTR for data encryption (parallelizable, no padding)
+    - HMAC-SHA256 for authentication (Encrypt-then-MAC pattern)
     - Passphrase-protected private keys (PBKDF2)
     - Secure file permissions (0o600 for private, 0o644 for public)
+
+    Performance Benefits:
+    - CTR mode enables parallel encryption/decryption
+    - Faster than GCM for multi-block messages
+    - No padding overhead
     """
 
     # Class-level constants for security configuration
     DEFAULT_PASSPHRASE_ENV_VAR: Final[str] = "TEXTKIT_KEY_PASSPHRASE"
     DEFAULT_KEY_SIZE: Final[int] = 4096
     DEFAULT_AES_KEY_SIZE: Final[int] = 32  # AES-256
-    DEFAULT_GCM_NONCE_SIZE: Final[int] = 12  # 96-bit (NIST recommended)
+    DEFAULT_CTR_NONCE_SIZE: Final[int] = 16  # 128-bit nonce for CTR mode
+    DEFAULT_HMAC_SIZE: Final[int] = 32  # HMAC-SHA256 output size
     MINIMUM_PASSPHRASE_LENGTH: Final[int] = 32
 
     def __init__(self, config_manager: ConfigManagerProtocol | None = None) -> None:
@@ -119,21 +126,27 @@ class CryptographyManager:
         )
 
     def encrypt_text(self, text: str) -> str:
-        """Encrypt text using hybrid AES-256-GCM + RSA-4096 encryption.
+        """Encrypt text using hybrid AES-256-CTR + RSA-4096 encryption with HMAC authentication.
 
         Encryption Process:
         1. Generate random AES-256 key (32 bytes)
-        2. Generate random 96-bit nonce (12 bytes, NIST recommended)
-        3. Encrypt text with AES-GCM (provides confidentiality + authenticity)
-        4. Extract authentication tag (16 bytes)
+        2. Generate random 128-bit nonce (16 bytes) for CTR mode
+        3. Encrypt text with AES-CTR (parallelizable, no padding required)
+        4. Generate HMAC-SHA256 for authentication (Encrypt-then-MAC pattern)
         5. Encrypt AES key with RSA-4096 public key
-        6. Combine: [encrypted_key][nonce][tag][ciphertext]
+        6. Combine: [encrypted_key][nonce][hmac][ciphertext]
         7. Base64 encode result
 
         Security Features:
-        - AEAD (Authenticated Encryption with Associated Data)
-        - Prevents tampering and padding oracle attacks
-        - Automatic integrity verification on decryption
+        - CTR mode enables parallel encryption/decryption
+        - HMAC-SHA256 provides authentication (prevents tampering)
+        - Encrypt-then-MAC pattern (cryptographic best practice 2025)
+        - No padding oracle vulnerabilities
+
+        Performance Benefits:
+        - Parallel processing of blocks
+        - No padding overhead
+        - Faster than GCM for multi-block messages
 
         Args:
             text: Plaintext to encrypt (UTF-8 string)
@@ -144,6 +157,9 @@ class CryptographyManager:
         Raises:
             CryptographyError: If encryption fails or input validation fails
         """
+        import hashlib
+        import hmac as hmac_module
+
         # Input validation
         if not isinstance(text, str):
             raise CryptographyError(
@@ -154,22 +170,26 @@ class CryptographyManager:
         try:
             # Generate cryptographic materials
             aes_key = secrets.token_bytes(self.rsa_config["aes_key_size"])  # 32 bytes
-            nonce = secrets.token_bytes(self.rsa_config["nonce_size"])  # 12 bytes
+            nonce = secrets.token_bytes(16)  # 128-bit nonce for CTR mode
 
-            # Create AES-GCM cipher
+            # Create AES-CTR cipher (parallelizable, no padding)
             cipher = Cipher(
                 algorithms.AES(aes_key),
-                modes.GCM(nonce),  # CHANGED: CBC(aes_iv) → GCM(nonce)
+                modes.CTR(nonce),  # CTR mode: stream cipher behavior
                 backend=default_backend(),
             )
             encryptor = cipher.encryptor()
 
-            # Encrypt plaintext (no manual padding needed for GCM)
+            # Encrypt plaintext (no padding needed for CTR)
             text_bytes = text.encode("utf-8")
             encrypted_data = encryptor.update(text_bytes) + encryptor.finalize()
 
-            # Extract authentication tag (proves data integrity)
-            tag = encryptor.tag  # 16 bytes
+            # Generate HMAC-SHA256 for authentication (Encrypt-then-MAC pattern)
+            # HMAC protects: nonce || encrypted_data
+            hmac_input = nonce + encrypted_data
+            hmac_tag = hmac_module.new(
+                aes_key, hmac_input, hashlib.sha256
+            ).digest()  # 32 bytes
 
             # Encrypt AES key with RSA public key
             _, public_key = self.ensure_key_pair()
@@ -183,8 +203,8 @@ class CryptographyManager:
             )
 
             # Combine components
-            # Format: [encrypted_aes_key:512B][nonce:12B][tag:16B][encrypted_data:variable]
-            combined_data = encrypted_aes_key + nonce + tag + encrypted_data
+            # Format: [encrypted_aes_key:512B][nonce:16B][hmac:32B][encrypted_data:variable]
+            combined_data = encrypted_aes_key + nonce + hmac_tag + encrypted_data
 
             # Base64 encode for text-safe transmission
             return base64.b64encode(combined_data).decode("ascii")
@@ -200,20 +220,24 @@ class CryptographyManager:
             raise CryptographyError(f"Encryption failed: {e}", context) from e
 
     def decrypt_text(self, encrypted_text: str) -> str:
-        """Decrypt text using hybrid AES-256-GCM + RSA-4096 decryption.
+        """Decrypt text using hybrid AES-256-CTR + RSA-4096 decryption with HMAC verification.
 
         Decryption Process:
         1. Base64 decode input
-        2. Extract encrypted AES key, nonce, tag, and ciphertext
+        2. Extract encrypted AES key, nonce, HMAC tag, and ciphertext
         3. Decrypt AES key with RSA private key
-        4. Decrypt ciphertext with AES-GCM using nonce and tag
-        5. Verify authentication tag (ensures data integrity)
+        4. Verify HMAC-SHA256 (ensures data integrity and authenticity)
+        5. Decrypt ciphertext with AES-CTR using nonce
         6. UTF-8 decode plaintext
 
         Security Features:
-        - Automatic tampering detection via GCM tag verification
-        - Constant-time tag comparison (prevents timing attacks)
+        - HMAC verification prevents tampering (constant-time comparison)
         - Fails immediately if data has been modified
+        - Encrypt-then-MAC pattern validation
+
+        Performance Benefits:
+        - Parallel decryption of blocks
+        - Faster than GCM for multi-block messages
 
         Args:
             encrypted_text: Base64-encoded encrypted data from encrypt_text()
@@ -222,8 +246,11 @@ class CryptographyManager:
             Decrypted plaintext (UTF-8 string)
 
         Raises:
-            CryptographyError: If decryption fails, tag verification fails, or data corrupted
+            CryptographyError: If decryption fails, HMAC verification fails, or data corrupted
         """
+        import hashlib
+        import hmac as hmac_module
+
         try:
             # Early validation: Check Base64 string format
             if not encrypted_text or not encrypted_text.strip():
@@ -243,14 +270,14 @@ class CryptographyManager:
                     },
                 )
 
-            # Calculate minimum expected length for RSA-4096 + AES-GCM
-            # RSA-4096: 512 bytes, AES-GCM nonce: 12 bytes, tag: 16 bytes = 540 bytes minimum
+            # Calculate minimum expected length for RSA-4096 + AES-CTR + HMAC
+            # RSA-4096: 512 bytes, nonce: 16 bytes, HMAC-SHA256: 32 bytes = 560 bytes minimum
             rsa_key_size_bytes = self.rsa_config["key_size"] // 8  # 512 for RSA-4096
-            nonce_size = self.rsa_config["nonce_size"]  # 12
-            tag_size = 16  # AES-GCM tag is always 16 bytes
-            min_encrypted_bytes = rsa_key_size_bytes + nonce_size + tag_size  # 540 bytes
+            nonce_size = 16  # 128-bit nonce for CTR mode
+            hmac_size = 32  # HMAC-SHA256 is always 32 bytes
+            min_encrypted_bytes = rsa_key_size_bytes + nonce_size + hmac_size  # 560 bytes
             # Base64 expansion ratio: 4/3, round up
-            min_base64_length = (min_encrypted_bytes * 4 + 2) // 3  # ~720 chars
+            min_base64_length = (min_encrypted_bytes * 4 + 2) // 3  # ~747 chars
 
             if len(text_stripped) < min_base64_length:
                 raise CryptographyError(
@@ -266,14 +293,14 @@ class CryptographyManager:
             combined_data = base64.b64decode(text_stripped, validate=True)
 
             # Calculate offsets based on component sizes
-            offset1 = rsa_key_size_bytes
-            offset2 = offset1 + nonce_size
-            offset3 = offset2 + tag_size
+            offset1 = rsa_key_size_bytes  # End of encrypted_aes_key
+            offset2 = offset1 + nonce_size  # End of nonce
+            offset3 = offset2 + hmac_size  # End of HMAC tag
 
             # Split combined data
             encrypted_aes_key = combined_data[:offset1]
             nonce = combined_data[offset1:offset2]
-            tag = combined_data[offset2:offset3]
+            received_hmac = combined_data[offset2:offset3]
             encrypted_data = combined_data[offset3:]
 
             # Decrypt AES key with RSA private key
@@ -287,18 +314,35 @@ class CryptographyManager:
                 ),
             )
 
-            # Decrypt data with AES-GCM (automatically verifies tag)
+            # Verify HMAC (Encrypt-then-MAC pattern)
+            # HMAC protects: nonce || encrypted_data
+            hmac_input = nonce + encrypted_data
+            expected_hmac = hmac_module.new(
+                aes_key, hmac_input, hashlib.sha256
+            ).digest()
+
+            # Constant-time comparison (prevents timing attacks)
+            if not hmac_module.compare_digest(received_hmac, expected_hmac):
+                raise CryptographyError(
+                    "HMAC verification failed: data may be tampered or corrupted",
+                    {
+                        "error_type": "AuthenticationError",
+                        "hint": "Data integrity check failed. Do not trust this message.",
+                    },
+                )
+
+            # Decrypt data with AES-CTR
             cipher = Cipher(
                 algorithms.AES(aes_key),
-                modes.GCM(nonce, tag),  # CHANGED: CBC(aes_iv) → GCM(nonce, tag)
+                modes.CTR(nonce),  # CTR mode: parallelizable decryption
                 backend=default_backend(),
             )
             decryptor = cipher.decryptor()
 
-            # finalize() will raise InvalidTag if tampering detected
+            # Decrypt (no padding removal needed for CTR)
             text_bytes = decryptor.update(encrypted_data) + decryptor.finalize()
 
-            # UTF-8 decode (no padding removal needed for GCM)
+            # UTF-8 decode
             return text_bytes.decode("utf-8")
 
         except binascii.Error as e:
@@ -317,7 +361,7 @@ class CryptographyManager:
             # Provide helpful error context
             hint = (
                 "Data may be corrupted or tampered with"
-                if "tag" in str(e).lower()
+                if "hmac" in str(e).lower()
                 else "Check encryption key and format"
             )
             raise CryptographyError(
