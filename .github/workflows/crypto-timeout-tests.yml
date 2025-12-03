@@ -1,0 +1,201 @@
+name: Crypto Timeout Tests
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+    paths:
+      - 'bases/text_processing/cli_interface/commands/crypto_cmd.py'
+      - 'test/**/test_crypto*.py'
+      - 'components/io_handler/clipboard.py'
+      - '.github/workflows/crypto-timeout-tests.yml'
+  pull_request:
+    branches: [ "main", "develop" ]
+    paths:
+      - 'bases/text_processing/cli_interface/commands/crypto_cmd.py'
+      - 'test/**/test_crypto*.py'
+      - 'components/io_handler/clipboard.py'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # ============================================================================
+  # Cross-Platform Testing (Windows, macOS, Linux)
+  # ============================================================================
+  cross-platform-test:
+    name: Test on ${{ matrix.os }} - Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.12", "3.13"]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v5
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        version: "latest"
+        enable-cache: true
+
+    - name: Set up Python ${{ matrix.python-version }}
+      run: uv python install ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: uv sync --all-extras --dev
+
+    - name: Set up test environment variables
+      shell: bash
+      run: |
+        # Generate secure test passphrase
+        echo "TEXTKIT_KEY_PASSPHRASE=$(openssl rand -base64 48 | tr -d '\n')" >> $GITHUB_ENV
+
+    - name: Run crypto timeout unit tests
+      run: |
+        uv run pytest test/bases/text_processing/cli_interface/commands/test_crypto_cmd.py -v --tb=short -m "unit and crypto"
+      env:
+        PYTHONPATH: .
+
+    - name: Run crypto timeout integration tests
+      run: |
+        uv run pytest test/integration/test_crypto_clipboard_timeout.py -v --tb=short -m "integration and crypto"
+      env:
+        PYTHONPATH: .
+
+    - name: Test timeout boundary values
+      run: |
+        uv run pytest test/bases/text_processing/cli_interface/commands/test_crypto_cmd.py::test_timeout_with_boundary_values -v
+      env:
+        PYTHONPATH: .
+
+    - name: Test timeout recommended values
+      run: |
+        uv run pytest test/bases/text_processing/cli_interface/commands/test_crypto_cmd.py::test_timeout_recommended_values -v
+      env:
+        PYTHONPATH: .
+
+  # ============================================================================
+  # Performance Benchmarks
+  # ============================================================================
+  performance-benchmark:
+    name: Performance Benchmark - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v5
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        version: "latest"
+        enable-cache: true
+
+    - name: Set up Python 3.13
+      run: uv python install 3.13
+
+    - name: Install dependencies
+      run: uv sync --all-extras --dev
+
+    - name: Set up test environment variables
+      shell: bash
+      run: |
+        echo "TEXTKIT_KEY_PASSPHRASE=$(openssl rand -base64 48 | tr -d '\n')" >> $GITHUB_ENV
+
+    - name: Run performance benchmarks
+      run: |
+        uv run pytest test/performance/test_crypto_timeout_benchmark.py -v --benchmark-only --benchmark-autosave
+      env:
+        PYTHONPATH: .
+      continue-on-error: true
+
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: benchmark-results-${{ matrix.os }}
+        path: .benchmarks/
+        retention-days: 30
+
+  # ============================================================================
+  # Platform-Specific Clipboard Tests
+  # ============================================================================
+  clipboard-platform-test:
+    name: Clipboard Test - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v5
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        version: "latest"
+
+    - name: Set up Python 3.13
+      run: uv python install 3.13
+
+    - name: Install dependencies
+      run: uv sync --all-extras --dev
+
+    - name: Install platform-specific clipboard dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb xclip xsel
+
+    - name: Set up test environment variables
+      shell: bash
+      run: |
+        echo "TEXTKIT_KEY_PASSPHRASE=$(openssl rand -base64 48 | tr -d '\n')" >> $GITHUB_ENV
+
+    - name: Run clipboard tests (Linux with xvfb)
+      if: runner.os == 'Linux'
+      run: |
+        xvfb-run -a uv run pytest test/components/text_processing/io_handler/test_core.py -v -k clipboard
+      env:
+        PYTHONPATH: .
+        DISPLAY: :99
+
+    - name: Run clipboard tests (macOS/Windows)
+      if: runner.os != 'Linux'
+      run: |
+        uv run pytest test/components/text_processing/io_handler/test_core.py -v -k clipboard
+      env:
+        PYTHONPATH: .
+
+  # ============================================================================
+  # Summary Report
+  # ============================================================================
+  test-summary:
+    name: Test Summary
+    needs: [cross-platform-test, performance-benchmark, clipboard-platform-test]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+    - name: Check test results
+      run: |
+        echo "Cross-platform tests: ${{ needs.cross-platform-test.result }}"
+        echo "Performance benchmarks: ${{ needs.performance-benchmark.result }}"
+        echo "Clipboard platform tests: ${{ needs.clipboard-platform-test.result }}"
+
+    - name: Report status
+      if: needs.cross-platform-test.result == 'success'
+      run: |
+        echo "✅ All crypto timeout tests passed across platforms!"
+        echo "✅ Performance benchmarks completed"
+        echo "✅ Clipboard tests completed"

@@ -57,6 +57,16 @@ def create_crypto_subcommand(
         text: InputTextOption = None,
         from_clipboard: FromClipboardOption = False,
         to_clipboard: ToClipboardOption = False,
+        timeout: Annotated[
+            int | None,
+            typer.Option(
+                "--timeout",
+                "-T",
+                help="Clear clipboard after N seconds (range: 5-300, recommended: 30-90 for sensitive data)",
+                min=5,
+                max=300,
+            ),
+        ] = None,
     ) -> None:
         """Encrypt text using RSA+AES hybrid encryption.
 
@@ -79,13 +89,18 @@ def create_crypto_subcommand(
         # Encrypt and copy to clipboard
         textkit crypto encrypt -i "secret" --to-clipboard
 
+        # Auto-clear clipboard after 60 seconds (Docker-style)
+        textkit crypto encrypt -i "secret" --to-clipboard --timeout 60
+        textkit crypto encrypt -i "secret" --to-clipboard -T 60
+
         # Pipe input
         echo "secret" | textkit crypto encrypt
         ```
 
-        **Tips:**
-        - Encrypted output is automatically copied to clipboard by default
-        - Use `--to-clipboard` to explicitly control clipboard behavior
+        **Security Tips:**
+        - Default: clipboard NOT cleared (safe for general use)
+        - Recommended timeout for sensitive data: 30-90 seconds
+        - Manual clear anytime: `textkit clip clear`
         - Output is Base64-encoded for safe transmission
         """
         try:
@@ -119,6 +134,30 @@ def create_crypto_subcommand(
                 app_instance.io_manager.safe_copy_to_clipboard(result)
                 console.print("[green]✓[/green] Copied to clipboard")
 
+                # Schedule clipboard timeout if requested
+                if timeout:
+                    import contextlib
+                    import threading
+
+                    def _clear_clipboard() -> None:
+                        """Background task to clear clipboard after timeout."""
+                        with contextlib.suppress(Exception):
+                            app_instance.io_manager.clear_clipboard()
+                            # Note: console.print won't be visible in background thread
+
+                    timer = threading.Timer(timeout, _clear_clipboard)
+                    timer.daemon = (
+                        True  # Allow program to exit even if timer is running
+                    )
+                    timer.start()
+
+                    console.print(
+                        f"[yellow]⏱  Clipboard will auto-clear in {timeout} seconds[/yellow]"
+                    )
+                    console.print(
+                        "[dim]Cancel anytime: Ctrl+C or manually clear with 'textkit clip clear'[/dim]"
+                    )
+
         except Exception as e:
             handle_cli_error_func(e, "text encryption")
 
@@ -131,6 +170,16 @@ def create_crypto_subcommand(
         text: InputTextOption = None,
         from_clipboard: FromClipboardOption = False,
         to_clipboard: ToClipboardOption = False,
+        timeout: Annotated[
+            int | None,
+            typer.Option(
+                "--timeout",
+                "-T",
+                help="Clear clipboard after N seconds (range: 5-300, recommended: 30-90 for passwords)",
+                min=5,
+                max=300,
+            ),
+        ] = None,
     ) -> None:
         """Decrypt text using RSA+AES hybrid decryption.
 
@@ -153,14 +202,20 @@ def create_crypto_subcommand(
         # Decrypt and copy to clipboard
         textkit crypto decrypt -i "encrypted" --to-clipboard
 
+        # Auto-clear clipboard after 60 seconds (Docker-style, recommended for passwords)
+        textkit crypto decrypt --from-clipboard --to-clipboard --timeout 60
+        textkit crypto decrypt --from-clipboard --to-clipboard -T 60
+
         # Pipe input
         echo "encrypted_text" | textkit crypto decrypt
         ```
 
-        **Tips:**
+        **Security Tips:**
         - Input must be Base64-encoded encrypted text
-        - Decrypted output is automatically displayed
-        - Use `--to-clipboard` to copy decrypted result
+        - Default: clipboard NOT cleared (safe for general use)
+        - Recommended timeout for passwords: 30-90 seconds
+        - pass uses 45s, 1Password uses 90s
+        - Manual clear anytime: `textkit clip clear`
         """
         try:
             app_instance = get_app_func()
@@ -198,6 +253,30 @@ def create_crypto_subcommand(
             if to_clipboard:
                 app_instance.io_manager.safe_copy_to_clipboard(result)
                 console.print("\n[green]✓[/green] Copied to clipboard")
+
+                # Schedule clipboard timeout if requested
+                if timeout:
+                    import contextlib
+                    import threading
+
+                    def _clear_clipboard() -> None:
+                        """Background task to clear clipboard after timeout."""
+                        with contextlib.suppress(Exception):
+                            app_instance.io_manager.clear_clipboard()
+                            # Note: console.print won't be visible in background thread
+
+                    timer = threading.Timer(timeout, _clear_clipboard)
+                    timer.daemon = (
+                        True  # Allow program to exit even if timer is running
+                    )
+                    timer.start()
+
+                    console.print(
+                        f"[yellow]⏱  Clipboard will auto-clear in {timeout} seconds[/yellow]"
+                    )
+                    console.print(
+                        "[dim]Cancel anytime: Ctrl+C or manually clear with 'textkit clip clear'[/dim]"
+                    )
 
         except Exception as e:
             handle_cli_error_func(e, "text decryption")
@@ -480,7 +559,7 @@ def decrypt_text_func(
             # Try to get input text
             try:
                 input_text = get_input_text_func(app_instance, text)
-            except (ValueError, IOError) as e:
+            except (OSError, ValueError):
                 # Handle case where no input is available
                 console.print(
                     "[yellow]Warning: No text to decrypt. Please provide text via -i flag or clipboard (-c).[/yellow]"

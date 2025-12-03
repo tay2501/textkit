@@ -195,6 +195,43 @@ uv run python main.py crypto encrypt -i "test message"
 - **Tampering detection** via GCM authentication tags
 - **Secure file permissions** (0o600 for private keys, 0o644 for public keys)
 - **Memory-dump resistance** with OS Keyring or TPM 2.0
+- **Clipboard auto-clear** for sensitive data protection (Docker-style `--timeout` option)
+
+### Clipboard Security: Auto-Clear Timeout
+
+Protect sensitive data like passwords and API keys with automatic clipboard clearing:
+
+```bash
+# Decrypt password with 60-second auto-clear (recommended for passwords)
+uv run python main.py crypto decrypt --from-clipboard --to-clipboard --timeout 60
+
+# Short form with -T flag (Docker-style)
+uv run python main.py crypto decrypt -c -C -T 60
+
+# Encrypt sensitive data with 90-second timeout (1Password default)
+uv run python main.py crypto encrypt -i "API_KEY=secret123" -C -T 90
+
+# Standard usage without auto-clear (for general data)
+uv run python main.py crypto encrypt -i "public information" -C
+
+# Manual clipboard clear anytime
+uv run python main.py clip clear
+uv run python main.py clipboard clear  # Readable alias
+uv run python main.py cb clear          # Short alias
+```
+
+**Timeout Recommendations (Industry Standards):**
+- `45s` - pass (Unix password manager) default
+- `60s` - Recommended for most passwords
+- `90s` - 1Password default
+- `30-90s` - Safe range for sensitive data
+- **No timeout** - Default behavior (safe for general use)
+
+**Security Benefits:**
+- ✅ Prevents password exposure in clipboard history
+- ✅ Reduces risk of accidental password pasting
+- ✅ Compatible with password manager best practices
+- ✅ Non-blocking background operation (daemon thread)
 
 ## 🎯 Key Features
 
