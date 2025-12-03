@@ -12,11 +12,8 @@ import typer
 from rich.console import Console
 
 from .abstractions import ApplicationServiceInterface
-from .commands.clip_cmd import register_clip_commands
 
-# Import command modules
-from .commands.status_cmd import register_status_commands
-
+# Lazy loading: Command modules imported in _register_all_commands() only when needed
 # Import application factory and interface
 from .factory import ApplicationFactory
 
@@ -281,6 +278,8 @@ def _register_all_commands() -> None:
     app.add_typer(rules_subcommand, name="rules")
 
     # clip subcommand group: textkit clip {get,set,clear,status} or textkit clip < file
+    from .commands.clip_cmd import register_clip_commands
+
     register_clip_commands(
         app=app,
         get_app_func=get_app,
@@ -288,6 +287,8 @@ def _register_all_commands() -> None:
     )
 
     # status and version commands (top-level utilities)
+    from .commands.status_cmd import register_status_commands
+
     register_status_commands(
         app=app,
         get_app_func=get_app,
@@ -333,5 +334,5 @@ def run_cli() -> None:
         error_handler.handle_cli_error(e, "CLI initialization")
 
 
-# Initialize commands when module is imported
-_register_all_commands()
+# Lazy loading: Commands are registered only when run_cli() is called (line 317)
+# This improves startup time by deferring imports until actually needed
