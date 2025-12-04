@@ -79,7 +79,11 @@ class ApplicationInterface(ApplicationServiceInterface):
             CryptographyError: If encryption fails
         """
         if not self.crypto_manager:
-            raise ValueError("Cryptography not available")
+            raise ValueError(
+                "Cryptography is not configured. Please set up encryption first:\n\n"
+                "  uv run python main.py crypto set-passphrase\n\n"
+                "This will securely store your encryption passphrase using your system's keyring."
+            )
         return self.crypto_manager.encrypt_text(text)
 
     def decrypt_text(self, encrypted_text: str) -> str:
@@ -96,7 +100,11 @@ class ApplicationInterface(ApplicationServiceInterface):
             CryptographyError: If decryption fails
         """
         if not self.crypto_manager:
-            raise ValueError("Cryptography not available")
+            raise ValueError(
+                "Cryptography is not configured. Please set up encryption first:\n\n"
+                "  uv run python main.py crypto set-passphrase\n\n"
+                "This will securely store your encryption passphrase using your system's keyring."
+            )
         return self.crypto_manager.decrypt_text(encrypted_text)
 
     def get_available_rules(self) -> dict[str, Any]:

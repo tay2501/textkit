@@ -369,6 +369,23 @@ def create_crypto_subcommand(
                 f"[green]Passphrase stored using:[/green] {used_backend.value}"
             )
 
+            # Generate RSA key pair now that passphrase is configured
+            console.print("[dim]Generating RSA key pair...[/dim]")
+            from textkit.crypto_engine import CryptographyManager
+
+            from ..abstractions import ConfigurationManagerInterface
+            from ..container import get_container
+
+            container = get_container()
+            config_manager = container[ConfigurationManagerInterface]
+            crypto_manager = CryptographyManager(config_manager)
+            crypto_manager.ensure_key_pair()
+
+            console.print("[green]RSA key pair generated successfully[/green]")
+            console.print(
+                "\n[bold green]Encryption is now ready to use![/bold green]\n"
+            )
+
             if used_backend == PassphraseBackend.ENV_VAR:
                 console.print(
                     "\n[yellow]WARNING: Environment variable storage is insecure![/yellow]\n"

@@ -97,8 +97,8 @@ class CryptographyManager:
             "key_size": self.DEFAULT_KEY_SIZE,  # RSA-4096 for maximum security
             "public_exponent": 65537,  # Standard public exponent
             "aes_key_size": self.DEFAULT_AES_KEY_SIZE,  # AES-256 key size (32 bytes)
-            "nonce_size": self.DEFAULT_GCM_NONCE_SIZE,  # 96-bit nonce for GCM
-            "aes_iv_size": 16,  # Deprecated: use nonce_size for GCM
+            "nonce_size": self.DEFAULT_CTR_NONCE_SIZE,  # 128-bit nonce for CTR mode
+            "aes_iv_size": 16,  # Deprecated: use nonce_size for CTR
             "key_directory": "rsa",  # Default key directory
             "passphrase_env_var": self.DEFAULT_PASSPHRASE_ENV_VAR,  # Passphrase env var name
         }
