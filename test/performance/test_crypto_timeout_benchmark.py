@@ -9,7 +9,6 @@ from unittest.mock import Mock
 
 import pytest
 
-
 # ============================================================================
 # Benchmark: Timer Accuracy
 # ============================================================================
@@ -281,7 +280,6 @@ def test_end_to_end_timer_flow(benchmark):
     import contextlib
 
     def complete_flow():
-        clipboard_content = "sensitive_data"
         clipboard_cleared = False
 
         def clear_clipboard():

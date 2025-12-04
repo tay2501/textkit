@@ -378,3 +378,5 @@ test-output/
 .test-results/
 
 .work/
+# Pytest benchmark cache
+.benchmarks/
