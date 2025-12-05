@@ -27,7 +27,7 @@ import secrets
 from pathlib import Path
 from typing import Final, cast
 
-from .exceptions import CryptographyError
+from .core import CryptographyError
 from .types import ConfigManagerProtocol
 
 # Type aliases for clarity

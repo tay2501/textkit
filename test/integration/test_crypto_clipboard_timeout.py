@@ -18,7 +18,6 @@ from bases.text_processing.cli_interface.commands.crypto_cmd import (
     create_crypto_subcommand,
 )
 
-
 # ============================================================================
 # Integration Test: Full Encrypt-Decrypt-Clear Flow
 # ============================================================================

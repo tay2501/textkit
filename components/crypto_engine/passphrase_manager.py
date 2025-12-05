@@ -20,10 +20,10 @@ Example:
     >>> print(f"Using {backend.value} backend")
 """
 
-import os
 import logging
-from typing import Optional, Tuple
+import os
 from enum import Enum
+from typing import Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
