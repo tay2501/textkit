@@ -20,12 +20,12 @@ Example:
     >>> print(f"Using {backend.value} backend")
 """
 
-import logging
 import os
 from enum import Enum
-from typing import Optional, Tuple
 
-logger = logging.getLogger(__name__)
+import structlog
+
+logger = structlog.get_logger(__name__)
 
 
 class PassphraseBackend(Enum):
@@ -62,9 +62,9 @@ class SecurePassphraseManager:
             env_var_name: Environment variable name for fallback storage
         """
         self.env_var_name = env_var_name
-        self._backend: Optional[PassphraseBackend] = None
+        self._backend: PassphraseBackend | None = None
 
-    def get_passphrase(self) -> Tuple[bytes, PassphraseBackend]:
+    def get_passphrase(self) -> tuple[bytes, PassphraseBackend]:
         """
         Get passphrase using highest available security tier.
 
@@ -83,31 +83,48 @@ class SecurePassphraseManager:
         try:
             passphrase = self._get_from_tpm()
             if passphrase:
-                logger.info("Using TPM 2.0 for passphrase (highest security)")
+                logger.info(
+                    "Using TPM 2.0 for passphrase storage (highest security)",
+                    backend="TPM 2.0",
+                    security_level="highest",
+                )
                 return passphrase.encode("utf-8"), PassphraseBackend.TPM
         except ImportError:
-            logger.debug("TPM support not available (tpm2-pytss not installed)")
+            logger.debug(
+                "TPM backend unavailable",
+                backend="TPM 2.0",
+                reason="tpm2-pytss not installed",
+            )
         except Exception as e:
-            logger.debug(f"TPM unavailable: {e}")
+            logger.debug("TPM backend error", backend="TPM 2.0", error=str(e))
 
         # Tier 2: Try OS Keyring
         try:
             passphrase = self._get_from_keyring()
             if passphrase:
-                logger.info("Using OS Keyring for passphrase (high security)")
+                logger.info(
+                    "Using OS Keyring for passphrase storage (high security)",
+                    backend="OS Keyring",
+                    security_level="high",
+                )
                 return passphrase.encode("utf-8"), PassphraseBackend.KEYRING
         except ImportError:
-            logger.debug("Keyring support not available")
+            logger.debug(
+                "Keyring backend unavailable",
+                backend="OS Keyring",
+                reason="keyring not installed",
+            )
         except Exception as e:
-            logger.debug(f"Keyring unavailable: {e}")
+            logger.debug("Keyring backend error", backend="OS Keyring", error=str(e))
 
         # Tier 3: Fallback to environment variable (with warning)
         passphrase = self._get_from_env()
         if passphrase:
             logger.warning(
-                "⚠️  SECURITY WARNING: Using environment variable for passphrase. "
-                "This is vulnerable to memory dumps. "
-                "Install 'keyring' (uv add keyring) for better security."
+                "Using insecure environment variable for passphrase storage",
+                backend="environment variable",
+                security_risk="vulnerable to memory dumps",
+                recommendation="Install keyring (uv add keyring) for better security",
             )
             return passphrase.encode("utf-8"), PassphraseBackend.ENV_VAR
 
@@ -117,7 +134,7 @@ class SecurePassphraseManager:
             f"2. (Fallback) Environment variable: {self.env_var_name}"
         )
 
-    def _get_from_tpm(self) -> Optional[str]:
+    def _get_from_tpm(self) -> str | None:
         """
         Get passphrase sealed in TPM 2.0.
 
@@ -139,7 +156,7 @@ class SecurePassphraseManager:
         except Exception:
             return None
 
-    def _get_from_keyring(self) -> Optional[str]:
+    def _get_from_keyring(self) -> str | None:
         """
         Get passphrase from OS keyring.
 
@@ -159,7 +176,7 @@ class SecurePassphraseManager:
 
         return keyring.get_password(self.SERVICE_NAME, self.USERNAME)
 
-    def _get_from_env(self) -> Optional[str]:
+    def _get_from_env(self) -> str | None:
         """
         Get passphrase from environment variable (legacy fallback).
 
@@ -175,7 +192,7 @@ class SecurePassphraseManager:
         return os.environ.get(self.env_var_name)
 
     def set_passphrase(
-        self, passphrase: str, backend: Optional[PassphraseBackend] = None
+        self, passphrase: str, backend: PassphraseBackend | None = None
     ) -> PassphraseBackend:
         """
         Store passphrase in specified backend.
@@ -206,8 +223,9 @@ class SecurePassphraseManager:
             self._set_in_keyring(passphrase)
         else:
             logger.warning(
-                "Environment variable storage is insecure. "
-                "Consider installing 'keyring' or using TPM."
+                "Using insecure environment variable for passphrase storage",
+                backend="environment variable",
+                recommendation="Install keyring (uv add keyring) or use TPM for better security",
             )
             print(
                 f"Set environment variable:\nexport {self.env_var_name}='{passphrase}'"
@@ -235,7 +253,11 @@ class SecurePassphraseManager:
         fapi.create_seal(
             path=sealed_path, data=passphrase.encode("utf-8"), exists_ok=True
         )
-        logger.info(f"Passphrase sealed in TPM at: {sealed_path}")
+        logger.info(
+            "Passphrase stored in TPM 2.0",
+            backend="TPM 2.0",
+            path=sealed_path,
+        )
 
     def _set_in_keyring(self, passphrase: str) -> None:
         """
@@ -251,7 +273,11 @@ class SecurePassphraseManager:
         import keyring
 
         keyring.set_password(self.SERVICE_NAME, self.USERNAME, passphrase)
-        logger.info(f"Passphrase stored in OS keyring (service={self.SERVICE_NAME})")
+        logger.info(
+            "Passphrase stored in OS Keyring",
+            backend="OS Keyring",
+            service=self.SERVICE_NAME,
+        )
 
     @staticmethod
     def _is_tpm_available() -> bool:
@@ -264,7 +290,7 @@ class SecurePassphraseManager:
         try:
             from tpm2_pytss import FAPI
 
-            fapi = FAPI()
+            FAPI()  # Test instantiation
             return True
         except (ImportError, Exception):
             return False
@@ -286,7 +312,7 @@ class SecurePassphraseManager:
         except (ImportError, Exception):
             return False
 
-    def delete_passphrase(self, backend: Optional[PassphraseBackend] = None) -> None:
+    def delete_passphrase(self, backend: PassphraseBackend | None = None) -> None:
         """
         Delete passphrase from specified backend.
 
@@ -305,9 +331,8 @@ class SecurePassphraseManager:
             except Exception as e:
                 logger.debug(f"Keyring deletion skipped: {e}")
 
-        if backend is None or backend == PassphraseBackend.ENV_VAR:
-            if self.env_var_name in os.environ:
-                logger.warning(
-                    f"Cannot auto-delete environment variable: {self.env_var_name}\n"
-                    f"Run: unset {self.env_var_name}"
-                )
+        if (backend is None or backend == PassphraseBackend.ENV_VAR) and self.env_var_name in os.environ:
+            logger.warning(
+                f"Cannot auto-delete environment variable: {self.env_var_name}\n"
+                f"Run: unset {self.env_var_name}"
+            )

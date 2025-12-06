@@ -275,7 +275,9 @@ class CryptographyManager:
             rsa_key_size_bytes = self.rsa_config["key_size"] // 8  # 512 for RSA-4096
             nonce_size = 16  # 128-bit nonce for CTR mode
             hmac_size = 32  # HMAC-SHA256 is always 32 bytes
-            min_encrypted_bytes = rsa_key_size_bytes + nonce_size + hmac_size  # 560 bytes
+            min_encrypted_bytes = (
+                rsa_key_size_bytes + nonce_size + hmac_size
+            )  # 560 bytes
             # Base64 expansion ratio: 4/3, round up
             min_base64_length = (min_encrypted_bytes * 4 + 2) // 3  # ~747 chars
 
@@ -387,10 +389,17 @@ class CryptographyManager:
                 return self._load_key_pair()
             else:
                 return self._generate_and_save_key_pair()
+        except CryptographyError:
+            # Re-raise with detailed error messages from _load_key_pair or _generate_and_save_key_pair
+            raise
         except Exception as e:
+            # Catch unexpected errors
             raise CryptographyError(
-                f"Key pair management failed: {e}",
-                {"error_type": type(e).__name__},
+                f"Unexpected error during key pair management: {e}",
+                {
+                    "error_type": type(e).__name__,
+                    "hint": "Check file permissions and disk space",
+                },
             ) from e
 
     def _ensure_key_directory(self) -> None:
@@ -566,29 +575,40 @@ class CryptographyManager:
             # Re-raise our own exceptions
             raise
         except ValueError as e:
-            # Likely incorrect passphrase
+            # Passphrase mismatch - provide clear guidance
             raise CryptographyError(
-                "Failed to load private key. Check passphrase.",
+                "Cannot decrypt existing encryption keys with current passphrase.\n"
+                "\n"
+                "This usually means:\n"
+                "  • The passphrase was changed but keys were not regenerated\n"
+                "  • Keys were created with a different passphrase\n"
+                "\n"
+                "To fix this:\n"
+                "  1. Run: textkit crypto set-passphrase --force\n"
+                "  2. This will delete old keys and create new ones\n"
+                "  3. Note: Previously encrypted data cannot be decrypted",
                 {
-                    "error_type": "incorrect_passphrase",
-                    "hint": f"Verify {self.rsa_config.get('passphrase_env_var', 'TEXTKIT_KEY_PASSPHRASE')} environment variable",
+                    "error_type": "passphrase_mismatch",
+                    "resolution": "Run 'textkit crypto set-passphrase --force' to regenerate keys",
                 },
             ) from e
         except FileNotFoundError as e:
             raise CryptographyError(
-                "Key files not found",
+                "Encryption keys not found. Run 'textkit crypto set-passphrase' to initialize.",
                 {
                     "private_key_exists": self.private_key_path.exists(),
                     "public_key_exists": self.public_key_path.exists(),
+                    "resolution": "Run 'textkit crypto set-passphrase' to create keys",
                 },
             ) from e
         except Exception as e:
             raise CryptographyError(
-                f"Failed to load key pair: {e}",
+                f"Failed to load encryption keys: {e}",
                 {
                     "private_key_exists": self.private_key_path.exists(),
                     "public_key_exists": self.public_key_path.exists(),
                     "error_type": type(e).__name__,
+                    "hint": "Keys may be corrupted. Consider running 'textkit crypto set-passphrase --force'",
                 },
             ) from e
 

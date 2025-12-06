@@ -295,6 +295,14 @@ def create_crypto_subcommand(
                 help="Storage backend (auto=best available, keyring=OS secure storage, env=environment variable)",
             ),
         ] = "auto",
+        force: Annotated[
+            bool,
+            typer.Option(
+                "--force",
+                "-f",
+                help="Overwrite existing keys without confirmation",
+            ),
+        ] = False,
     ) -> None:
         """Set encryption passphrase securely.
 
@@ -324,6 +332,9 @@ def create_crypto_subcommand(
 
         # Development/testing only (insecure)
         textkit crypto set-passphrase --backend env
+
+        # Overwrite existing keys without confirmation
+        textkit crypto set-passphrase --force
         ```
 
         **Tips:**
@@ -335,6 +346,7 @@ def create_crypto_subcommand(
         Windows/macOS leverage hardware security via OS Keyring (DPAPI/Secure Enclave).
         """
         import secrets
+        from pathlib import Path
 
         from components.crypto_engine.passphrase_manager import (
             PassphraseBackend,
@@ -359,6 +371,52 @@ def create_crypto_subcommand(
         try:
             console.print("[bold cyan]Secure Passphrase Setup[/bold cyan]\n")
 
+            # Check for existing keys
+            from ..abstractions import ConfigurationManagerInterface
+            from ..container import get_container
+
+            container = get_container()
+            config_manager = container[ConfigurationManagerInterface]
+
+            # Get key directory from configuration
+            try:
+                security_config = config_manager.load_security_config()
+                key_dir = Path(
+                    security_config.get("rsa", {}).get("key_directory", "rsa")
+                )
+            except Exception:
+                key_dir = Path("rsa")
+
+            private_key_path = key_dir / "private_key.pem"
+            public_key_path = key_dir / "public_key.pem"
+
+            if private_key_path.exists() or public_key_path.exists():
+                console.print(
+                    "[yellow]WARNING: Existing encryption keys detected[/yellow]\n"
+                )
+                console.print(
+                    "  [dim]Creating a new passphrase will require regenerating keys.[/dim]\n"
+                    "  [dim]Current encrypted data will need to be decrypted first.[/dim]\n"
+                )
+
+                if not force:
+                    confirmed = typer.confirm(
+                        "Delete existing keys and create new ones?",
+                        default=False,
+                    )
+                    if not confirmed:
+                        console.print("[yellow]Operation cancelled by user[/yellow]")
+                        raise typer.Exit(0)
+
+                # Delete existing keys
+                if private_key_path.exists():
+                    private_key_path.unlink()
+                    console.print("[dim]- Removed old private key[/dim]")
+                if public_key_path.exists():
+                    public_key_path.unlink()
+                    console.print("[dim]- Removed old public key[/dim]")
+                console.print()
+
             # Generate secure passphrase
             passphrase = secrets.token_urlsafe(48)
 
@@ -373,11 +431,6 @@ def create_crypto_subcommand(
             console.print("[dim]Generating RSA key pair...[/dim]")
             from textkit.crypto_engine import CryptographyManager
 
-            from ..abstractions import ConfigurationManagerInterface
-            from ..container import get_container
-
-            container = get_container()
-            config_manager = container[ConfigurationManagerInterface]
             crypto_manager = CryptographyManager(config_manager)
             crypto_manager.ensure_key_pair()
 
@@ -394,6 +447,8 @@ def create_crypto_subcommand(
                     "   - [cyan]uv add tpm2-pytss[/cyan] (hardware protection)\n"
                 )
 
+        except typer.Exit:
+            raise
         except Exception as e:
             console.print(f"[red]Error: {e}[/red]")
             raise typer.Exit(1) from e

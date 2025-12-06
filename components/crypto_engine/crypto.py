@@ -411,7 +411,9 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             # Calculate minimum expected length for RSA-2048 + AES-GCM
             # (256 bytes RSA + 12 bytes nonce + 16 bytes tag) * 4/3 ≈ 379 chars
             key_size_bytes = self.rsa_config["key_size"] // 8
-            min_encrypted_bytes = key_size_bytes + CRYPTO.GCM_NONCE_SIZE + CRYPTO.GCM_TAG_SIZE
+            min_encrypted_bytes = (
+                key_size_bytes + CRYPTO.GCM_NONCE_SIZE + CRYPTO.GCM_TAG_SIZE
+            )
             min_base64_length = (min_encrypted_bytes * 4 + 2) // 3  # Base64 expansion
 
             if len(text_stripped) < min_base64_length:
