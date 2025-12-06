@@ -335,3 +335,105 @@ def test_timeout_recommended_values(cli_runner, crypto_app, mock_app_instance):
         )
         assert result.exit_code == 0
         assert str(timeout) in result.stdout
+
+
+# ============================================================================
+# passphrase-status Command Tests (Platform-Specific Display)
+# ============================================================================
+
+
+@pytest.mark.unit
+@pytest.mark.crypto
+def test_passphrase_status_command_success(cli_runner, crypto_app):
+    """Test passphrase-status command displays backend information."""
+    with patch(
+        "components.crypto_engine.passphrase_manager.SecurePassphraseManager"
+    ) as mock_manager_class:
+        # Mock manager instance
+        mock_manager = Mock()
+        mock_manager._is_tpm_available.return_value = False
+        mock_manager._is_keyring_available.return_value = True
+        mock_manager.get_passphrase.return_value = (b"test", Mock(value="keyring"))
+        mock_manager_class.return_value = mock_manager
+
+        result = cli_runner.invoke(crypto_app, ["passphrase-status"])
+
+        assert result.exit_code == 0
+        assert "Passphrase Backend Status" in result.stdout
+        assert "OS Keyring" in result.stdout
+        assert "Currently using: keyring" in result.stdout
+
+
+@pytest.mark.unit
+@pytest.mark.crypto
+def test_passphrase_status_windows_display(cli_runner, crypto_app):
+    """Test passphrase-status shows Windows-specific messages."""
+    with patch(
+        "platform.system"
+    ) as mock_platform, patch(
+        "components.crypto_engine.passphrase_manager.SecurePassphraseManager"
+    ) as mock_manager_class:
+        mock_platform.return_value = "Windows"
+
+        mock_manager = Mock()
+        mock_manager._is_tpm_available.return_value = False
+        mock_manager._is_keyring_available.return_value = True
+        mock_manager.get_passphrase.return_value = (b"test", Mock(value="keyring"))
+        mock_manager_class.return_value = mock_manager
+
+        result = cli_runner.invoke(crypto_app, ["passphrase-status"])
+
+        assert result.exit_code == 0
+        # Windows-specific display
+        assert "TPM 2.0 (Direct)" in result.stdout
+        assert "OS Keyring (DPAPI)" in result.stdout
+        assert "Windows: use via DPAPI" in result.stdout
+        # Actionable hint for Windows
+        assert "Windows Hello" in result.stdout
+
+
+@pytest.mark.unit
+@pytest.mark.crypto
+def test_passphrase_status_linux_display(cli_runner, crypto_app):
+    """Test passphrase-status shows Linux-specific messages."""
+    with patch(
+        "platform.system"
+    ) as mock_platform, patch(
+        "components.crypto_engine.passphrase_manager.SecurePassphraseManager"
+    ) as mock_manager_class:
+        mock_platform.return_value = "Linux"
+
+        mock_manager = Mock()
+        mock_manager._is_tpm_available.return_value = True
+        mock_manager._is_keyring_available.return_value = True
+        mock_manager.get_passphrase.return_value = (b"test", Mock(value="tpm"))
+        mock_manager_class.return_value = mock_manager
+
+        result = cli_runner.invoke(crypto_app, ["passphrase-status"])
+
+        assert result.exit_code == 0
+        # Linux: Standard display without Windows-specific notes
+        assert "TPM 2.0" in result.stdout
+        assert "OS Keyring" in result.stdout
+        assert "DPAPI" not in result.stdout
+
+
+@pytest.mark.unit
+@pytest.mark.crypto
+def test_passphrase_status_no_passphrase_configured(cli_runner, crypto_app):
+    """Test passphrase-status when no passphrase is configured."""
+    with patch(
+        "components.crypto_engine.passphrase_manager.SecurePassphraseManager"
+    ) as mock_manager_class:
+        mock_manager = Mock()
+        mock_manager._is_tpm_available.return_value = False
+        mock_manager._is_keyring_available.return_value = True
+        mock_manager.get_passphrase.side_effect = ValueError("No passphrase found")
+        mock_manager_class.return_value = mock_manager
+
+        result = cli_runner.invoke(crypto_app, ["passphrase-status"])
+
+        assert result.exit_code == 0
+        assert "No passphrase configured" in result.stdout
+        # Actionable suggestion (clig.dev best practice)
+        assert "textkit crypto set-passphrase" in result.stdout

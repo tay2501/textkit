@@ -29,8 +29,15 @@ A modern, Unix-philosophy compliant text processing toolkit with seamless pipe a
 - [Key Features](#-key-features)
 - [Core Commands](#-core-commands)
 - [Advanced Usage](#-advanced-usage)
+- [Security](#-security-configuration)
 - [Development](#️-development)
 - [Support](#-support)
+
+## 🔐 Security Documentation
+
+For detailed security architecture and TPM integration analysis, see:
+- [Security Architecture Guide](docs/SECURITY.md) - Platform-specific security backends
+- [TPM Investigation Report](components/crypto_engine/TPM_INVESTIGATION.md) - Technical analysis (2025-12-06)
 
 ## 🚀 Quick Start
 

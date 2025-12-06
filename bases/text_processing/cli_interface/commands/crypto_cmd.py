@@ -396,7 +396,7 @@ def create_crypto_subcommand(
 
         except Exception as e:
             console.print(f"[red]Error: {e}[/red]")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from e
 
     # ========================================================================
     # crypto passphrase-status - Check passphrase backend status
@@ -423,6 +423,8 @@ def create_crypto_subcommand(
         - Run this to verify your security configuration
         - Upgrade to keyring/TPM for better protection
         """
+        import platform
+
         from components.crypto_engine.passphrase_manager import SecurePassphraseManager
 
         try:
@@ -430,20 +432,46 @@ def create_crypto_subcommand(
 
             console.print("[bold cyan]Passphrase Backend Status[/bold cyan]\n")
 
-            # Check each backend
-            backends = [
-                ("TPM 2.0", manager._is_tpm_available(), "Highest"),
-                ("OS Keyring", manager._is_keyring_available(), "High"),
-                ("Environment Var", True, "Insecure"),
-            ]
+            # Platform-specific backend descriptions (clig.dev: rewrite for humans)
+            is_windows = platform.system() == "Windows"
 
-            for name, available, security in backends:
+            # Check each backend with clarified descriptions
+            if is_windows:
+                # Windows: Clarify TPM usage via DPAPI
+                backends = [
+                    (
+                        "TPM 2.0 (Direct)",
+                        manager._is_tpm_available(),
+                        "Highest",
+                        "Windows: use via DPAPI",
+                    ),
+                    (
+                        "OS Keyring (DPAPI)",
+                        manager._is_keyring_available(),
+                        "High",
+                        "",
+                    ),
+                    ("Environment Var", True, "Insecure", ""),
+                ]
+            else:
+                # Linux/macOS: Standard descriptions
+                backends = [
+                    ("TPM 2.0", manager._is_tpm_available(), "Highest", ""),
+                    ("OS Keyring", manager._is_keyring_available(), "High", ""),
+                    ("Environment Var", True, "Insecure", ""),
+                ]
+
+            # Display backends (Rich best practice: simple print for 3 items)
+            for name, available, security, note in backends:
                 status = (
                     "[green]Available[/green]"
                     if available
                     else "[red]Not Available[/red]"
                 )
-                console.print(f"  {name:20} {status:35} Security: {security}")
+                console.print(f"  {name:28} {status:28} Security: {security}")
+                # Show clarifying note on separate line (clig.dev: signal-to-noise)
+                if note and not available:
+                    console.print(f"    [dim]> {note}[/dim]")
 
             # Show current backend
             console.print("")
@@ -452,13 +480,22 @@ def create_crypto_subcommand(
                 console.print(
                     f"[bold green]Currently using:[/bold green] {current.value}"
                 )
+
+                # Actionable hints (clig.dev: suggest commands)
+                if is_windows and current.value == "keyring":
+                    console.print(
+                        "\n[dim]Tip: Enable Windows Hello to activate TPM protection for DPAPI[/dim]"
+                    )
+
             except ValueError:
                 console.print("[yellow]No passphrase configured![/yellow]")
-                console.print("[cyan]Run: textkit crypto set-passphrase[/cyan]")
+                console.print(
+                    "[cyan]Run: textkit crypto set-passphrase[/cyan]"
+                )  # Actionable
 
         except Exception as e:
             console.print(f"[red]Error: {e}[/red]")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from e
 
     return crypto_app
 
