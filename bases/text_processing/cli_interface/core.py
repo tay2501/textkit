@@ -286,6 +286,15 @@ def _register_all_commands() -> None:
         handle_cli_error_func=error_handler.handle_cli_error,
     )
 
+    # random subcommand group: textkit random generate [args]
+    from .commands.random_cmd import register_random_commands
+
+    register_random_commands(
+        app=app,
+        get_app_func=get_app,
+        handle_cli_error_func=error_handler.handle_cli_error,
+    )
+
     # status and version commands (top-level utilities)
     from .commands.status_cmd import register_status_commands
 

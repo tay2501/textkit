@@ -16,12 +16,14 @@ A modern, Unix-philosophy compliant text processing toolkit with seamless pipe a
 - 📝 **Bulk Text Replacement**: TSV-based multi-pattern substitution for complex transformations
 - 🔌 **Seamless I/O**: Simple clipboard operations and pipe-friendly processing
 - ⚡ **High Performance**: SIMD-accelerated string operations with StringZilla
+- 🔐 **Secure Random Generation**: Cryptographically secure random numbers for passwords and security tokens
 
 **Perfect for developers who need:**
 - Quick identifier format conversions (`my-file.js` ↔ `my_file.js`)
 - JSON string encoding with Unicode escapes
 - Batch text processing via pipes or clipboard
 - Cross-platform encoding conversions (UTF-8, Shift_JIS, etc.)
+- Cryptographically secure random numbers for security-sensitive applications
 
 ## 📚 Table of Contents
 
@@ -203,6 +205,7 @@ uv run python main.py crypto encrypt -i "test message"
 - **Secure file permissions** (0o600 for private keys, 0o644 for public keys)
 - **Memory-dump resistance** with OS Keyring or TPM 2.0
 - **Clipboard auto-clear** for sensitive data protection (Docker-style `--timeout` option)
+- **Cryptographically secure random generation** via `secrets.SystemRandom` for passwords and tokens
 
 ### Clipboard Security: Auto-Clear Timeout
 
@@ -350,6 +353,28 @@ uv run python main.py cb copy "Hello, World!"
 uv run python main.py clip get
 uv run python main.py clip set "Hello, World!"
 uv run python main.py clip clear
+```
+
+**Cryptographically Secure Random Generation**:
+```bash
+# Generate random float (0.0 <= x < 1.0)
+uv run python main.py random
+# Example output: 0.37444887175646646
+
+# Generate random integer (0 to 9)
+uv run python main.py random 10
+# Example output: 7
+
+# Generate random float in range (2.5 to 10.0)
+uv run python main.py random 2.5 10.0
+# Example output: 3.1800146073117523
+
+# Generate random integer with step (even number 0-100)
+uv run python main.py random 0 101 2
+# Example output: 26
+
+# Security: Uses secrets.SystemRandom for cryptographically secure random numbers
+# Suitable for password generation and security-sensitive applications
 ```
 
 ## 📖 Core Commands
