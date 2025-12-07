@@ -98,9 +98,8 @@ def configure_logging() -> None:
     # gzip compression for rotated logs
     def compress_rotated_logs(source: str, dest: str) -> None:
         """Compress rotated log files with gzip."""
-        with open(source, "rb") as f_in:
-            with gzip.open(f"{dest}.gz", "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
+        with open(source, "rb") as f_in, gzip.open(f"{dest}.gz", "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
         Path(source).unlink()
 
     # orjson for performance (2-3x faster than stdlib)

@@ -7,11 +7,15 @@ error handling, validation, logging, and performance monitoring.
 
 from abc import abstractmethod
 
-from textkit.exceptions import TransformationError
-
-from ...types import TransformationRule
-from ..base_transformer import BaseTransformer
-from ..mixins import ErrorHandlingMixin, LoggingMixin, PerformanceMixin, ValidationMixin
+from components.exceptions import TransformationError
+from components.text_core.transformers.base_transformer import BaseTransformer
+from components.text_core.transformers.mixins import (
+    ErrorHandlingMixin,
+    LoggingMixin,
+    PerformanceMixin,
+    ValidationMixin,
+)
+from components.text_core.types import TransformationRule
 
 
 class EnhancedBaseTransformer(

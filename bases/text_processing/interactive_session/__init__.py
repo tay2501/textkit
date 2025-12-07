@@ -1,3 +1,3 @@
-from textkit.interactive_session import core
+from . import core
 
 __all__ = ["core"]

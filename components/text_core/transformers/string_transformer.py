@@ -1,6 +1,7 @@
 """String manipulation transformation strategies."""
 
-from ..types import TransformationRule, TransformationRuleType
+from components.text_core.types import TransformationRule, TransformationRuleType
+
 from .base_transformer import BaseTransformer
 
 

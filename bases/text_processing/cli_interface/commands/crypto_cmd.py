@@ -20,7 +20,7 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
-from ..shared.standard_options import (
+from bases.text_processing.cli_interface.shared.standard_options import (
     FromClipboardOption,
     InputTextOption,
     ToClipboardOption,

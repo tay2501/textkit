@@ -149,4 +149,5 @@ dev = [
     "pytest-benchmark>=5.2.3",
     "pytest-cov>=7.0.0",
     "ruff>=0.13.1",
+    "types-aiofiles>=25.1.0.20251011",
 ]

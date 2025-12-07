@@ -6,7 +6,6 @@ Tests the complete flow of clipboard auto-clear with actual timing behavior.
 import sys
 import time
 from pathlib import Path
-from unittest.mock import Mock, patch
 
 import pytest
 
@@ -14,9 +13,6 @@ import pytest
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from bases.text_processing.cli_interface.commands.crypto_cmd import (
-    create_crypto_subcommand,
-)
 
 # ============================================================================
 # Integration Test: Full Encrypt-Decrypt-Clear Flow
@@ -30,7 +26,6 @@ from bases.text_processing.cli_interface.commands.crypto_cmd import (
 def test_full_encrypt_decrypt_with_timeout_flow():
     """Integration test: complete timer flow for clipboard clearing."""
     # Track clipboard state
-    clipboard_content = "initial_value"
     clipboard_cleared = False
 
     def mock_clear():
@@ -111,6 +106,7 @@ def test_timeout_zero_does_not_start_timer():
     timeout = None
     if timeout:
         import threading
+
         timer = threading.Timer(timeout, mock_clear)
         timer.daemon = True
         timer.start()

@@ -5,8 +5,8 @@ Provides standardized validation patterns that can be mixed
 into transformer classes for consistent input validation.
 """
 
-from textkit.common_utils import validate_text_input
-from textkit.exceptions import ParameterValidationError, ValidationError
+from components.common_utils import validate_text_input
+from components.exceptions import ParameterValidationError, ValidationError
 
 
 class ValidationMixin:

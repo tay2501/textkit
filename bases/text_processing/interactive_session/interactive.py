@@ -9,8 +9,10 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from ..exceptions import ClipboardError, ValidationError
-from ..io.clipboard import ClipboardMonitor
+from components.io.clipboard import ClipboardMonitor
+
+from components.exceptions import ClipboardError, ValidationError
+
 from .types import (
     CommandResult,
     IOManagerProtocol,

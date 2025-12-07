@@ -19,10 +19,11 @@ from typing import TYPE_CHECKING, Any, Final, ReadOnly, TypedDict, TypeIs
 
 import structlog
 
-from ..exceptions import (  # type: ignore[import-not-found]
+from components.exceptions import (  # type: ignore[import-not-found]
     ConfigurationError,
     CryptographyError,
 )
+
 from .types import ConfigManagerProtocol, ConfigurableComponent
 
 logger = structlog.get_logger(__name__)

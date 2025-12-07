@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Protocol
 
 # Re-export from config_manager for backwards compatibility
-from ..config_manager.types import (  # type: ignore[import-not-found]
+from components.config_manager.types import (  # type: ignore[import-not-found]
     ConfigManagerProtocol,
     ConfigurableComponent,
 )

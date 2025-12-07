@@ -11,8 +11,11 @@ import asyncio
 from typing import Any, cast
 
 import structlog
-from textkit.crypto_engine import CryptographyManager  # type: ignore[import-not-found]
-from textkit.exceptions import (
+
+from components.crypto_engine import (
+    CryptographyManager,  # type: ignore[import-not-found]
+)
+from components.exceptions import (
     CryptoTransformationError,  # type: ignore[import-not-found]
 )
 

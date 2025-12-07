@@ -7,17 +7,16 @@ Delegates parsing to RuleParser and execution to TransformationOrchestrator.
 
 from typing import Any
 
-from textkit.common_utils import (
+from components.common_utils import (
     get_structured_logger,
     handle_validation_error,
     with_error_context,
 )
-from textkit.exceptions import TransformationError, ValidationError
-
-from ..factories import TransformationFactory
-from ..models import TextTransformationRequest
-from ..orchestrators import TransformationOrchestrator
-from ..parsers import RuleParser
+from components.exceptions import TransformationError, ValidationError
+from components.factories import TransformationFactory
+from components.models import TextTransformationRequest
+from components.orchestrators import TransformationOrchestrator
+from components.parsers import RuleParser
 
 
 class TransformationEngine:

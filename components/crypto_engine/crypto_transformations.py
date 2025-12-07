@@ -14,7 +14,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .types import CryptoManagerProtocol
 
-from ..exceptions import TransformationError  # type: ignore[import-not-found]
+from components.exceptions import TransformationError  # type: ignore[import-not-found]
+
 from .constants import (  # type: ignore[import-not-found]
     CRYPTO_CONSTANTS,
     ERROR_CONTEXT_KEYS,

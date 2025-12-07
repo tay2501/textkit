@@ -1,6 +1,6 @@
 """Factory for creating transformation strategies and managing rules."""
 
-from ..transformers import (
+from components.text_core.transformers import (
     BaseTransformer,
     BasicTransformer,
     CaseTransformer,
@@ -11,7 +11,7 @@ from ..transformers import (
     LineEndingTransformer,
     StringTransformer,
 )
-from ..types import TransformationRule
+from components.text_core.types import TransformationRule
 
 
 class TransformationFactory:

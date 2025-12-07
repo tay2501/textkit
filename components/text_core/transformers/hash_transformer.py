@@ -3,7 +3,8 @@
 import base64
 import hashlib
 
-from ..types import TransformationRule, TransformationRuleType
+from components.text_core.types import TransformationRule, TransformationRuleType
+
 from .base_transformer import BaseTransformer
 
 

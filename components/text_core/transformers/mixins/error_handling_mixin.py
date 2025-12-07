@@ -9,8 +9,8 @@ import functools
 from collections.abc import Callable
 from typing import Any, TypeVar
 
-from textkit.common_utils import safe_execute, with_error_context
-from textkit.exceptions import TransformationError, ValidationError
+from components.common_utils import safe_execute, with_error_context
+from components.exceptions import TransformationError, ValidationError
 
 T = TypeVar("T")
 

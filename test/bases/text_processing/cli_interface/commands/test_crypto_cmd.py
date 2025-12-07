@@ -5,10 +5,9 @@ Tests the --timeout/-T option for clipboard auto-clear in encrypt/decrypt comman
 
 import threading
 import time
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
-import typer
 from typer.testing import CliRunner
 
 from bases.text_processing.cli_interface.commands.crypto_cmd import (
@@ -42,8 +41,15 @@ def mock_app_instance():
 @pytest.fixture
 def crypto_app(mock_app_instance):
     """Create crypto subcommand app with mocked dependencies."""
-    get_app_func = lambda: mock_app_instance
-    handle_cli_error_func = lambda e, context: None
+
+    def get_app_func():
+        """Return mock app instance."""
+        return mock_app_instance
+
+    def handle_cli_error_func(e, context):
+        """Mock error handler (no-op)."""
+        pass
+
     return create_crypto_subcommand(get_app_func, handle_cli_error_func)
 
 
@@ -104,7 +110,9 @@ def test_encrypt_timeout_validation_too_low(cli_runner, crypto_app):
 
     assert result.exit_code != 0
     # Typer outputs validation errors to stdout or output
-    output = result.stdout + result.output if hasattr(result, 'output') else result.stdout
+    output = (
+        result.stdout + result.output if hasattr(result, "output") else result.stdout
+    )
     assert "5" in output or "range" in output.lower() or result.exit_code == 2
 
 
@@ -118,17 +126,19 @@ def test_encrypt_timeout_validation_too_high(cli_runner, crypto_app):
 
     assert result.exit_code != 0
     # Typer outputs validation errors to stdout or output
-    output = result.stdout + result.output if hasattr(result, 'output') else result.stdout
+    output = (
+        result.stdout + result.output if hasattr(result, "output") else result.stdout
+    )
     assert "300" in output or "range" in output.lower() or result.exit_code == 2
 
 
 @pytest.mark.unit
 @pytest.mark.crypto
-def test_encrypt_timeout_without_to_clipboard(cli_runner, crypto_app, mock_app_instance):
+def test_encrypt_timeout_without_to_clipboard(
+    cli_runner, crypto_app, mock_app_instance
+):
     """Test that timeout without --to-clipboard does nothing."""
-    result = cli_runner.invoke(
-        crypto_app, ["encrypt", "-i", "test", "--timeout", "10"]
-    )
+    result = cli_runner.invoke(crypto_app, ["encrypt", "-i", "test", "--timeout", "10"])
 
     assert result.exit_code == 0
     # Timeout should not trigger without --to-clipboard
@@ -188,15 +198,11 @@ def test_decrypt_with_timeout_short_form(cli_runner, crypto_app, mock_app_instan
 def test_decrypt_timeout_validation(cli_runner, crypto_app):
     """Test timeout validation for decrypt command."""
     # Too low
-    result = cli_runner.invoke(
-        crypto_app, ["decrypt", "-i", "test", "-C", "-T", "2"]
-    )
+    result = cli_runner.invoke(crypto_app, ["decrypt", "-i", "test", "-C", "-T", "2"])
     assert result.exit_code != 0
 
     # Too high
-    result = cli_runner.invoke(
-        crypto_app, ["decrypt", "-i", "test", "-C", "-T", "500"]
-    )
+    result = cli_runner.invoke(crypto_app, ["decrypt", "-i", "test", "-C", "-T", "500"])
     assert result.exit_code != 0
 
 
@@ -313,15 +319,11 @@ def test_decrypt_help_shows_timeout_option(cli_runner, crypto_app):
 def test_timeout_with_boundary_values(cli_runner, crypto_app, mock_app_instance):
     """Test timeout with boundary values (5 and 300)."""
     # Minimum value
-    result = cli_runner.invoke(
-        crypto_app, ["encrypt", "-i", "test", "-C", "-T", "5"]
-    )
+    result = cli_runner.invoke(crypto_app, ["encrypt", "-i", "test", "-C", "-T", "5"])
     assert result.exit_code == 0
 
     # Maximum value
-    result = cli_runner.invoke(
-        crypto_app, ["encrypt", "-i", "test", "-C", "-T", "300"]
-    )
+    result = cli_runner.invoke(crypto_app, ["encrypt", "-i", "test", "-C", "-T", "300"])
     assert result.exit_code == 0
 
 
@@ -368,11 +370,12 @@ def test_passphrase_status_command_success(cli_runner, crypto_app):
 @pytest.mark.crypto
 def test_passphrase_status_windows_display(cli_runner, crypto_app):
     """Test passphrase-status shows Windows-specific messages."""
-    with patch(
-        "platform.system"
-    ) as mock_platform, patch(
-        "components.crypto_engine.passphrase_manager.SecurePassphraseManager"
-    ) as mock_manager_class:
+    with (
+        patch("platform.system") as mock_platform,
+        patch(
+            "components.crypto_engine.passphrase_manager.SecurePassphraseManager"
+        ) as mock_manager_class,
+    ):
         mock_platform.return_value = "Windows"
 
         mock_manager = Mock()
@@ -396,11 +399,12 @@ def test_passphrase_status_windows_display(cli_runner, crypto_app):
 @pytest.mark.crypto
 def test_passphrase_status_linux_display(cli_runner, crypto_app):
     """Test passphrase-status shows Linux-specific messages."""
-    with patch(
-        "platform.system"
-    ) as mock_platform, patch(
-        "components.crypto_engine.passphrase_manager.SecurePassphraseManager"
-    ) as mock_manager_class:
+    with (
+        patch("platform.system") as mock_platform,
+        patch(
+            "components.crypto_engine.passphrase_manager.SecurePassphraseManager"
+        ) as mock_manager_class,
+    ):
         mock_platform.return_value = "Linux"
 
         mock_manager = Mock()

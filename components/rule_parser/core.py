@@ -9,7 +9,8 @@ import re
 import shlex
 
 import structlog
-from textkit.exceptions import ValidationError
+
+from components.exceptions import ValidationError
 
 logger = structlog.get_logger(__name__)
 

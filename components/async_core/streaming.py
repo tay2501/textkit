@@ -16,8 +16,8 @@ from typing import Any
 
 import structlog
 
-from ..config_manager.settings import ApplicationSettings, get_settings
-from ..text_core.core import TextTransformationEngine
+from components.config_manager.settings import ApplicationSettings, get_settings
+from components.text_core.core import TextTransformationEngine
 
 # Initialize logger
 logger = structlog.get_logger(__name__)

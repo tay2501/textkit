@@ -8,11 +8,12 @@ all text transformation operations in a modular, extensible way.
 from __future__ import annotations
 
 import structlog
-from textkit.common_utils import (
+
+from components.common_utils import (
     handle_validation_error,
     safe_execute,
 )
-from textkit.rule_parser.types import RuleParserProtocol
+from components.rule_parser.types import RuleParserProtocol
 
 from .exceptions import TransformationError, ValidationError
 from .types import (

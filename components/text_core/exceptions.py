@@ -8,8 +8,8 @@ to maintain component independence.
 # Keep this as an alias for backward compatibility during migration
 # Import from unified exceptions component
 # Keep this as an alias for backward compatibility during migration
-from textkit.exceptions.transformation_exceptions import TransformationError
-from textkit.exceptions.validation_exceptions import ValidationError
+from components.exceptions.transformation_exceptions import TransformationError
+from components.exceptions.validation_exceptions import ValidationError
 
 __all__ = [
     "ValidationError",

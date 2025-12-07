@@ -10,7 +10,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any, TypeVar
 
-from textkit.exceptions import (
+from components.exceptions import (
     DataValidationError,
     ParameterValidationError,
 )

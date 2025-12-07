@@ -7,9 +7,9 @@ the enhanced base transformer and mixins for clean, maintainable code.
 
 from typing import Any
 
-from textkit.exceptions import EncodingTransformationError
+from components.exceptions import EncodingTransformationError
+from components.text_core.types import TransformationRule, TransformationRuleType
 
-from ..types import TransformationRule, TransformationRuleType
 from .base import EnhancedBaseTransformer
 from .mixins import ErrorHandlingMixin, LoggingMixin, PerformanceMixin
 

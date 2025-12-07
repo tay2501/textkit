@@ -18,7 +18,7 @@ from typing import Any, NamedTuple
 
 import structlog
 
-from ..config_manager.settings import ApplicationSettings, get_settings
+from components.config_manager.settings import ApplicationSettings, get_settings
 
 # Initialize logger
 logger = structlog.get_logger(__name__)

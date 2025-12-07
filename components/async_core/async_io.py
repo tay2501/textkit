@@ -17,8 +17,8 @@ from typing import Any
 import aiofiles
 import structlog
 
-from ..config_manager.settings import ApplicationSettings, get_settings
-from ..exceptions import FileOperationError
+from components.config_manager.settings import ApplicationSettings, get_settings
+from components.exceptions import FileOperationError
 
 # Initialize logger
 logger = structlog.get_logger(__name__)

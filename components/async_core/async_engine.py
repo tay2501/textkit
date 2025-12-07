@@ -16,10 +16,10 @@ from typing import Any
 
 import structlog
 
-from ..config_manager.settings import ApplicationSettings, get_settings
-from ..exceptions import TransformationError
-from ..text_core.core import TextTransformationEngine
-from ..text_core.models import TextTransformationRequest
+from components.config_manager.settings import ApplicationSettings, get_settings
+from components.exceptions import TransformationError
+from components.text_core.core import TextTransformationEngine
+from components.text_core.models import TextTransformationRequest
 
 # Initialize logger
 logger = structlog.get_logger(__name__)

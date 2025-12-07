@@ -331,7 +331,9 @@ class SecurePassphraseManager:
             except Exception as e:
                 logger.debug(f"Keyring deletion skipped: {e}")
 
-        if (backend is None or backend == PassphraseBackend.ENV_VAR) and self.env_var_name in os.environ:
+        if (
+            backend is None or backend == PassphraseBackend.ENV_VAR
+        ) and self.env_var_name in os.environ:
             logger.warning(
                 f"Cannot auto-delete environment variable: {self.env_var_name}\n"
                 f"Run: unset {self.env_var_name}"

@@ -72,10 +72,12 @@ class TestSecurePassphraseManager:
         manager = SecurePassphraseManager()
 
         # Auto-select should choose keyring if available
-        with patch.object(manager, "_is_keyring_available", return_value=True):
-            with patch("keyring.set_password"):
-                backend = manager.set_passphrase(test_passphrase, backend=None)
-                assert backend == PassphraseBackend.KEYRING
+        with (
+            patch.object(manager, "_is_keyring_available", return_value=True),
+            patch("keyring.set_password"),
+        ):
+            backend = manager.set_passphrase(test_passphrase, backend=None)
+            assert backend == PassphraseBackend.KEYRING
 
     def test_is_keyring_available_true(self):
         """Test keyring availability check when available."""
@@ -130,11 +132,13 @@ class TestSecurePassphraseManager:
 
         try:
             # Mock TPM and keyring as unavailable
-            with patch.object(manager, "_get_from_tpm", return_value=None):
-                with patch.object(manager, "_get_from_keyring", return_value=None):
-                    passphrase, backend = manager.get_passphrase()
-                    # Should fall back to env var
-                    assert backend == PassphraseBackend.ENV_VAR
+            with (
+                patch.object(manager, "_get_from_tpm", return_value=None),
+                patch.object(manager, "_get_from_keyring", return_value=None),
+            ):
+                passphrase, backend = manager.get_passphrase()
+                # Should fall back to env var
+                assert backend == PassphraseBackend.ENV_VAR
         finally:
             os.environ.pop("TEST_FALLBACK", None)
 

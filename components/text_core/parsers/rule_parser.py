@@ -8,12 +8,12 @@ with enhanced error handling and validation.
 import re
 from typing import NamedTuple
 
-from textkit.common_utils import (
+from components.common_utils import (
     get_structured_logger,
     validate_text_input,
     with_error_context,
 )
-from textkit.exceptions import ValidationError
+from components.exceptions import ValidationError
 
 
 class ParsedRule(NamedTuple):

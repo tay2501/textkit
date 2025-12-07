@@ -18,8 +18,10 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
-from ..middleware.output_manager import OutputManager
-from ..shared.standard_options import (
+from bases.text_processing.cli_interface.middleware.output_manager import (
+    OutputManager,
+)
+from bases.text_processing.cli_interface.shared.standard_options import (
     ErrorHandlingOption,
     FromClipboardOption,
     InputTextOption,
