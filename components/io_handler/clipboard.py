@@ -7,15 +7,15 @@ capabilities for auto-detection functionality.
 
 from __future__ import annotations
 
+import logging
 import threading
 import time
 from typing import Final
 
 from components.exceptions import ClipboardError, ValidationError
-from components.models.types import IOManagerProtocol, ThreadCallback
-from components.utils.unified_logger import get_logger
+from components.text_core.types import IOManagerProtocol, ThreadCallback
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 # Module-level constants for clipboard monitoring
 _DEFAULT_CHECK_INTERVAL: Final[float] = 1.0  # seconds
@@ -151,10 +151,10 @@ class ClipboardMonitor:
         """Set clipboard check interval.
 
         Args:
-            interval: Check interval in seconds (minimum 0.1)
+            interval: Check interval in seconds (minimum 0.1, values below are clamped)
 
         Raises:
-            ValidationError: If interval is invalid
+            ValidationError: If interval is invalid type or negative
         """
         if not isinstance(interval, (int, float)):
             raise ValidationError(
@@ -162,10 +162,10 @@ class ClipboardMonitor:
                 {"interval_type": type(interval).__name__},
             )
 
-        if interval < 0.1:
+        if interval < 0:
             raise ValidationError(
-                f"Check interval too small: {interval} (minimum: 0.1)",
-                {"interval": interval, "minimum": 0.1},
+                f"Check interval cannot be negative: {interval}",
+                {"interval": interval},
             )
 
         self.check_interval = max(0.1, float(interval))

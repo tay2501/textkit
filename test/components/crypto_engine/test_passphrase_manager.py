@@ -14,28 +14,35 @@ from components.crypto_engine.passphrase_manager import (
 class TestSecurePassphraseManager:
     """Test suite for SecurePassphraseManager."""
 
-    def test_get_passphrase_from_env(self):
+    def test_get_passphrase_from_env(self, monkeypatch):
         """Test passphrase retrieval from environment variable (fallback)."""
         env_var = "TEST_PASSPHRASE"
         test_passphrase = "a" * 48  # Long enough passphrase
 
+        # Set environment variable using monkeypatch
+        monkeypatch.setenv(env_var, test_passphrase)
+
         manager = SecurePassphraseManager(env_var_name=env_var)
 
-        # Set environment variable
-        os.environ[env_var] = test_passphrase
-
-        try:
+        # Mock keyring to return None so it falls back to env var
+        with patch("keyring.get_password", return_value=None):
             passphrase, backend = manager.get_passphrase()
             assert passphrase == test_passphrase.encode("utf-8")
             assert backend == PassphraseBackend.ENV_VAR
-        finally:
-            os.environ.pop(env_var, None)
 
-    def test_get_passphrase_not_found(self):
+    def test_get_passphrase_not_found(self, monkeypatch):
         """Test error when no passphrase is available."""
-        manager = SecurePassphraseManager(env_var_name="NONEXISTENT_VAR")
+        # Ensure the environment variable doesn't exist
+        env_var = "NONEXISTENT_VAR"
+        monkeypatch.delenv(env_var, raising=False)
 
-        with pytest.raises(ValueError, match="No passphrase found"):
+        manager = SecurePassphraseManager(env_var_name=env_var)
+
+        # Mock keyring to return None so it falls back to env var (which doesn't exist)
+        with (
+            patch("keyring.get_password", return_value=None),
+            pytest.raises(ValueError, match="No passphrase found"),
+        ):
             manager.get_passphrase()
 
     def test_get_passphrase_from_keyring(self):

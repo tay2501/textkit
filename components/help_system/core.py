@@ -22,8 +22,8 @@ class HelpSection:
 
     title: str
     content: str
-    subsections: list[HelpSection] = None
-    metadata: dict[str, Any] = None
+    subsections: list[HelpSection] | None = None
+    metadata: dict[str, Any] | None = None
 
     def __post_init__(self) -> None:
         """Initialize optional fields."""
@@ -57,7 +57,7 @@ class HelpGenerator(ABC):
     """
 
     @abstractmethod
-    def generate_help(self, context: dict[str, Any] = None) -> list[HelpSection]:
+    def generate_help(self, context: dict[str, Any] | None = None) -> list[HelpSection]:
         """Generate help content.
 
         Args:
@@ -108,7 +108,7 @@ class HelpManager:
         """
         self._providers.append(provider)
 
-    def get_help(self, topic: str, context: dict[str, Any] = None) -> list[HelpSection]:
+    def get_help(self, topic: str, context: dict[str, Any] | None = None) -> list[HelpSection]:
         """Get help content for a specific topic.
 
         Args:
@@ -150,7 +150,7 @@ class HelpManager:
         """Clear the help content cache."""
         self._content_cache.clear()
 
-    def refresh_help(self, topic: str = None) -> None:
+    def refresh_help(self, topic: str | None = None) -> None:
         """Refresh help content for a topic or all topics.
 
         Args:

@@ -24,9 +24,9 @@ class PerformanceMixin:
     def __init__(self, *args, **kwargs):
         """Initialize performance monitoring."""
         super().__init__(*args, **kwargs)
-        self._performance_stats = defaultdict(list)
-        self._recent_operations = deque(maxlen=100)  # Keep last 100 operations
-        self._operation_count = defaultdict(int)
+        self._performance_stats: defaultdict[str, list[dict[str, Any]]] = defaultdict(list)
+        self._recent_operations: deque[dict[str, Any]] = deque(maxlen=100)  # Keep last 100 operations
+        self._operation_count: defaultdict[str, int] = defaultdict(int)
 
     def track_performance(
         self,

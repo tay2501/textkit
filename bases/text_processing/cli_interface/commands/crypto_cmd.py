@@ -20,6 +20,12 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
+from bases.text_processing.cli_interface.commands.crypto.decrypt import (
+    create_decrypt_command,
+)
+from bases.text_processing.cli_interface.commands.crypto.encrypt import (
+    create_encrypt_command,
+)
 from bases.text_processing.cli_interface.shared.standard_options import (
     FromClipboardOption,
     InputTextOption,
@@ -52,234 +58,17 @@ def create_crypto_subcommand(
     # crypto encrypt - Encrypt text using hybrid cryptography
     # ========================================================================
 
-    @crypto_app.command("encrypt")
-    def encrypt(
-        text: InputTextOption = None,
-        from_clipboard: FromClipboardOption = False,
-        to_clipboard: ToClipboardOption = False,
-        timeout: Annotated[
-            int | None,
-            typer.Option(
-                "--timeout",
-                "-T",
-                help="Clear clipboard after N seconds (range: 5-300, recommended: 30-90 for sensitive data)",
-                min=5,
-                max=300,
-            ),
-        ] = None,
-    ) -> None:
-        """Encrypt text using RSA+AES hybrid encryption.
-
-        **Security Features:**
-
-        - RSA-2048 asymmetric encryption for key exchange
-        - AES-256-GCM symmetric encryption for data
-        - Automatic key generation and management
-        - Base64-encoded output for safe transmission
-
-        **Usage Examples:**
-
-        ```bash
-        # Encrypt explicit input
-        textkit crypto encrypt -i "secret message"
-
-        # Encrypt from clipboard
-        textkit crypto encrypt --from-clipboard
-
-        # Encrypt and copy to clipboard
-        textkit crypto encrypt -i "secret" --to-clipboard
-
-        # Auto-clear clipboard after 60 seconds (Docker-style)
-        textkit crypto encrypt -i "secret" --to-clipboard --timeout 60
-        textkit crypto encrypt -i "secret" --to-clipboard -T 60
-
-        # Pipe input
-        echo "secret" | textkit crypto encrypt
-        ```
-
-        **Security Tips:**
-        - Default: clipboard NOT cleared (safe for general use)
-        - Recommended timeout for sensitive data: 30-90 seconds
-        - Manual clear anytime: `textkit clip clear`
-        - Output is Base64-encoded for safe transmission
-        """
-        try:
-            app_instance = get_app_func()
-
-            # Determine input source with explicit priority
-            if text is not None:
-                input_text = text
-            elif from_clipboard:
-                input_text = app_instance.io_manager.get_clipboard_text()
-            else:
-                import sys
-
-                if not sys.stdin.isatty():
-                    input_text = sys.stdin.read()
-                else:
-                    console.print(
-                        "[yellow]Warning: No input specified. Use -i, --from-clipboard, or pipe input.[/yellow]"
-                    )
-                    raise typer.Exit(1)
-
-            # Encrypt text
-            result = app_instance.encrypt_text(input_text)
-
-            # Output result
-            console.print(result)
-            console.print(f"\n[cyan]Encrypted length:[/cyan] {len(result)} characters")
-
-            # Handle clipboard output
-            if to_clipboard:
-                app_instance.io_manager.safe_copy_to_clipboard(result)
-                console.print("[green]✓[/green] Copied to clipboard")
-
-                # Schedule clipboard timeout if requested
-                if timeout:
-                    import contextlib
-                    import threading
-
-                    def _clear_clipboard() -> None:
-                        """Background task to clear clipboard after timeout."""
-                        with contextlib.suppress(Exception):
-                            app_instance.io_manager.clear_clipboard()
-                            # Note: console.print won't be visible in background thread
-
-                    timer = threading.Timer(timeout, _clear_clipboard)
-                    timer.daemon = (
-                        True  # Allow program to exit even if timer is running
-                    )
-                    timer.start()
-
-                    console.print(
-                        f"[yellow]⏱  Clipboard will auto-clear in {timeout} seconds[/yellow]"
-                    )
-                    console.print(
-                        "[dim]Cancel anytime: Ctrl+C or manually clear with 'textkit clip clear'[/dim]"
-                    )
-
-        except Exception as e:
-            handle_cli_error_func(e, "text encryption")
+    # Use refactored encrypt command from dedicated module
+    encrypt_func = create_encrypt_command(get_app_func, handle_cli_error_func)
+    crypto_app.command("encrypt")(encrypt_func)
 
     # ========================================================================
     # crypto decrypt - Decrypt text using hybrid cryptography
     # ========================================================================
 
-    @crypto_app.command("decrypt")
-    def decrypt(
-        text: InputTextOption = None,
-        from_clipboard: FromClipboardOption = False,
-        to_clipboard: ToClipboardOption = False,
-        timeout: Annotated[
-            int | None,
-            typer.Option(
-                "--timeout",
-                "-T",
-                help="Clear clipboard after N seconds (range: 5-300, recommended: 30-90 for passwords)",
-                min=5,
-                max=300,
-            ),
-        ] = None,
-    ) -> None:
-        """Decrypt text using RSA+AES hybrid decryption.
-
-        **Security Features:**
-
-        - RSA-2048 asymmetric decryption for key recovery
-        - AES-256-GCM symmetric decryption for data
-        - Automatic key management
-        - Base64-decoded input processing
-
-        **Usage Examples:**
-
-        ```bash
-        # Decrypt explicit input
-        textkit crypto decrypt -i "encrypted_base64_text"
-
-        # Decrypt from clipboard
-        textkit crypto decrypt --from-clipboard
-
-        # Decrypt and copy to clipboard
-        textkit crypto decrypt -i "encrypted" --to-clipboard
-
-        # Auto-clear clipboard after 60 seconds (Docker-style, recommended for passwords)
-        textkit crypto decrypt --from-clipboard --to-clipboard --timeout 60
-        textkit crypto decrypt --from-clipboard --to-clipboard -T 60
-
-        # Pipe input
-        echo "encrypted_text" | textkit crypto decrypt
-        ```
-
-        **Security Tips:**
-        - Input must be Base64-encoded encrypted text
-        - Default: clipboard NOT cleared (safe for general use)
-        - Recommended timeout for passwords: 30-90 seconds
-        - pass uses 45s, 1Password uses 90s
-        - Manual clear anytime: `textkit clip clear`
-        """
-        try:
-            app_instance = get_app_func()
-
-            # Determine input source with explicit priority
-            if text is not None:
-                input_text = text
-            elif from_clipboard:
-                input_text = app_instance.io_manager.get_clipboard_text()
-            else:
-                import sys
-
-                if not sys.stdin.isatty():
-                    input_text = sys.stdin.read()
-                else:
-                    console.print(
-                        "[yellow]Warning: No input specified. Use -i, --from-clipboard, or pipe input.[/yellow]"
-                    )
-                    raise typer.Exit(1)
-
-            # Validate input text is not empty
-            if not input_text or input_text.strip() == "":
-                console.print(
-                    "[yellow]Warning: No text to decrypt. Please provide encrypted text via -i flag or clipboard (-c).[/yellow]"
-                )
-                raise typer.Exit(0)
-
-            # Decrypt text
-            result = app_instance.decrypt_text(input_text)
-
-            # Output result
-            console.print(result)
-
-            # Handle clipboard output
-            if to_clipboard:
-                app_instance.io_manager.safe_copy_to_clipboard(result)
-                console.print("\n[green]✓[/green] Copied to clipboard")
-
-                # Schedule clipboard timeout if requested
-                if timeout:
-                    import contextlib
-                    import threading
-
-                    def _clear_clipboard() -> None:
-                        """Background task to clear clipboard after timeout."""
-                        with contextlib.suppress(Exception):
-                            app_instance.io_manager.clear_clipboard()
-                            # Note: console.print won't be visible in background thread
-
-                    timer = threading.Timer(timeout, _clear_clipboard)
-                    timer.daemon = (
-                        True  # Allow program to exit even if timer is running
-                    )
-                    timer.start()
-
-                    console.print(
-                        f"[yellow]⏱  Clipboard will auto-clear in {timeout} seconds[/yellow]"
-                    )
-                    console.print(
-                        "[dim]Cancel anytime: Ctrl+C or manually clear with 'textkit clip clear'[/dim]"
-                    )
-
-        except Exception as e:
-            handle_cli_error_func(e, "text decryption")
+    # Use refactored decrypt command from dedicated module
+    decrypt_func = create_decrypt_command(get_app_func, handle_cli_error_func)
+    crypto_app.command("decrypt")(decrypt_func)
 
     # ========================================================================
     # crypto set-passphrase - Set encryption passphrase securely

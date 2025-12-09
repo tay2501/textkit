@@ -31,7 +31,7 @@ class ValidationRule:
 class ValidationError(Exception):
     """Raised when command validation fails."""
 
-    def __init__(self, message: str, field: str = None) -> None:
+    def __init__(self, message: str, field: str | None = None) -> None:
         """Initialize validation error.
 
         Args:

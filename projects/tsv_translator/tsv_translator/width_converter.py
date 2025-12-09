@@ -1,6 +1,6 @@
 """Character width conversion utilities for full-width and half-width transformations."""
 
-import unicodedata
+import jaconv
 
 
 class WidthConverter:
@@ -9,7 +9,8 @@ class WidthConverter:
     def to_half_width(self, text: str) -> str:
         """Convert full-width characters to half-width characters.
 
-        Uses Unicode NFKC normalization for compatibility decomposition.
+        Uses jaconv for comprehensive full-width to half-width conversion
+        including ASCII, katakana, and symbols.
 
         Args:
             text: Input text containing full-width characters
@@ -17,11 +18,14 @@ class WidthConverter:
         Returns:
             Text with full-width characters converted to half-width
         """
-        # NFKC normalization converts full-width ASCII to half-width
-        return unicodedata.normalize("NFKC", text)
+        # Use jaconv for comprehensive conversion (ASCII, katakana, symbols)
+        return jaconv.z2h(text, kana=True, ascii=True, digit=True)
 
     def to_full_width(self, text: str) -> str:
         """Convert half-width characters to full-width characters.
+
+        Uses jaconv for comprehensive half-width to full-width conversion
+        including ASCII, katakana, and symbols.
 
         Args:
             text: Input text containing half-width characters
@@ -29,18 +33,8 @@ class WidthConverter:
         Returns:
             Text with half-width characters converted to full-width
         """
-        result = []
-        for char in text:
-            code = ord(char)
-            # Convert half-width ASCII (0x0021-0x007E) to full-width (0xFF01-0xFF5E)
-            if 0x0021 <= code <= 0x007E:
-                result.append(chr(code - 0x0021 + 0xFF01))
-            # Convert half-width space to full-width space
-            elif char == " ":
-                result.append("\u3000")
-            else:
-                result.append(char)
-        return "".join(result)
+        # Use jaconv for comprehensive conversion (ASCII, katakana, symbols)
+        return jaconv.h2z(text, kana=True, ascii=True, digit=True)
 
     def convert_width(self, text: str, direction: str) -> str:
         """Convert character width based on direction.
