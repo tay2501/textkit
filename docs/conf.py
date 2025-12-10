@@ -25,7 +25,10 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
+    "sphinx.ext.autosummary",
     "myst_parser",
+    "sphinx_autodoc_typehints",
+    "sphinx_copybutton",
 ]
 
 templates_path = ["_templates"]
@@ -36,7 +39,7 @@ language = "en"
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
 html_static_path = ["_static"]
 
 # -- Options for intersphinx extension ---------------------------------------
@@ -60,4 +63,10 @@ autodoc_default_options = {
     "special-members": "__init__",
     "undoc-members": True,
     "exclude-members": "__weakref__",
+    "show-inheritance": True,
+    "inherited-members": True,
 }
+
+# Type hints configuration for sphinx-autodoc-typehints
+autodoc_typehints = "description"
+autodoc_typehints_description_target = "documented"

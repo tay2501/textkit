@@ -144,10 +144,17 @@ check_untyped_defs = true
 
 [dependency-groups]
 dev = [
+    "furo>=2025.9.25",
     "mypy>=1.18.2",
+    "myst-parser>=4.0.1",
     "pytest-asyncio>=1.2.0",
     "pytest-benchmark>=5.2.3",
     "pytest-cov>=7.0.0",
     "ruff>=0.13.1",
+    "sphinx>=8.2.3",
+    "sphinx-autobuild>=2025.8.25",
+    "sphinx-autodoc-typehints>=3.5.2",
+    "sphinx-copybutton>=0.5.2",
+    "sphinx-rtd-theme>=3.0.2",
     "types-aiofiles>=25.1.0.20251011",
 ]

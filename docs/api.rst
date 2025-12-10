@@ -14,91 +14,37 @@ Text Core
    :undoc-members:
    :show-inheritance:
 
-Parser Core
+Crypto Engine
+~~~~~~~~~~~~~
+
+.. automodule:: components.crypto_engine
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Rule Parser
 ~~~~~~~~~~~
 
-.. automodule:: components.parser_core
+.. automodule:: components.rule_parser
    :members:
    :undoc-members:
    :show-inheritance:
 
-Transform Core
-~~~~~~~~~~~~~~
+Handler Components
+------------------
 
-.. automodule:: components.transform_core
+IO Handler
+~~~~~~~~~~
+
+.. automodule:: components.io_handler
    :members:
    :undoc-members:
    :show-inheritance:
 
-Processing Components
----------------------
-
-Text Processing
+Command Handler
 ~~~~~~~~~~~~~~~
 
-.. automodule:: components.text_processing
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-StringZilla-Accelerated Components
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following components leverage StringZilla for SIMD-accelerated operations:
-
-String Transformer
-^^^^^^^^^^^^^^^^^^
-
-.. automodule:: components.text_processing.text_core.transformers.string_transformer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Key Methods:
-
-- ``_apply_stringzilla_replace()``: SIMD-optimized text replacement
-- ``_apply_sql_in_list_stringzilla()``: High-performance SQL IN list generation
-- Automatic fallback to standard implementations when StringZilla unavailable
-
-Format Processing
-~~~~~~~~~~~~~~~~~
-
-.. automodule:: components.format_processing
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Language Processing
-~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: components.language_processing
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Integration Components
-----------------------
-
-File Integration
-~~~~~~~~~~~~~~~~
-
-.. automodule:: components.file_integration
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Database Integration
-~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: components.database_integration
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-API Integration
-~~~~~~~~~~~~~~~
-
-.. automodule:: components.api_integration
+.. automodule:: components.command_handler
    :members:
    :undoc-members:
    :show-inheritance:
@@ -106,53 +52,34 @@ API Integration
 Utility Components
 ------------------
 
-Logging Utils
-~~~~~~~~~~~~~
+Config Manager
+~~~~~~~~~~~~~~
 
-.. automodule:: components.logging_utils
+.. automodule:: components.config_manager
    :members:
    :undoc-members:
    :show-inheritance:
 
-Configuration Utils
-~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: components.configuration_utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Testing Utils
-~~~~~~~~~~~~~
-
-.. automodule:: components.testing_utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Base Applications
------------------
-
-CLI Base
-~~~~~~~~
-
-.. automodule:: bases.cli_base
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Web Base
-~~~~~~~~
-
-.. automodule:: bases.web_base
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Service Base
+Common Utils
 ~~~~~~~~~~~~
 
-.. automodule:: bases.service_base
+.. automodule:: components.common_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Async Core
+~~~~~~~~~~
+
+.. automodule:: components.async_core
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Dependency Injection
+~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: components.dependency_injection
    :members:
    :undoc-members:
    :show-inheritance:
@@ -160,53 +87,53 @@ Service Base
 Exception Classes
 -----------------
 
-Core Exceptions
+Base Exceptions
 ~~~~~~~~~~~~~~~
 
-.. automodule:: components.text_core.exceptions
+.. automodule:: components.exceptions.base_exceptions
    :members:
    :undoc-members:
    :show-inheritance:
 
-Processing Exceptions
+Configuration Exceptions
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: components.exceptions.configuration_exceptions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+IO Exceptions
+~~~~~~~~~~~~~
+
+.. automodule:: components.exceptions.io_exceptions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Transformation Exceptions
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: components.exceptions.transformation_exceptions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Validation Exceptions
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: components.text_processing.exceptions
+.. automodule:: components.exceptions.validation_exceptions
    :members:
    :undoc-members:
    :show-inheritance:
 
-Integration Exceptions
-~~~~~~~~~~~~~~~~~~~~~~
+Base Applications
+-----------------
 
-.. automodule:: components.file_integration.exceptions
-   :members:
-   :undoc-members:
-   :show-inheritance:
+Text Processing Base
+~~~~~~~~~~~~~~~~~~~~
 
-Type Definitions
-----------------
-
-Core Types
-~~~~~~~~~~
-
-.. automodule:: components.text_core.types
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Processing Types
-~~~~~~~~~~~~~~~~
-
-.. automodule:: components.text_processing.types
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Configuration Types
-~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: components.configuration_utils.types
+.. automodule:: bases.text_processing
    :members:
    :undoc-members:
    :show-inheritance:

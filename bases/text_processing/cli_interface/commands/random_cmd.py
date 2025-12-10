@@ -8,15 +8,73 @@ Based on Python 3.6+ secrets module best practices (2025).
 
 from __future__ import annotations
 
+import contextlib
 import secrets
-from typing import Annotated
+import threading
+from typing import TYPE_CHECKING, Annotated
 
 import structlog
 import typer
 from rich.console import Console
 
+if TYPE_CHECKING:
+    from typing import Any
+
 console = Console()
 logger = structlog.get_logger(__name__)
+
+
+def _handle_clipboard_output(
+    app_instance: Any,
+    result: str,
+    to_clipboard: bool,
+    timeout: int | None = None,
+) -> None:
+    """Handle clipboard output with optional auto-clear timeout.
+
+    Args:
+        app_instance: Application instance with io_manager
+        result: Text to copy to clipboard
+        to_clipboard: Whether to copy to clipboard
+        timeout: Optional timeout in seconds for auto-clear (5-300)
+    """
+    if not to_clipboard:
+        return
+
+    # Copy to clipboard
+    app_instance.io_manager.safe_copy_to_clipboard(result)
+    console.print("[green]✓[/green] Copied to clipboard")
+
+    # Schedule timeout if requested
+    if timeout:
+        _schedule_clipboard_clear(app_instance, timeout)
+
+
+def _schedule_clipboard_clear(
+    app_instance: Any,
+    timeout: int,
+) -> None:
+    """Schedule clipboard clear after timeout.
+
+    Args:
+        app_instance: Application instance with io_manager
+        timeout: Timeout in seconds
+    """
+
+    def _clear_clipboard() -> None:
+        """Background task to clear clipboard after timeout."""
+        with contextlib.suppress(Exception):
+            app_instance.io_manager.clear_clipboard()
+            # Note: console.print won't be visible in background thread
+
+    timer = threading.Timer(timeout, _clear_clipboard)
+    timer.daemon = True  # Allow program to exit even if timer is running
+    timer.start()
+
+    console.print(f"[yellow]⏱  Clipboard will auto-clear in {timeout} seconds[/yellow]")
+    console.print(
+        "[dim]Cancel anytime: Ctrl+C or manually clear with 'textkit clip clear'[/dim]"
+    )
 
 
 def register_random_commands(
@@ -53,6 +111,32 @@ def register_random_commands(
             typer.Argument(
                 help="Arguments for random generation (0-3 values)",
                 show_default=False,
+            ),
+        ] = None,
+        from_clipboard: Annotated[
+            bool,
+            typer.Option(
+                "--from-clipboard",
+                "-c",
+                help="Read arguments from clipboard (space-separated)",
+            ),
+        ] = False,
+        to_clipboard: Annotated[
+            bool,
+            typer.Option(
+                "--to-clipboard",
+                "-C",
+                help="Copy result to clipboard",
+            ),
+        ] = False,
+        timeout: Annotated[
+            int | None,
+            typer.Option(
+                "--timeout",
+                "-T",
+                help="Clear clipboard after N seconds (range: 5-300, recommended: 45s like pass)",
+                min=5,
+                max=300,
             ),
         ] = None,
     ) -> None:
@@ -92,6 +176,25 @@ def register_random_commands(
         # Output: 26  (even number from 0 to 100)
         ```
 
+        **Clipboard integration:**
+
+        ```bash
+        # Copy result to clipboard
+        textkit random 10 -C
+        textkit random 10 --to-clipboard
+
+        # Read arguments from clipboard (e.g., "2.5 10.0")
+        textkit random -c
+        textkit random --from-clipboard
+
+        # Auto-clear clipboard after 45 seconds (pass standard)
+        textkit random 100 -C -T 45
+        textkit random 100 --to-clipboard --timeout 45
+
+        # Combine with global --quiet flag for silent operation
+        textkit --quiet random 10 -C
+        ```
+
         **Security:**
         Uses secrets.SystemRandom for cryptographically secure random numbers
         suitable for security-sensitive applications, password generation,
@@ -101,10 +204,41 @@ def register_random_commands(
         if ctx.invoked_subcommand is not None:
             return
         try:
+            # Validate timeout option
+            if timeout and not to_clipboard:
+                console.print(
+                    "[yellow]Warning: --timeout/-T requires --to-clipboard/-C[/yellow]"
+                )
+                raise typer.Exit(1)
+
+            # Get application instance for clipboard operations
+            app_instance = get_app_func()
+
+            # Handle clipboard input
+            if from_clipboard:
+                clipboard_text = app_instance.io_manager.get_clipboard_text()
+                if not clipboard_text or clipboard_text.strip() == "":
+                    console.print(
+                        "[yellow]Warning: Clipboard is empty. "
+                        "Please copy arguments (e.g., '10' or '2.5 10.0') to clipboard.[/yellow]"
+                    )
+                    raise typer.Exit(1)
+
+                # Parse clipboard text as space-separated arguments
+                try:
+                    args = [float(x) for x in clipboard_text.strip().split()]
+                except ValueError as e:
+                    console.print(
+                        f"[red]Error: Invalid clipboard content. "
+                        f"Expected space-separated numbers, got: {clipboard_text!r}[/red]"
+                    )
+                    raise typer.Exit(1) from e
+
+            result_value = None
+
             if args is None or len(args) == 0:
                 # No arguments: random() - float between 0.0 and 1.0
-                result = secure_random.random()
-                console.print(f"{result}")
+                result_value = secure_random.random()
 
             elif len(args) == 1:
                 # One argument: randrange(stop) - integer from 0 to stop-1
@@ -112,8 +246,7 @@ def register_random_commands(
                 if stop <= 0:
                     console.print("[red]Error: stop must be greater than 0[/red]")
                     raise typer.Exit(1)
-                result = secure_random.randrange(stop)
-                console.print(f"{result}")
+                result_value = secure_random.randrange(stop)
 
             elif len(args) == 2:
                 # Two arguments: uniform(start, stop) - float between start and stop
@@ -122,8 +255,7 @@ def register_random_commands(
                 if start >= stop:
                     console.print("[red]Error: start must be less than stop[/red]")
                     raise typer.Exit(1)
-                result = secure_random.uniform(start, stop)
-                console.print(f"{result}")
+                result_value = secure_random.uniform(start, stop)
 
             elif len(args) == 3:
                 # Three arguments: randrange(start, stop, step)
@@ -147,12 +279,21 @@ def register_random_commands(
                     )
                     raise typer.Exit(1)
 
-                result = secure_random.randrange(start, stop, step)
-                console.print(f"{result}")
+                result_value = secure_random.randrange(start, stop, step)
 
             else:
                 console.print("[red]Error: Too many arguments (maximum 3)[/red]")
                 raise typer.Exit(1)
+
+            # Output result to console
+            if result_value is not None:
+                result_str = str(result_value)
+                console.print(result_str)
+
+                # Handle clipboard output
+                _handle_clipboard_output(
+                    app_instance, result_str, to_clipboard, timeout
+                )
 
         except ValueError as e:
             console.print(f"[red]Error: Invalid argument - {e}[/red]")

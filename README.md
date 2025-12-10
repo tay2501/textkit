@@ -373,6 +373,20 @@ uv run python main.py random 2.5 10.0
 uv run python main.py random 0 101 2
 # Example output: 26
 
+# Clipboard integration
+uv run python main.py random -C 10          # Copy result to clipboard (short form)
+uv run python main.py random --to-clipboard 100
+
+# Auto-clear clipboard after 45 seconds (pass standard)
+uv run python main.py random -C -T 45 100
+
+# Read arguments from clipboard (e.g., clipboard contains "2.5 10.0")
+uv run python main.py random -c             # Reads "2.5 10.0" from clipboard
+uv run python main.py random --from-clipboard
+
+# Combine with --quiet for silent operation
+uv run python main.py --quiet random -C 10
+
 # Security: Uses secrets.SystemRandom for cryptographically secure random numbers
 # Suitable for password generation and security-sensitive applications
 ```

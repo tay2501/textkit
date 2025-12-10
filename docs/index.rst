@@ -47,13 +47,6 @@ The Text Processing Toolkit provides a modular and extensible framework for buil
 
 .. toctree::
    :maxdepth: 2
-   :caption: Security:
-
-   SECURITY
-   components/crypto_engine/TPM_INVESTIGATION
-
-.. toctree::
-   :maxdepth: 2
    :caption: API Reference:
 
    api
