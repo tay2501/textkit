@@ -47,6 +47,7 @@ def create_decrypt_command(
             bool,
             typer.Option(
                 "--from-clipboard",
+                "-c",
                 help="Read input from clipboard",
             ),
         ] = False,
@@ -54,6 +55,7 @@ def create_decrypt_command(
             bool,
             typer.Option(
                 "--to-clipboard",
+                "-C",
                 help="Copy result to clipboard",
             ),
         ] = False,
