@@ -26,11 +26,6 @@ from bases.text_processing.cli_interface.commands.crypto.decrypt import (
 from bases.text_processing.cli_interface.commands.crypto.encrypt import (
     create_encrypt_command,
 )
-from bases.text_processing.cli_interface.shared.standard_options import (
-    FromClipboardOption,
-    InputTextOption,
-    ToClipboardOption,
-)
 
 console = Console()
 
