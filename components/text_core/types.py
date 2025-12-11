@@ -42,7 +42,7 @@ except ImportError:
             for key, value in kwargs.items():
                 setattr(self, key, value)
 
-    def Field(**kwargs):  # noqa: N802
+    def Field(**kwargs):
         """Stub for pydantic Field."""
         return None
 

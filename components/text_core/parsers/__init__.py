@@ -7,4 +7,4 @@ the single responsibility principle.
 
 from .rule_parser import ParsedRule, RuleParser
 
-__all__ = ["RuleParser", "ParsedRule"]
+__all__ = ["ParsedRule", "RuleParser"]

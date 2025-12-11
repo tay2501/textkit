@@ -12,10 +12,10 @@ from .status_cmd import register_status_commands
 from .transform_cmd import transform_text
 
 __all__ = [
-    "transform_text",
+    "register_clip_commands",
     "register_crypto_commands",
+    "register_iconv_command",
     "register_rules_command",
     "register_status_commands",
-    "register_iconv_command",
-    "register_clip_commands",
+    "transform_text",
 ]

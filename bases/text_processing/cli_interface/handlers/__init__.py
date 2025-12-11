@@ -12,7 +12,7 @@ from .transform_handler import TransformCommandHandler
 
 __all__ = [
     "BaseCommandHandler",
-    "TransformCommandHandler",
     "CryptoCommandHandler",
     "RulesCommandHandler",
+    "TransformCommandHandler",
 ]

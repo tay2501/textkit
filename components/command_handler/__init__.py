@@ -10,8 +10,8 @@ from .patterns import CommandPattern, CommandRegistry
 from .validation import CommandValidator
 
 __all__ = [
-    "CommandProcessor",
     "CommandPattern",
+    "CommandProcessor",
     "CommandRegistry",
     "CommandValidator",
 ]

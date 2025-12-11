@@ -8,6 +8,6 @@ file support, caching, and validation.
 from .core import ConfigurationError, ConfigurationManager
 
 __all__ = [
-    "ConfigurationManager",
     "ConfigurationError",
+    "ConfigurationManager",
 ]

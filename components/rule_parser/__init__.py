@@ -8,7 +8,7 @@ from .core import RuleParser
 from .types import ParsedRule, RuleParserProtocol
 
 __all__ = [
-    "RuleParser",
     "ParsedRule",
+    "RuleParser",
     "RuleParserProtocol",
 ]

@@ -8,6 +8,6 @@ operations, pipe support, and file I/O with error handling.
 from .core import InputOutputManager, IOError
 
 __all__ = [
-    "InputOutputManager",
     "IOError",
+    "InputOutputManager",
 ]

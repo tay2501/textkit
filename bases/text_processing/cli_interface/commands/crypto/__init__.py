@@ -9,8 +9,8 @@ from .decrypt import create_decrypt_command
 from .encrypt import create_encrypt_command
 
 __all__ = [
+    "create_decrypt_command",
+    "create_encrypt_command",
     "get_input_text",
     "handle_clipboard_output",
-    "create_encrypt_command",
-    "create_decrypt_command",
 ]

@@ -72,12 +72,12 @@ top-namespace = "textkit"
 "components/rule_parser" = "textkit/rule_parser"
 "components/text_core" = "textkit/text_core"
 
-# Ruff configuration - replaces flake8, pylint, black, and isort
+# Ruff configuration - Modern Python linter (2025 standards)
 [tool.ruff]
-# Same as Black
 line-length = 88
 indent-width = 4
 target-version = "py314"
+preview = true  # Enable Python 3.14+ features
 
 # Exclude common directories
 exclude = [
@@ -92,19 +92,26 @@ exclude = [
 ]
 
 [tool.ruff.lint]
-# Enable recommended rule sets
+# Enable recommended rule sets (2025 best practices)
 select = [
-    "E",    # pycodestyle errors
-    "F",    # Pyflakes
-    "I",    # isort
-    "N",    # pep8-naming
-    "W",    # pycodestyle warnings
-    "UP",   # pyupgrade
-    "B",    # flake8-bugbear
-    "C4",   # flake8-comprehensions
-    "SIM",  # flake8-simplify
+    "E",      # pycodestyle errors
+    "F",      # Pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "W",      # pycodestyle warnings
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "SIM",    # flake8-simplify
+    "ASYNC",  # asyncio anti-patterns (2025)
+    "S",      # security vulnerabilities (bandit)
+    "RUF",    # Ruff-specific rules
+    "PERF",   # performance optimizations
 ]
-ignore = ["E501"]  # Line too long (handled by formatter)
+ignore = [
+    "E501",   # Line too long (handled by formatter)
+    "S101",   # Use of assert (acceptable in tests)
+]
 
 # Allow fix for all enabled rules (when `--fix` is provided)
 fixable = ["ALL"]
@@ -116,7 +123,10 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Unused imports in __init__.py
 "bin/*.py" = ["E402"]  # Module imports after sys.path modification (intentional)
-"test/**/*.py" = ["E402"]  # Test files may modify sys.path before imports
+"test/**/*.py" = ["E402", "S"]  # Test files: sys.path + security checks
+
+[tool.ruff.lint.flake8-bandit]
+check-typed-exception = true
 
 [tool.ruff.format]
 # Like Black, use double quotes for strings

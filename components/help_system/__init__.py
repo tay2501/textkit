@@ -10,10 +10,10 @@ from .formatters import HelpFormatter, MarkdownHelpFormatter, PlainTextHelpForma
 from .generators import DynamicHelpGenerator, RulesHelpGenerator
 
 __all__ = [
-    "HelpManager",
+    "DynamicHelpGenerator",
     "HelpFormatter",
+    "HelpManager",
     "MarkdownHelpFormatter",
     "PlainTextHelpFormatter",
-    "DynamicHelpGenerator",
     "RulesHelpGenerator",
 ]

@@ -44,12 +44,12 @@ def get_service(service_type):
 
 
 __all__ = [
+    "CircularDependencyError",
     "Container",
+    "DependencyResolutionError",
+    "ServiceNotFoundError",
     "Singleton",
-    "injectable",
     "get_container",
     "get_service",
-    "ServiceNotFoundError",
-    "CircularDependencyError",
-    "DependencyResolutionError",
+    "injectable",
 ]
