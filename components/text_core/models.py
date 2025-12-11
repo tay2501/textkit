@@ -106,6 +106,7 @@ class TextTransformationResponse(BaseModel):
 
     model_config = ConfigDict(
         frozen=True,  # Immutable response
+        validate_assignment=True,  # Validate on assignment
         extra="forbid",
     )
 
@@ -125,7 +126,11 @@ class TextTransformationResponse(BaseModel):
 class RuleValidationRequest(BaseModel):
     """Pydantic model for rule validation requests."""
 
-    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+    model_config = ConfigDict(
+        str_strip_whitespace=True,
+        validate_assignment=True,  # Validate on assignment
+        extra="forbid",
+    )
 
     rule_string: Annotated[
         str, Field(min_length=1, description="Rule string to validate")
@@ -139,7 +144,11 @@ class RuleValidationRequest(BaseModel):
 class RuleValidationResponse(BaseModel):
     """Pydantic model for rule validation responses."""
 
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(
+        frozen=True,
+        validate_assignment=True,  # Validate on assignment
+        extra="forbid",
+    )
 
     is_valid: bool = Field(description="Whether the rule string is valid")
 
