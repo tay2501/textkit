@@ -19,34 +19,34 @@ def demo_line_ending_transformations():
 
     # Test text with Unix line endings
     unix_text = "line1\nline2\nline3"
-    print(f"Original Unix text: {repr(unix_text)}")
+    print(f"Original Unix text: {unix_text!r}")
 
     # Transform to Windows
     windows_text = transformer.transform(unix_text, "unix-to-windows")
-    print(f"To Windows: {repr(windows_text)}")
+    print(f"To Windows: {windows_text!r}")
 
     # Transform to Mac Classic
     mac_text = transformer.transform(unix_text, "unix-to-mac")
-    print(f"To Mac Classic: {repr(mac_text)}")
+    print(f"To Mac Classic: {mac_text!r}")
 
     print("\n--- tr-style transformations ---")
 
     # tr-style conversion
     tr_result = transformer.transform(unix_text, "tr", ["\\n", "\\r\\n"])
-    print(f"tr '\\n' '\\r\\n': {repr(tr_result)}")
+    print(f"tr '\\n' '\\r\\n': {tr_result!r}")
 
     # tr-style with tabs
     tab_text = "hello\tworld\ntest"
     tr_tab_result = transformer.transform(tab_text, "tr", ["\\t", " "])
-    print(f"tr '\\t' ' ': {repr(tr_tab_result)}")
+    print(f"tr '\\t' ' ': {tr_tab_result!r}")
 
     print("\n--- Normalize mixed line endings ---")
 
     mixed_text = "unix\nwindows\r\nmac\rmixed"
-    print(f"Mixed text: {repr(mixed_text)}")
+    print(f"Mixed text: {mixed_text!r}")
 
     normalized = transformer.transform(mixed_text, "normalize")
-    print(f"Normalized: {repr(normalized)}")
+    print(f"Normalized: {normalized!r}")
 
     print("\n--- Available rules ---")
     rules = transformer.get_rules()

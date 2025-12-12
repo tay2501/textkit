@@ -135,7 +135,7 @@ class TestConfigurationManager:
         }
 
         config_file = temp_dir / "transformation_rules.json"
-        with open(config_file, "w", encoding="utf-8") as f:
+        with Path(config_file).open("w", encoding="utf-8") as f:
             json.dump(custom_config, f)
 
         # Load should return the custom config
@@ -148,7 +148,7 @@ class TestConfigurationManager:
         """Test loading invalid JSON file."""
         # Create invalid JSON file
         config_file = temp_dir / "transformation_rules.json"
-        with open(config_file, "w", encoding="utf-8") as f:
+        with Path(config_file).open("w", encoding="utf-8") as f:
             f.write("{ invalid json }")
 
         with pytest.raises(ConfigurationError) as exc_info:
@@ -163,7 +163,7 @@ class TestConfigurationManager:
         config_file = temp_dir / "test_config.json"
         assert config_file.exists()
 
-        with open(config_file, encoding="utf-8") as f:
+        with Path(config_file).open(encoding="utf-8") as f:
             loaded_content = json.load(f)
 
         assert loaded_content == test_content
@@ -335,7 +335,7 @@ class TestConfigurationManager:
         """Test that operations include proper error context."""
         # Test JSON decode error context
         config_file = temp_dir / "transformation_rules.json"
-        with open(config_file, "w", encoding="utf-8") as f:
+        with Path(config_file).open("w", encoding="utf-8") as f:
             f.write("{ invalid json }")
 
         try:

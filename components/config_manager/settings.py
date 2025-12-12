@@ -107,7 +107,7 @@ def configure_logging() -> None:
     # gzip compression for rotated logs
     def compress_rotated_logs(source: str, dest: str) -> None:
         """Compress rotated log files with gzip."""
-        with open(source, "rb") as f_in, gzip.open(f"{dest}.gz", "wb") as f_out:
+        with Path(source).open("rb") as f_in, gzip.open(f"{dest}.gz", "wb") as f_out:
             shutil.copyfileobj(f_in, f_out)
         Path(source).unlink()
 
@@ -439,6 +439,11 @@ class ApplicationSettings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         extra="allow",  # Allow additional environment variables
+        # 2025 best practices - validation enhancements
+        validate_default=True,  # Validate default values
+        validate_assignment=True,  # Validate on assignment (runtime protection)
+        # Performance optimization
+        cache_strings=True,  # Cache strings to reduce memory allocations
     )
 
     # Application Metadata

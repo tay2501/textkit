@@ -325,7 +325,7 @@ class InputOutputManager:
             from pathlib import Path
 
             emergency_file = Path("emergency_output.txt")
-            with open(emergency_file, "w", encoding="utf-8") as f:
+            with Path(emergency_file).open("w", encoding="utf-8") as f:
                 f.write(text)
         except Exception:
             pass  # Nothing more we can do

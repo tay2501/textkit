@@ -26,7 +26,7 @@ class TestSQLTSVConversion:
     def sample_sql(self, sql_test_data_dir):
         """Load sample SQL script."""
         sql_file = sql_test_data_dir / "sample_sql_script.sql"
-        with open(sql_file, encoding="utf-8") as f:
+        with Path(sql_file).open(encoding="utf-8") as f:
             return f.read()
 
     def test_schema_conversion_live_to_stg(self, sql_test_data_dir, sample_sql):
@@ -39,7 +39,7 @@ class TestSQLTSVConversion:
         print(f"\nUsing TSV file: {tsv_file}")
 
         # Count patterns in TSV
-        with open(tsv_file, encoding="utf-8") as f:
+        with Path(tsv_file).open(encoding="utf-8") as f:
             pattern_count = sum(1 for line in f if line.strip())
         print(f"TSV patterns: {pattern_count} rules")
 
@@ -114,7 +114,7 @@ class TestSQLTSVConversion:
         print(f"\nUsing TSV file: {tsv_file}")
 
         # Count patterns in TSV
-        with open(tsv_file, encoding="utf-8") as f:
+        with Path(tsv_file).open(encoding="utf-8") as f:
             pattern_count = sum(1 for line in f if line.strip())
         print(f"TSV patterns: {pattern_count} rules")
 
@@ -179,7 +179,7 @@ class TestSQLTSVConversion:
         print(f"\nUsing TSV file: {tsv_file}")
 
         # Count patterns in TSV
-        with open(tsv_file, encoding="utf-8") as f:
+        with Path(tsv_file).open(encoding="utf-8") as f:
             pattern_count = sum(1 for line in f if line.strip())
         print(f"TSV patterns: {pattern_count} rules")
 
@@ -390,7 +390,7 @@ class TestSQLTSVConversion:
 
         for test_name, tsv_file in tsv_files:
             # Count rules
-            with open(tsv_file, encoding="utf-8") as f:
+            with Path(tsv_file).open(encoding="utf-8") as f:
                 rule_count = sum(1 for line in f if line.strip())
 
             # Measure performance

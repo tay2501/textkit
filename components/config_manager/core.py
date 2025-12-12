@@ -119,7 +119,7 @@ class ConfigurationManager:
 
         try:
             if file_path.exists():
-                with open(file_path, encoding="utf-8") as f:
+                with Path(file_path).open(encoding="utf-8") as f:
                     content = json.load(f)
                     self.validate_config(content, filename)
                     return content
@@ -161,7 +161,7 @@ class ConfigurationManager:
         file_path = self.config_dir / filename
 
         try:
-            with open(file_path, "w", encoding="utf-8") as f:
+            with Path(file_path).open("w", encoding="utf-8") as f:
                 json.dump(content, f, indent=2, ensure_ascii=False)
         except Exception as e:
             raise ConfigurationError(

@@ -173,7 +173,7 @@ class StringTransformer(BaseTransformer):
                 import csv
 
                 replacements = []
-                with open(file_path, encoding="utf-8", newline="") as f:
+                with Path(file_path).open(encoding="utf-8", newline="") as f:
                     reader = csv.reader(f, delimiter="\t")
                     for line_num, row in enumerate(reader, start=1):
                         # Skip empty lines

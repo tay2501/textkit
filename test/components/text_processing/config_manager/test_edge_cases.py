@@ -7,6 +7,7 @@ including edge cases, error handling, and integration scenarios.
 
 import contextlib
 import os
+import pathlib
 import tempfile
 from unittest.mock import Mock, patch
 
@@ -68,8 +69,8 @@ class TestConfigManagerEdgeCases:
 
         finally:
             # Clean up
-            if os.path.exists(temp_config_path):
-                os.unlink(temp_config_path)
+            if pathlib.Path(temp_config_path).exists():
+                pathlib.Path(temp_config_path).unlink()
 
     def test_concurrent_config_access(self):
         """Test concurrent access to configuration."""
@@ -229,8 +230,8 @@ class TestConfigIntegration:
                 # In real implementation, would test format-specific loading
                 assert config is not None
             finally:
-                if os.path.exists(temp_path):
-                    os.unlink(temp_path)
+                if pathlib.Path(temp_path).exists():
+                    pathlib.Path(temp_path).unlink()
 
     def test_config_schema_validation(self):
         """Test configuration schema validation."""
@@ -403,8 +404,8 @@ class TestConfigRecovery:
                 # Some corruption might be unrecoverable
                 pass
             finally:
-                if os.path.exists(temp_path):
-                    os.unlink(temp_path)
+                if pathlib.Path(temp_path).exists():
+                    pathlib.Path(temp_path).unlink()
 
     def test_missing_config_recovery(self):
         """Test recovery from missing configuration."""

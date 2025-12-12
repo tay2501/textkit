@@ -53,7 +53,7 @@ def demo_encoding_transformations():
         ascii_result = transformer.transform(
             mixed_text, "iconv", ["utf-8", "ascii", "replace"]
         )
-        print(f"iconv with replace mode: {repr(ascii_result)}")
+        print(f"iconv with replace mode: {ascii_result!r}")
 
     except Exception as e:
         print(f"iconv error: {e}")

@@ -6,6 +6,7 @@ system with environment variables and dependency injection.
 """
 
 import os
+import pathlib
 
 from textkit.config_manager.settings import (
     ApplicationSettings,
@@ -158,7 +159,7 @@ TEXTKIT_MAX_TEXT_LENGTH=5000000
 TEXTKIT_SECURITY__RSA_KEY_SIZE=2048
 """.strip()
 
-    with open(".env.demo", "w") as f:
+    with pathlib.Path(".env.demo").open("w") as f:
         f.write(env_content)
 
     print("Created .env.demo file with sample configuration")

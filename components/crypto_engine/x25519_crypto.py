@@ -167,7 +167,7 @@ class X25519CryptographyManager:
             # Create key directory with secure permissions
             self.key_directory.mkdir(parents=True, exist_ok=True)
             if os.name != "nt":  # Unix-like systems
-                os.chmod(self.key_directory, 0o700)
+                Path(self.key_directory).chmod(0o700)
 
             # Generate X25519 key pair
             private_key = X25519PrivateKey.generate()
@@ -196,8 +196,8 @@ class X25519CryptographyManager:
             self.public_key_path.write_bytes(public_pem)
 
             if os.name != "nt":  # Unix-like systems
-                os.chmod(self.private_key_path, 0o600)  # Owner read/write only
-                os.chmod(self.public_key_path, 0o644)  # Public readable
+                Path(self.private_key_path).chmod(0o600)  # Owner read/write only
+                Path(self.public_key_path).chmod(0o644)  # Public readable
 
             # Zero out sensitive data from memory (best effort)
             del passphrase_bytes

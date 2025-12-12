@@ -39,7 +39,7 @@ class TestTSVPerformance:
         """
         patterns = []
 
-        with open(output_file, "w", encoding="utf-8", newline="") as f:
+        with Path(output_file).open("w", encoding="utf-8", newline="") as f:
             writer = csv.writer(f, delimiter="\t")
 
             # Pattern 1: Basic literal replacements (40% - 4000 rules)
@@ -115,7 +115,7 @@ class TestTSVPerformance:
         """
         patterns = []
 
-        with open(output_file, "w", encoding="utf-8", newline="") as f:
+        with Path(output_file).open("w", encoding="utf-8", newline="") as f:
             writer = csv.writer(f, delimiter="\t")
 
             # Regex pattern 1: Number patterns (40%)
@@ -320,7 +320,7 @@ class TestTSVPerformance:
         tsv_file = temp_tsv_dir / "unicode_patterns.tsv"
         patterns = []
 
-        with open(tsv_file, "w", encoding="utf-8", newline="") as f:
+        with Path(tsv_file).open("w", encoding="utf-8", newline="") as f:
             writer = csv.writer(f, delimiter="\t")
 
             # Japanese patterns (3000 rules)
@@ -415,7 +415,7 @@ class TestTSVPerformance:
         tsv_file = temp_tsv_dir / "special_chars.tsv"
         patterns = []
 
-        with open(tsv_file, "w", encoding="utf-8", newline="") as f:
+        with Path(tsv_file).open("w", encoding="utf-8", newline="") as f:
             writer = csv.writer(f, delimiter="\t")
 
             # SQL special characters (2500 rules)
@@ -499,7 +499,7 @@ class TestTSVPerformance:
         # Generate comprehensive TSV file
         tsv_file = temp_tsv_dir / "comprehensive_10k.tsv"
 
-        with open(tsv_file, "w", encoding="utf-8", newline="") as f:
+        with Path(tsv_file).open("w", encoding="utf-8", newline="") as f:
             writer = csv.writer(f, delimiter="\t")
 
             # Mix of all pattern types

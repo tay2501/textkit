@@ -135,7 +135,7 @@ TEXTKIT_SECURITY__RSA_KEY_SIZE=2048
         )
 
         # Change to temp directory to test .env loading
-        original_cwd = os.getcwd()
+        original_cwd = Path.cwd()
         try:
             os.chdir(temp_dir)
             settings = ApplicationSettings()

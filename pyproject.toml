@@ -76,7 +76,7 @@ top-namespace = "textkit"
 [tool.ruff]
 line-length = 88
 indent-width = 4
-target-version = "py314"
+target-version = "py313"
 preview = true  # Enable Python 3.14+ features
 
 # Exclude common directories
@@ -107,10 +107,23 @@ select = [
     "S",      # security vulnerabilities (bandit)
     "RUF",    # Ruff-specific rules
     "PERF",   # performance optimizations
+    # 2025 additional recommended rules
+    "PTH",    # pathlib (prefer pathlib over os.path)
+    "TD",     # TODO comment management
+    "FIX",    # FIXME/XXX/HACK detection
+    "ERA",    # commented-out code detection
+    "TRY",    # try/except anti-patterns
 ]
 ignore = [
     "E501",   # Line too long (handled by formatter)
     "S101",   # Use of assert (acceptable in tests)
+    # TRY rules - gradual adoption recommended
+    "TRY003", # Verbose exception messages (222 violations - review gradually)
+    "TRY300", # try-consider-else (design decision, review case-by-case)
+    "TRY301", # raise-within-try (design pattern, review case-by-case)
+    "TRY400", # error-vs-exception naming (low priority)
+    # ERA rules - manual review needed
+    "ERA001", # Commented-out code (manual review recommended)
 ]
 
 # Allow fix for all enabled rules (when `--fix` is provided)
@@ -146,7 +159,7 @@ docstring-code-format = false
 
 # MyPy configuration (complementary to mypy.ini)
 [tool.mypy]
-python_version = "3.14"
+python_version = "3.13"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false

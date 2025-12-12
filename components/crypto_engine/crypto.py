@@ -714,10 +714,10 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             )
 
             # Write keys to files
-            with open(self.private_key_path, "wb") as file:
+            with Path(self.private_key_path).open("wb") as file:
                 file.write(private_pem)
 
-            with open(self.public_key_path, "wb") as file:
+            with Path(self.public_key_path).open("wb") as file:
                 file.write(public_pem)
 
             # Set secure file permissions using pathlib
@@ -774,7 +774,7 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             # Load private key WITH passphrase (Phase 2)
             # Phase 1: Removed deprecated default_backend() parameter
             try:
-                with open(self.private_key_path, "rb") as file:
+                with Path(self.private_key_path).open("rb") as file:
                     private_key = serialization.load_pem_private_key(
                         file.read(), password=passphrase.encode("utf-8")
                     )
@@ -783,7 +783,7 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
 
             # Load public key
             try:
-                with open(self.public_key_path, "rb") as file:
+                with Path(self.public_key_path).open("rb") as file:
                     public_key_data = serialization.load_pem_public_key(file.read())
             except (FileNotFoundError, PermissionError) as e:
                 errors.append(e)
