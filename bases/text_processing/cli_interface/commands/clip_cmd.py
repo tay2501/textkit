@@ -8,12 +8,16 @@ from __future__ import annotations
 
 from typing import Annotated
 
-import structlog
 import typer
 from rich.console import Console
 
 console = Console()
-logger = structlog.get_logger(__name__)
+
+
+def _get_logger():
+    """Get structlog logger (lazy loaded to optimize --help performance)."""
+    import structlog
+    return structlog.get_logger(__name__)
 
 
 def register_clip_commands(
@@ -62,7 +66,7 @@ def register_clip_commands(
             return
 
         try:
-            logger.info("clip_default_requested")
+            _get_logger().info("clip_default_requested")
 
             # Get application instance
             app_instance = get_app_func()
@@ -87,19 +91,19 @@ def register_clip_commands(
                         f"[green]OK[/green] Copied {len(content)} characters to clipboard",
                         style="bold",
                     )
-                logger.info("clip_default_success", content_length=len(content))
+                _get_logger().info("clip_default_success", content_length=len(content))
             else:
                 console.print(
                     "[yellow]WARNING[/yellow] Failed to copy to clipboard",
                     style="bold",
                 )
-                logger.warning("clip_default_failed")
+                _get_logger().warning("clip_default_failed")
 
         except KeyboardInterrupt:
             console.print("\n[yellow]Cancelled[/yellow]")
-            logger.info("clip_default_cancelled")
+            _get_logger().info("clip_default_cancelled")
         except Exception as e:
-            logger.error(
+            _get_logger().error(
                 "clip_default_error", error=str(e), error_type=type(e).__name__
             )
             handle_cli_error_func(e, "clip")
@@ -119,7 +123,7 @@ def register_clip_commands(
         ```
         """
         try:
-            logger.info("clip_clear_requested")
+            _get_logger().info("clip_clear_requested")
 
             # Get application instance
             app_instance = get_app_func()
@@ -131,16 +135,16 @@ def register_clip_commands(
                 console.print(
                     "[green]OK[/green] Clipboard cleared successfully", style="bold"
                 )
-                logger.info("clip_clear_success")
+                _get_logger().info("clip_clear_success")
             else:
                 console.print(
                     "[yellow]WARNING[/yellow] Clipboard cleared but verification failed",
                     style="bold",
                 )
-                logger.warning("clip_clear_verification_failed")
+                _get_logger().warning("clip_clear_verification_failed")
 
         except Exception as e:
-            logger.error("clip_clear_error", error=str(e), error_type=type(e).__name__)
+            _get_logger().error("clip_clear_error", error=str(e), error_type=type(e).__name__)
             handle_cli_error_func(e, "clip clear")
 
     @clip_app.command("get")
@@ -158,7 +162,7 @@ def register_clip_commands(
         ```
         """
         try:
-            logger.info("clip_get_requested")
+            _get_logger().info("clip_get_requested")
 
             # Get application instance
             app_instance = get_app_func()
@@ -168,13 +172,13 @@ def register_clip_commands(
 
             if content:
                 console.print(content, end="")
-                logger.info("clip_get_success", content_length=len(content))
+                _get_logger().info("clip_get_success", content_length=len(content))
             else:
                 console.print("[dim](clipboard is empty)[/dim]")
-                logger.info("clip_get_empty")
+                _get_logger().info("clip_get_empty")
 
         except Exception as e:
-            logger.error("clip_get_error", error=str(e), error_type=type(e).__name__)
+            _get_logger().error("clip_get_error", error=str(e), error_type=type(e).__name__)
             handle_cli_error_func(e, "clip get")
 
     @clip_app.command("set")
@@ -198,7 +202,7 @@ def register_clip_commands(
         - **text**: The text to copy to clipboard
         """
         try:
-            logger.info("clip_set_requested", text_length=len(text))
+            _get_logger().info("clip_set_requested", text_length=len(text))
 
             # Get application instance
             app_instance = get_app_func()
@@ -211,15 +215,15 @@ def register_clip_commands(
                     f"[green]OK[/green] Copied {len(text)} characters to clipboard",
                     style="bold",
                 )
-                logger.info("clip_set_success", text_length=len(text))
+                _get_logger().info("clip_set_success", text_length=len(text))
             else:
                 console.print(
                     "[yellow]WARNING[/yellow] Failed to copy to clipboard", style="bold"
                 )
-                logger.warning("clip_set_failed")
+                _get_logger().warning("clip_set_failed")
 
         except Exception as e:
-            logger.error("clip_set_error", error=str(e), error_type=type(e).__name__)
+            _get_logger().error("clip_set_error", error=str(e), error_type=type(e).__name__)
             handle_cli_error_func(e, "clip set")
 
     # ========================================================================
@@ -296,7 +300,7 @@ def register_clip_commands(
         ```
         """
         try:
-            logger.info("clip_status_requested")
+            _get_logger().info("clip_status_requested")
 
             # Get application instance
             app_instance = get_app_func()
@@ -327,10 +331,10 @@ def register_clip_commands(
                     )
 
             console.print()
-            logger.info("clip_status_success", status=status)
+            _get_logger().info("clip_status_success", status=status)
 
         except Exception as e:
-            logger.error("clip_status_error", error=str(e), error_type=type(e).__name__)
+            _get_logger().error("clip_status_error", error=str(e), error_type=type(e).__name__)
             handle_cli_error_func(e, "clip status")
 
     # Add clip subcommand to main app with multiple aliases

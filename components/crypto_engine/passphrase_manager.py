@@ -292,7 +292,7 @@ class SecurePassphraseManager:
 
             FAPI()  # Test instantiation
             return True
-        except (ImportError, Exception):
+        except ImportError, Exception:  # Python 3.14 PEP 758: brackets optional
             return False
 
     @staticmethod
@@ -309,7 +309,7 @@ class SecurePassphraseManager:
             # Test if a working backend is available
             backend = keyring.get_keyring()
             return backend is not None
-        except (ImportError, Exception):
+        except ImportError, Exception:  # Python 3.14 PEP 758: brackets optional
             return False
 
     def delete_passphrase(self, backend: PassphraseBackend | None = None) -> None:

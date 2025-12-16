@@ -114,8 +114,8 @@ def create_encrypt_command(
             # Encrypt text
             result = app_instance.encrypt_text(input_text)
 
-            # Output result
-            console.print(result)
+            # Output result (no_wrap prevents line breaks in Base64 strings)
+            console.print(result, no_wrap=True)
             console.print(f"\n[cyan]Encrypted length:[/cyan] {len(result)} characters")
 
             # Handle clipboard output using common utility

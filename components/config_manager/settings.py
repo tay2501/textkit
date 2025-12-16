@@ -7,7 +7,7 @@ using Pydantic BaseSettings with environment variable support.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -239,8 +239,12 @@ def configure_logging() -> None:
 configure_logging()
 
 
-class LogLevel(str, Enum):
-    """Enumeration for log levels."""
+class LogLevel(StrEnum):
+    """Enumeration for log levels (Python 3.11+ StrEnum).
+
+    Using StrEnum instead of str+Enum inheritance provides better type safety
+    and follows Python 3.14 best practices (PEP 663).
+    """
 
     DEBUG = "DEBUG"
     INFO = "INFO"

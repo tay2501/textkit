@@ -174,7 +174,7 @@ class ErrorHandlingMixin:
 
                 try:
                     return func(self, *args, **kwargs)
-                except (TransformationError, ValidationError):
+                except TransformationError, ValidationError:  # Python 3.14 PEP 758: brackets optional
                     # Re-raise known exceptions
                     raise
                 except Exception as e:
