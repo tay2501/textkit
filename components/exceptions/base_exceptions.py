@@ -89,7 +89,7 @@ class BaseTextProcessingError(Exception):
             try:
                 context_str = json.dumps(self.context, default=str, indent=2)
                 parts.append(f"Context: {context_str}")
-            except (TypeError, ValueError):
+            except (TypeError, ValueError):  # Python 3.14 PEP 758: brackets optional
                 parts.append(f"Context: {self.context}")
 
         if self.cause:

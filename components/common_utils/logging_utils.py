@@ -176,7 +176,7 @@ def create_log_context(**kwargs) -> dict[str, Any]:
 
                 json.dumps(value, default=str)
                 context[key] = value
-            except (TypeError, ValueError):
+            except (TypeError, ValueError):  # Python 3.14 PEP 758: brackets optional
                 # Convert to string if not serializable
                 context[key] = str(value)
 

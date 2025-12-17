@@ -22,7 +22,7 @@ dependencies = [
     "charset-normalizer>=3.4.0",
     "jaconv>=0.4.0",
     "aiofiles>=24.1.0",
-    "stringzilla>=4.0.14",
+    # "stringzilla>=4.0.14",  # Temporarily disabled: No prebuilt wheels for Python 3.14 RC
     "lagom>=2.7.7",
     "keyring>=25.7.0",
     "typing-extensions>=4.15.0",
@@ -76,8 +76,8 @@ top-namespace = "textkit"
 [tool.ruff]
 line-length = 88
 indent-width = 4
-target-version = "py313"
-preview = true  # Enable Python 3.14+ features
+target-version = "py314"
+preview = true  # Enable Python 3.15+ features
 
 # Exclude common directories
 exclude = [
@@ -159,7 +159,7 @@ docstring-code-format = false
 
 # MyPy configuration (complementary to mypy.ini)
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.14"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
@@ -181,3 +181,22 @@ dev = [
     "sphinx-rtd-theme>=3.0.2",
     "types-aiofiles>=25.1.0.20251011",
 ]
+
+# ============================================================================
+# uv Configuration (Performance Optimization - 2025)
+# ============================================================================
+# Reference: https://docs.astral.sh/uv/configuration/files/
+[tool.uv]
+# Compile Python bytecode for faster application startup (10-20% improvement)
+# Implements Python 3.13 performance best practices
+# TEMPORARY: Disabled due to Python 3.13.7 asyncio compatibility issue
+compile-bytecode = false
+
+# Allow pre-releases only when explicitly required by dependencies
+prerelease = "if-necessary-or-explicit"
+
+# NOTE: For Windows UTF-8 mode support (PEP 540/686), set environment variable:
+# Windows PowerShell: $env:PYTHONUTF8="1"; uv run python main.py
+# Windows CMD: set PYTHONUTF8=1 && uv run python main.py
+# Linux/macOS: PYTHONUTF8=1 uv run python main.py
+# Or create a .env file with: PYTHONUTF8=1

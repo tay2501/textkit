@@ -263,7 +263,7 @@ class TestConfigIntegration:
                 # Should either handle gracefully or raise appropriate error
                 manager = ConfigurationManager()
                 assert manager is not None
-            except (ConfigurationError, ValueError, TypeError):
+            except (ConfigurationError, ValueError, TypeError):  # Multiple exception types
                 # Expected for invalid configurations
                 pass
 

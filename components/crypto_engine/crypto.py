@@ -851,7 +851,7 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
             # EAFP: Try to load keys directly
             self._load_key_pair()
             return True
-        except (FileNotFoundError, OSError, ValueError, TypeError, ExceptionGroup):
+        except FileNotFoundError, OSError, ValueError, TypeError, ExceptionGroup:  # Python 3.14 PEP 758: brackets optional
             return False
 
     # ========================================================================

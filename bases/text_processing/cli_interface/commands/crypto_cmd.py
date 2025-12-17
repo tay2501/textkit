@@ -452,7 +452,7 @@ def decrypt_text_func(
             # Try to get input text
             try:
                 input_text = get_input_text_func(app_instance, text)
-            except (OSError, ValueError):
+            except (OSError, ValueError):  # Python 3.14 PEP 758: brackets optional
                 # Handle case where no input is available
                 console.print(
                     "[yellow]Warning: No text to decrypt. Please provide text via -i flag or clipboard (-c).[/yellow]"

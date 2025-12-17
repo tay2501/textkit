@@ -183,7 +183,7 @@ class EncodingTransformer(EnhancedBaseTransformer):
         try:
             data = text.encode("latin-1")
             return self._detect_encoding_advanced(data)
-        except (UnicodeError, LookupError):
+        except (UnicodeError, LookupError):  # Python 3.14 PEP 758: brackets optional
             return "utf-8"  # Fallback to UTF-8
 
     def to_utf8(self, text: str) -> str:
@@ -406,7 +406,7 @@ class EncodingTransformer(EnhancedBaseTransformer):
                     data = text.encode("latin-1")
                     source_encoding = self._detect_encoding_advanced(data)
                     text = data.decode(source_encoding, errors=error_mode)
-                except (UnicodeError, LookupError):
+                except (UnicodeError, LookupError):  # Python 3.14 PEP 758: brackets optional
                     # Assume text is already properly decoded
                     pass
 

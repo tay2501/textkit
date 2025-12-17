@@ -323,18 +323,17 @@ class TestInputOutputManager:
         self, io_manager, mock_clipboard_unavailable
     ):
         """Test emergency output falling back to file."""
+        from pathlib import Path
+
         test_text = "Emergency message"
         mock_file = mock_open()
         with (
             patch("builtins.print", side_effect=Exception("print error")),
-            patch("builtins.open", mock_file),
-            patch("pathlib.Path.exists", return_value=False),
+            patch.object(Path, "open", mock_file),
         ):
             io_manager.clipboard_available = False
             io_manager.emergency_output(test_text)
-            mock_file.assert_called_once_with(
-                "emergency_output.txt", "w", encoding="utf-8"
-            )
+            mock_file.assert_called_once_with("w", encoding="utf-8")
 
     def test_emergency_output_all_fail_gracefully(
         self, io_manager, mock_clipboard_unavailable

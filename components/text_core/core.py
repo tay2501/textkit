@@ -162,7 +162,7 @@ class TextTransformationEngine:
                         result_length=len(result),
                     )
 
-                except (ValidationError, TransformationError):
+                except (ValidationError, TransformationError):  # Python 3.14 PEP 758: brackets optional
                     # Re-raise our custom exceptions
                     raise
                 except Exception as e:
@@ -199,7 +199,7 @@ class TextTransformationEngine:
 
             return result
 
-        except (ValidationError, TransformationError):
+        except (ValidationError, TransformationError):  # Python 3.14 PEP 758: brackets optional
             # Log and re-raise our custom exceptions
             processing_time = (time.perf_counter() - start_time) * 1000
             logger.error(

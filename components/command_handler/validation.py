@@ -155,7 +155,7 @@ class CommonValidators:
         """Check if value is a positive integer."""
         try:
             return int(value) > 0
-        except (ValueError, TypeError):
+        except (ValueError, TypeError):  # Python 3.14 PEP 758: brackets optional
             return False
 
     @staticmethod

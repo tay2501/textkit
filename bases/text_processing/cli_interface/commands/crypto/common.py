@@ -81,6 +81,7 @@ def handle_clipboard_output(
 
     # Copy to clipboard
     app_instance.io_manager.safe_copy_to_clipboard(result)
+    # Use safe Unicode checkmark (✓ requires UTF-8, fallback handled by console)
     console.print("[green]✓[/green] Copied to clipboard")
 
     # Schedule timeout if requested

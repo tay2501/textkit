@@ -13,7 +13,6 @@ import secrets
 import threading
 from typing import TYPE_CHECKING, Annotated
 
-import structlog
 import typer
 from rich.console import Console
 
@@ -21,7 +20,12 @@ if TYPE_CHECKING:
     from typing import Any
 
 console = Console()
-logger = structlog.get_logger(__name__)
+
+
+def _get_logger():
+    """Get structlog logger (lazy loaded to optimize --help performance)."""
+    import structlog
+    return structlog.get_logger(__name__)
 
 
 def _handle_clipboard_output(
@@ -43,6 +47,7 @@ def _handle_clipboard_output(
 
     # Copy to clipboard
     app_instance.io_manager.safe_copy_to_clipboard(result)
+    # Use safe Unicode checkmark (✓ requires UTF-8, fallback handled by console)
     console.print("[green]✓[/green] Copied to clipboard")
 
     # Schedule timeout if requested
