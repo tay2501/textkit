@@ -168,11 +168,13 @@ check_untyped_defs = true
 [dependency-groups]
 dev = [
     "furo>=2025.9.25",
+    "interrogate>=1.7.0",
     "mypy>=1.18.2",
     "myst-parser>=4.0.1",
     "pytest-asyncio>=1.2.0",
     "pytest-benchmark>=5.2.3",
     "pytest-cov>=7.0.0",
+    "radon>=6.0.1",
     "ruff>=0.13.1",
     "sphinx>=8.2.3",
     "sphinx-autobuild>=2025.8.25",
@@ -180,6 +182,7 @@ dev = [
     "sphinx-copybutton>=0.5.2",
     "sphinx-rtd-theme>=3.0.2",
     "types-aiofiles>=25.1.0.20251011",
+    "vulture>=2.14",
 ]
 
 # ============================================================================
@@ -200,3 +203,31 @@ prerelease = "if-necessary-or-explicit"
 # Windows CMD: set PYTHONUTF8=1 && uv run python main.py
 # Linux/macOS: PYTHONUTF8=1 uv run python main.py
 # Or create a .env file with: PYTHONUTF8=1
+
+# ============================================================================
+# Code Quality Tools Configuration (2025 Best Practices)
+# ============================================================================
+
+[tool.interrogate]
+# Docstring coverage configuration
+ignore-init-method = true
+ignore-init-module = true
+ignore-magic = true
+fail-under = 80
+verbose = 2
+color = true
+
+[tool.vulture]
+# Dead code detection configuration
+min_confidence = 80
+paths = ["components", "bases"]
+exclude = ["test/", ".venv/", "__pycache__/"]
+# Ignore Pydantic validator 'cls' parameters (required by framework)
+ignore_names = ["cls", "exc_type", "exc_val", "exc_tb"]
+
+[tool.radon]
+# Complexity thresholds (A is best, F is worst)
+# A: 1-5, B: 6-10, C: 11-20, D: 21-30, E: 31-40, F: 41+
+# Target: Average complexity A (1-5)
+cc_min = "B"  # Warn on complexity >= B (6+)
+mi_min = 65   # Minimum maintainability index

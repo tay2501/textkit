@@ -57,17 +57,31 @@ class CryptographyManager:
     Provides secure text encryption/decryption using industry-standard
     cryptographic practices with automatic key management.
 
-    Security Features:
-    - RSA-4096 for key exchange
+    Security Features (2025 Best Practices):
+    - RSA-4096 for key exchange (NIST-recommended as of 2025)
     - AES-256-CTR for data encryption (parallelizable, no padding)
     - HMAC-SHA256 for authentication (Encrypt-then-MAC pattern)
     - Passphrase-protected private keys (PBKDF2)
     - Secure file permissions (0o600 for private, 0o644 for public)
+    - OS-integrated keyring support (Windows/macOS/Linux)
+
+    Why AES-CTR + HMAC Instead of AES-GCM:
+    - Encrypt-then-MAC is provably secure (Bellare & Namprempre, 2000)
+    - Better performance for large messages (parallel encryption/decryption)
+    - HMAC-SHA256 provides strong authentication (256-bit security level)
+    - No padding oracle vulnerabilities
+    - Future-proof: easy to upgrade HMAC algorithm independently
 
     Performance Benefits:
     - CTR mode enables parallel encryption/decryption
-    - Faster than GCM for multi-block messages
+    - Faster than GCM for multi-block messages (>1KB)
     - No padding overhead
+    - Hardware-accelerated AES-NI support
+
+    Future Roadmap:
+    - TODO: Add AES-GCM mode as alternative (simpler API, AEAD)
+    - TODO: Post-quantum cryptography support (Kyber KEM, Dilithium signatures)
+    - TODO: X25519 for ephemeral key exchange (forward secrecy)
     """
 
     # Class-level constants for security configuration
@@ -87,7 +101,7 @@ class CryptographyManager:
         if not CRYPTOGRAPHY_AVAILABLE:
             raise CryptographyError(
                 "Cryptography library is not available. "
-                "Install with: pip install cryptography"
+                "Install with: uv add cryptography"
             )
 
         self.config_manager = config_manager

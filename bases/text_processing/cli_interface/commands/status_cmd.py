@@ -159,8 +159,6 @@ def show_status_func(
 
     return _show_status
 
-    return _show_status
-
 
 def show_version_func(handle_cli_error_func: callable) -> callable:
     """Create show_version function with dependencies injected."""
@@ -178,7 +176,5 @@ def show_version_func(handle_cli_error_func: callable) -> callable:
 
         except Exception as e:
             handle_cli_error_func(e, "version display")
-
-    return _show_version
 
     return _show_version
