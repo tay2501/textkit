@@ -60,8 +60,18 @@ top-namespace = "textkit"
 # UV Workspace Configuration (2025 Polylith + UV Integration)
 # Enables UV to recognize workspace structure for better dependency resolution
 [tool.uv.workspace]
-members = ["components/*", "bases/*", "projects/*"]
-exclude = ["test", ".venv", "build", "dist"]
+members = []
+exclude = [
+    "test",
+    ".venv",
+    "build",
+    "dist",
+    "**/__pycache__",
+    "**/*.pyc",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+]
 
 # ブリック（コンポーネント・ベース）のマッピング定義
 [tool.polylith.bricks]
