@@ -52,8 +52,13 @@ dev-mode-dirs = ["components", "bases", "development", "."]
 [tool.hatch.build.hooks.polylith-bricks]
 # この空のセクションはビルドプロセスでフックを有効化するために必要
 
+# Polylith Configuration (2025 Best Practice)
+# Primary configuration for polylith-cli
+[tool.polylith]
+namespace = "textkit"
+
 # カスタムトップネームスペース設定
-# 2025 Best Practice: Explicit namespace configuration for better IDE support
+# hatch-polylith-bricks用の設定（後方互換性）
 [tool.polylith.build]
 top-namespace = "textkit"
 
