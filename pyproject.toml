@@ -53,8 +53,15 @@ dev-mode-dirs = ["components", "bases", "development", "."]
 # この空のセクションはビルドプロセスでフックを有効化するために必要
 
 # カスタムトップネームスペース設定
+# 2025 Best Practice: Explicit namespace configuration for better IDE support
 [tool.polylith.build]
 top-namespace = "textkit"
+
+# UV Workspace Configuration (2025 Polylith + UV Integration)
+# Enables UV to recognize workspace structure for better dependency resolution
+[tool.uv.workspace]
+members = ["components/*", "bases/*", "projects/*"]
+exclude = ["test", ".venv", "build", "dist"]
 
 # ブリック（コンポーネント・ベース）のマッピング定義
 [tool.polylith.bricks]
