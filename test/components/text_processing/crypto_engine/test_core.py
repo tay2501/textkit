@@ -72,6 +72,11 @@ class TestCryptographyManager:
             manager.key_directory = temp_dir / "rsa"
             manager.private_key_path = manager.key_directory / "private_key.pem"
             manager.public_key_path = manager.key_directory / "public_key.pem"
+
+            # Initialize _passphrase_manager (required for key operations)
+            manager._passphrase_manager = core.SecurePassphraseManager(
+                env_var_name=manager.rsa_config["passphrase_env_var"]
+            )
             return manager
 
     @pytest.fixture
@@ -94,6 +99,11 @@ class TestCryptographyManager:
             manager.key_directory = temp_dir / "rsa"
             manager.private_key_path = manager.key_directory / "private_key.pem"
             manager.public_key_path = manager.key_directory / "public_key.pem"
+
+            # Initialize _passphrase_manager (required for key operations)
+            manager._passphrase_manager = core.SecurePassphraseManager(
+                env_var_name=manager.rsa_config["passphrase_env_var"]
+            )
             return manager
 
     @pytest.mark.skipif(
@@ -262,7 +272,7 @@ class TestCryptographyManager:
         """Test decryption with invalid Base64 input."""
         with pytest.raises(CryptographyError) as exc_info:
             crypto_manager.decrypt_text("invalid_base64!")
-        assert "Decryption failed" in str(exc_info.value)
+        assert "Invalid Base64 format" in str(exc_info.value)
 
     @pytest.mark.skipif(
         not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
@@ -277,7 +287,7 @@ class TestCryptographyManager:
 
         with pytest.raises(CryptographyError) as exc_info:
             crypto_manager.decrypt_text(corrupted)
-        assert "Decryption failed" in str(exc_info.value)
+        assert "HMAC verification failed" in str(exc_info.value)
 
     @pytest.mark.skipif(
         not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
@@ -290,7 +300,7 @@ class TestCryptographyManager:
 
         with pytest.raises(CryptographyError) as exc_info:
             crypto_manager.decrypt_text(short_data)
-        assert "Decryption failed" in str(exc_info.value)
+        assert "Encrypted data too short" in str(exc_info.value)
 
     @pytest.mark.skipif(
         not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
@@ -376,7 +386,7 @@ class TestCryptographyManager:
         with pytest.raises(CryptographyError) as exc_info:
             crypto_manager._load_key_pair()
         # Updated to match new specific error message
-        assert "Key files not found" in str(exc_info.value)
+        assert "Encryption keys not found" in str(exc_info.value)
 
     @pytest.mark.skipif(
         not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
@@ -394,8 +404,8 @@ class TestCryptographyManager:
             assert hasattr(e, "context")
             # Context is nested under 'crypto_operation' key
             assert "crypto_operation" in e.context
-            assert "encrypted_length" in e.context["crypto_operation"]
-            assert "error_type" in e.context["crypto_operation"]
+            assert "actual_length" in e.context["crypto_operation"]
+            assert "expected_min_length" in e.context["crypto_operation"]
 
         try:
             crypto_manager.encrypt_text("test")
