@@ -78,6 +78,7 @@ exclude = [
     ".ruff_cache",
 ]
 
+
 # ブリック（コンポーネント・ベース）のマッピング定義
 [tool.polylith.bricks]
 "bases/text_processing/cli_interface" = "textkit/cli_interface"
@@ -226,6 +227,12 @@ prerelease = "if-necessary-or-explicit"
 # Windows CMD: set PYTHONUTF8=1 && uv run python main.py
 # Linux/macOS: PYTHONUTF8=1 uv run python main.py
 # Or create a .env file with: PYTHONUTF8=1
+#
+# Python 3.13+ JIT Compiler (15-30% speedup for compute-intensive tasks):
+# Windows PowerShell: $env:PYTHON_JIT="1"; uv run python main.py
+# Windows CMD: set PYTHON_JIT=1 && uv run python main.py
+# Linux/macOS: PYTHON_JIT=1 uv run python main.py
+# Reference: https://docs.python.org/3/whatsnew/3.13.html
 
 # ============================================================================
 # Code Quality Tools Configuration (2025 Best Practices)

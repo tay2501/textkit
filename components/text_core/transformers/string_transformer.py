@@ -236,9 +236,12 @@ class StringTransformer(BaseTransformer):
             # Case-insensitive: Use temporary markers to avoid conflicts
             import re
 
+            # Performance optimization: Use cached compiled patterns
+            from components.common_utils.regex_cache import get_escaped_pattern
+
             for old, new in replacements:
-                # Create case-insensitive pattern
-                pattern = re.compile(re.escape(old), re.IGNORECASE)
+                # Create case-insensitive pattern (cached)
+                pattern = get_escaped_pattern(old, re.IGNORECASE)
                 result = pattern.sub(new, result)
 
         return result
@@ -272,9 +275,11 @@ class StringTransformer(BaseTransformer):
         grouped_patterns = [f"({pattern})" for pattern, _ in replacements]
         combined_pattern = "|".join(grouped_patterns)
 
-        # Compile with appropriate flags
+        # Compile with appropriate flags (performance: cached)
+        from components.common_utils.regex_cache import get_compiled_pattern
+
         flags = 0 if case_sensitive else re.IGNORECASE
-        regex = re.compile(combined_pattern, flags)
+        regex = get_compiled_pattern(combined_pattern, flags)
 
         # Replace using callback to look up correct replacement
         def replace_callback(match: re.Match) -> str:

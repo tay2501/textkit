@@ -169,10 +169,13 @@ class CommonValidators:
 
     @staticmethod
     def matches_pattern(pattern: str) -> Callable[[Any], bool]:
-        """Create validator for regex pattern matching."""
-        import re
+        """Create validator for regex pattern matching.
 
-        compiled_pattern = re.compile(pattern)
+        Performance optimized: Uses cached compiled patterns.
+        """
+        from components.common_utils.regex_cache import get_compiled_pattern
+
+        compiled_pattern = get_compiled_pattern(pattern)
 
         def validator(value: Any) -> bool:
             return bool(compiled_pattern.match(str(value)))

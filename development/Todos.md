@@ -149,6 +149,66 @@
 - OWASP Cryptographic Storage: https://cheatsheetseries.owasp.org/
 - Python Async Best Practices: https://docs.python.org/3/library/asyncio.html
 
+## Performance Optimization Roadmap 🚀
+
+### Phase 1: Quick Wins（即効性あり） - 実施中
+1. **キャッシング戦略の導入**
+   - 状態: 実施中
+   - 対象:
+     - 設定ファイルの読み込み（@lru_cache）
+     - 正規表現パターンのコンパイル（@lru_cache）
+     - 変換ルールの取得（@cache）
+   - 期待効果: 設定読み込み50-90%削減、正規表現コンパイル大幅削減
+
+2. **正規表現の事前コンパイル**
+   - 状態: 実施中
+   - 対象: モジュールレベルでパターン定義、遅延初期化+キャッシュ
+   - 期待効果: テキスト処理10-30%高速化
+
+3. **Python 3.13 JITコンパイラの活用**
+   - 状態: 実施中
+   - 有効化: PYTHON_JIT=1 環境変数
+   - 適用候補: 暗号化処理、大量テキスト変換、ハッシュ計算
+   - 期待効果: 計算集約的タスク15-30%高速化
+
+### Phase 2: Strategic Improvements（1-2週間後）
+4. **バッチ処理の導入**
+   - aiofiles + バッチ読み込み
+   - 期待効果: I/O待機時間30-50%削減
+
+5. **プロファイリング実施**
+   - py-spy / cProfile でボトルネック特定
+   - ホットスポット最適化
+
+6. **ボトルネック最適化**
+   - プロファイリング結果に基づく改善
+
+### Phase 3: Long-term（長期的）
+7. **Free-Threading（No-GIL）実験**
+   - Python 3.13実験的機能
+   - 並列暗号化: 2-3倍高速化可能
+
+8. **StringZilla導入検討**
+   - 高速文字列処理ライブラリ
+   - 期待効果: テキスト処理20-40%高速化
+
+9. **mypycコンパイル**
+   - 型注釈完全なモジュールをCコンパイル
+   - 期待効果: 2-4倍高速化（限定的）
+
+### 期待される総合効果 📊
+- テスト実行: 157秒 → 100-120秒（20-35%削減）
+- テキスト処理: 30-50%高速化
+- 暗号化処理: 15-30%高速化（JIT）、2-3倍（Free-Threading）
+- I/O処理: 30-50%削減（バッチ処理）
+
+### 参考資料
+- https://realpython.com/python313-free-threading-jit/
+- https://docs.python.org/3/whatsnew/3.13.html
+- https://codspeed.io/blog/state-of-python-3-13-performance-free-threading
+- https://realpython.com/lru-cache-python/
+- https://docs.python.org/3/library/functools.html
+
 ## Notes 📝
 
 - リファクタリング実施日: 2025-12-19
