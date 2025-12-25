@@ -538,7 +538,7 @@ class AsyncIOManager:
                 "cancelling_active_operations", count=len(self._active_operations)
             )
 
-            for _operation_id, task in self._active_operations.items():
+            for task in self._active_operations.values():
                 task.cancel()
 
             # Wait for cancellation to complete

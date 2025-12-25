@@ -127,7 +127,7 @@ class HelpManager:
             return self._content_cache[cache_key]
 
         # Find generator for topic
-        for _generator_name, generator in self._generators.items():
+        for generator in self._generators.values():
             if topic in generator.get_supported_topics():
                 sections = generator.generate_help(context)
                 self._content_cache[cache_key] = sections

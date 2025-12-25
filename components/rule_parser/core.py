@@ -174,10 +174,8 @@ class RuleParser:
         if not parts or all(not p for p in parts):
             raise ValidationError("No rules found in rule string")
 
-        rules = []
-        for part in parts:
-            if part:  # Skip empty parts
-                rules.append((part, []))
+        # Use list comprehension for better performance (PERF401)
+        rules = [(part, []) for part in parts if part]
 
         return rules
 

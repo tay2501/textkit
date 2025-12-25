@@ -146,11 +146,13 @@ class PerformanceMixin:
         Returns:
             List of slow operations
         """
-        slow_ops = []
-        for operations in self._performance_stats.values():
-            for op in operations:
-                if op["elapsed_ms"] > threshold_ms:
-                    slow_ops.append(op)
+        # Use list comprehension for better performance (PERF401)
+        slow_ops = [
+            op
+            for operations in self._performance_stats.values()
+            for op in operations
+            if op["elapsed_ms"] > threshold_ms
+        ]
 
         # Sort by elapsed time (slowest first)
         return sorted(slow_ops, key=lambda x: x["elapsed_ms"], reverse=True)

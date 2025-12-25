@@ -101,10 +101,8 @@ class RuleParser:
         if not parts:
             raise ValidationError("No rules found in rule string")
 
-        rules = []
-        for part in parts:
-            if part:  # Skip empty parts
-                rules.append(ParsedRule(part, []))
+        # Use list comprehension for better performance (PERF401)
+        rules = [ParsedRule(part, []) for part in parts if part]
 
         self.logger.debug("parsed_slash_rules", rule_count=len(rules))
         return rules
