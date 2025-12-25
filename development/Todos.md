@@ -198,30 +198,99 @@
   - テキスト処理パイプライン: 10-30%スループット向上
   - 長時間実行の計算処理: 15-30%高速化（JIT warmup後）
 
-### Phase 2: Strategic Improvements（1-2週間後）
-4. **バッチ処理の導入**
+### Phase 2: Code-Level Optimizations（コードレベル最適化） - ✅ 完了
+4. **プロファイリング実施**
+   - 状態: ✅ 完了
+   - 実装内容:
+     - py-spy, scalene, cProfile のインストール
+     - ベースラインベンチマーク測定（test/ 全体、208.73秒）
+     - ボトルネック分析（トップ10特定）
+   - プロファイリング結果:
+     * 暗号化処理: 75秒（36%） - load_pem_private_key, rsa.generate_private_key
+     * 正規表現コンパイル: 25秒（12%） - re._parser, re._compiler
+     * スレッドロック: 57秒（27%） - _thread.lock.acquire
+     * time.sleep: 17秒（8%）
+   - 完了日: 2025-12-25
+
+5. **pytest設定最適化**
+   - 状態: ✅ 完了
+   - 実装内容:
+     - pytest.ini: `--dist loadgroup` → `--dist loadscope`
+     - フィクスチャ再利用の最適化（モジュール/クラススコープ）
+   - 効果測定:
+     * Before: 208.04秒（loadgroup）
+     * After: 195.68秒（loadscope）
+     * 改善: 12.36秒短縮（6%高速化）
+   - 完了日: 2025-12-25
+
+6. **データ構造最適化**
+   - 状態: ✅ 完了
+   - 実装内容:
+     - streaming.py: `list.pop(0)` → `collections.deque` (maxlen=10)
+     - 自動サイズ管理により手動pop(0)を削除
+   - 期待効果: キュー操作 100-1000倍高速化（O(n) → O(1)）
+   - 完了日: 2025-12-25
+
+7. **組み込み関数活用（Pythonic コード）**
+   - 状態: ✅ 完了
+   - 実装内容（Ruff PERF401/PERF102準拠）:
+     * async_io.py: `.items()` → `.values()` (未使用キー削除)
+     * help_system/core.py: `.items()` → `.values()`
+     * rule_parser/core.py: for loop → list comprehension
+     * text_core/parsers/rule_parser.py: for loop → list comprehension
+     * performance_mixin.py: nested for loops → nested comprehension
+   - 期待効果: 10-40%高速化 + コード可読性向上
+   - 完了日: 2025-12-25
+
+**Phase 2 実装結果:**
+- Git Commits:
+  * `25eb1f2` - perf(optimization): Apply Phase 2 quick wins - code-level optimizations
+  * `d0d1b65` - perf(optimization): Replace list.pop(0) with collections.deque
+- テスト実行時間:
+  - Phase 2適用前: 208.04秒（ベースライン、シリアル実行）
+  - Phase 2適用後: 195.68秒（並列実行 with loadscope）
+  - 改善: 12.36秒短縮（6%高速化）
+- テスト成功率: 479/530 (90.4%) - リグレッションなし（既存失敗33件維持）
+- 実装ファイル:
+  - pytest.ini (loadscope設定)
+  - components/async_core/async_io.py
+  - components/async_core/streaming.py (deque最適化)
+  - components/help_system/core.py
+  - components/rule_parser/core.py
+  - components/text_core/parsers/rule_parser.py
+  - components/text_core/transformers/mixins/performance_mixin.py
+- 主な改善:
+  - Pytest並列実行最適化: 6%高速化
+  - データ構造最適化: O(n) → O(1) (deque)
+  - コード品質: Pythonic, Ruff準拠
+- プロファイリングデータ:
+  - development/profile_baseline.stats (cProfile結果)
+  - development/profiling_analysis.txt (ボトルネック分析)
+
+### Phase 3: Strategic Improvements（戦略的改善、今後1-3ヶ月）
+8. **StringZilla導入検討**
+   - 高速文字列処理ライブラリ（SIMD/SWAR）
+   - 期待効果: テキスト処理20-40%高速化
+   - ベンチマーク: 13-16 GB/s (Arm NEON/x86 AVX)
+
+9. **バッチ処理の導入**
    - aiofiles + バッチ読み込み
    - 期待効果: I/O待機時間30-50%削減
 
-5. **プロファイリング実施**
-   - py-spy / cProfile でボトルネック特定
-   - ホットスポット最適化
+10. **ボトルネック最適化（暗号化処理）**
+    - プロファイリング結果に基づく改善
+    - 暗号化キャッシング、並列処理の導入
+    - 現状: 暗号化処理がテスト実行時間の36%を占有
 
-6. **ボトルネック最適化**
-   - プロファイリング結果に基づく改善
+### Phase 4: Long-term Experiments（長期的実験、6ヶ月以降）
+11. **Free-Threading（No-GIL）実験**
+    - Python 3.13実験的機能（2025年は本番環境非推奨）
+    - 並列暗号化: 2-3倍高速化可能
+    - Python 3.15以降で本番環境検討（2026年）
 
-### Phase 3: Long-term（長期的）
-7. **Free-Threading（No-GIL）実験**
-   - Python 3.13実験的機能
-   - 並列暗号化: 2-3倍高速化可能
-
-8. **StringZilla導入検討**
-   - 高速文字列処理ライブラリ
-   - 期待効果: テキスト処理20-40%高速化
-
-9. **mypycコンパイル**
-   - 型注釈完全なモジュールをCコンパイル
-   - 期待効果: 2-4倍高速化（限定的）
+12. **mypycコンパイル**
+    - 型注釈完全なモジュールをCコンパイル
+    - 期待効果: 2-4倍高速化（限定的）
 
 ### 期待される総合効果 📊
 - テスト実行: 157秒 → 100-120秒（20-35%削減）

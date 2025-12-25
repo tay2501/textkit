@@ -1,0 +1,24 @@
+=== TOP 10 BOTTLENECKS BY TOTAL TIME ===
+
+1. Cryptography Operations:
+   - load_pem_private_key: 67.11s (32.2%)
+   - rsa.generate_private_key: 7.36s (3.5%)
+   - RSA decrypt: 0.68s (0.3%)
+   TOTAL: ~75s (36%)
+
+2. Regex Compilation (NOT USING CACHE):
+   - re._parser._parse: 11.75s (5.6%)
+   - re._compiler._compile: 7.40s (3.5%)
+   - re._compile: 2.52s (1.2%)
+   - re.Pattern.sub: 3.57s (1.7%)
+   TOTAL: ~25s (12%)
+
+3. Thread Lock Acquisition:
+   - _thread.lock.acquire: 57.20s (27.4%)
+   (Parallel execution disabled for profiling)
+
+4. Sleep Operations:
+   - time.sleep: 17.18s (8.2%)
+
+TOTAL TEST TIME: 208.73 seconds
+FAILED: 33 tests, PASSED: 479 tests, SKIPPED: 18 tests
