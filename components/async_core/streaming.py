@@ -11,6 +11,7 @@ import asyncio
 import contextlib
 import time
 from collections.abc import AsyncIterator
+from collections import deque
 from dataclasses import dataclass
 from typing import Any
 
@@ -250,7 +251,7 @@ class ChunkedProcessor:
 
         # Adaptive chunk sizing
         self._optimal_chunk_size = 1024 * 64  # Start with 64KB
-        self._chunk_performance_history: list[tuple[int, float]] = []
+        self._chunk_performance_history: deque[tuple[int, float]] = deque(maxlen=10)
         self._max_history = 10
 
     async def process_chunks(
@@ -355,9 +356,7 @@ class ChunkedProcessor:
         """
         self._chunk_performance_history.append((chunk_size, processing_time))
 
-        # Keep only recent history
-        if len(self._chunk_performance_history) > self._max_history:
-            self._chunk_performance_history.pop(0)
+        # deque automatically maintains maxlen, no manual pop needed
 
         # Adjust optimal chunk size based on performance
         if len(self._chunk_performance_history) >= 5:
