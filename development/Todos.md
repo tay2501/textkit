@@ -92,6 +92,32 @@
      - https://signoz.io/guides/structlog/
    - 完了日: 2025-12-19
 
+9. **🔧 Python 3.14 TypeIs型ガード実装（PEP 742）**
+   - 優先度: 高（型安全性向上、Phase 1完了）
+   - 状態: ✅ Phase 1完了
+   - 実装内容:
+     - PEP 742 TypeIs型ガード導入（8箇所のisinstance()を置き換え）
+     - validation_helpers.py: 9個の型ガード関数を新規作成
+       - is_string, is_path, is_string_or_path, is_dict, is_list
+       - is_callable, is_exception, is_none_or[T]
+     - text_core/types.py: TypeGuard → TypeIs移行（5関数）
+     - 追加適用ファイル:
+       - validation_mixin.py: 4箇所（is_string, is_list使用）
+       - error_handling_mixin.py: 1箇所（is_string使用）
+       - async_io.py: 3箇所（is_exception使用）
+   - 効果:
+     - 型ナローイング改善: TypeIsは正負両分岐で型を絞り込み可能
+     - 静的型チェック強化: 型チェッカーがより正確に型を推論
+     - コード可読性向上: isinstance()よりセマンティックな表現
+   - テスト結果:
+     - 479/530 パス（90.4%） - リグレッションなし
+     - TypeIs関連エラー: 0件（完全互換性）
+     - テスト実行時間: 189.44秒（ベースライン比）
+   - 参考資料:
+     - PEP 742: https://peps.python.org/pep-0742/
+     - Python 3.14 新機能: https://docs.python.org/3.14/whatsnew/3.14.html
+   - 完了日: 2025-12-26
+
 ### Medium Priority
 
 9. **📦 クリップボード処理の非同期化**

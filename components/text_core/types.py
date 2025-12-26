@@ -3,6 +3,10 @@ Core type definitions and data classes for text processing toolkit.
 
 This module contains all the data classes and type definitions used
 throughout the application, providing type safety and clear interfaces.
+
+Python 3.14 Enhancement:
+    Migrated from TypeGuard to TypeIs (PEP 742) for improved type narrowing.
+    TypeIs provides type safety in both positive and negative branches.
 """
 
 from __future__ import annotations
@@ -22,6 +26,7 @@ from typing import (
     Any,
     Protocol,
     TypeGuard,
+    TypeIs,
     TypeVar,
     runtime_checkable,
 )
@@ -706,7 +711,10 @@ class DaemonModeProtocol(Protocol):
 
 
 # TypeGuard functions for runtime validation
-def is_valid_config_dict(obj: Any) -> TypeGuard[ConfigDict]:
+# Python 3.14: Using TypeIs for enhanced type narrowing (PEP 742)
+# TypeIs provides type information in both if and else branches,
+# unlike TypeGuard which only narrows in the positive branch.
+def is_valid_config_dict(obj: Any) -> TypeIs[ConfigDict]:
     """Type guard for configuration dictionary validation.
 
     Args:
@@ -718,7 +726,7 @@ def is_valid_config_dict(obj: Any) -> TypeGuard[ConfigDict]:
     return isinstance(obj, dict) and all(isinstance(k, str) for k in obj)
 
 
-def is_valid_rule_string(obj: Any) -> TypeGuard[str]:
+def is_valid_rule_string(obj: Any) -> TypeIs[str]:
     """Type guard for rule string validation.
 
     Args:
@@ -730,7 +738,7 @@ def is_valid_rule_string(obj: Any) -> TypeGuard[str]:
     return isinstance(obj, str) and bool(obj.strip()) and obj.startswith("/")
 
 
-def is_valid_text_input(obj: Any) -> TypeGuard[str]:
+def is_valid_text_input(obj: Any) -> TypeIs[str]:
     """Type guard for text input validation.
 
     Args:
@@ -742,7 +750,7 @@ def is_valid_text_input(obj: Any) -> TypeGuard[str]:
     return isinstance(obj, str)
 
 
-def is_transformation_rule(obj: Any) -> TypeGuard[TransformationRule]:
+def is_transformation_rule(obj: Any) -> TypeIs[TransformationRule]:
     """Type guard for TransformationRule validation.
 
     Args:
@@ -759,7 +767,7 @@ def is_transformation_rule(obj: Any) -> TypeGuard[TransformationRule]:
     )
 
 
-def is_transformer_protocol(obj: Any) -> TypeGuard[TransformerProtocol]:
+def is_transformer_protocol(obj: Any) -> TypeIs[TransformerProtocol]:
     """Type guard for TransformerProtocol validation.
 
     Args:
@@ -778,7 +786,7 @@ def is_transformer_protocol(obj: Any) -> TypeGuard[TransformerProtocol]:
     )
 
 
-def is_transformation_factory(obj: Any) -> TypeGuard[TransformationFactoryProtocol]:
+def is_transformation_factory(obj: Any) -> TypeIs[TransformationFactoryProtocol]:
     """Type guard for TransformationFactoryProtocol validation.
 
     Args:

@@ -10,6 +10,7 @@ from collections.abc import Callable
 from typing import Any, TypeVar
 
 from components.common_utils import safe_execute, with_error_context
+from components.common_utils.validation_helpers import is_string
 from components.exceptions import TransformationError, ValidationError
 
 T = TypeVar("T")
@@ -178,9 +179,9 @@ class ErrorHandlingMixin:
                     # Re-raise known exceptions
                     raise
                 except Exception as e:
-                    # Wrap unknown exceptions
+                    # Wrap unknown exceptions (Python 3.14 TypeIs for type narrowing)
                     if hasattr(self, "_wrap_transformation_error"):
-                        text = args[0] if args and isinstance(args[0], str) else ""
+                        text = args[0] if args and is_string(args[0]) else ""
                         raise self._wrap_transformation_error(
                             e, effective_rule_name, text
                         ) from e

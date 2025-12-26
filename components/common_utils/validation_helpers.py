@@ -3,12 +3,16 @@ Common validation utilities for input parameter validation.
 
 Provides reusable validation functions that can be applied
 across different components with consistent error handling.
+
+Python 3.14 Enhancement:
+    Uses TypeIs (PEP 742) for type-safe narrowing in type guard functions.
+    This enables static type checkers to infer precise types after validation.
 """
 
 import codecs
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any, TypeIs, TypeVar
 
 from components.exceptions import (
     DataValidationError,
@@ -324,3 +328,133 @@ def type_guard(
         return any(isinstance(value, t) for t in expected_type)
     else:
         return isinstance(value, expected_type)
+
+# ============================================================================
+# Python 3.14 Type Guards using TypeIs (PEP 742)
+# ============================================================================
+# These functions provide type-safe narrowing for static type checkers.
+# Unlike regular isinstance() checks, TypeIs enables both positive and
+# negative type narrowing in conditional branches.
+
+
+def is_string(value: object) -> TypeIs[str]:
+    """Type guard to check if value is a string.
+    
+    Python 3.14 TypeIs enables type narrowing:
+        if is_string(data):
+            # data is narrowed to str type
+            result = data.upper()
+        else:
+            # data is narrowed to non-str type
+            handle_non_string(data)
+    
+    Args:
+        value: Value to check
+    
+    Returns:
+        True if value is a string, enabling type narrowing
+    """
+    return isinstance(value, str)
+
+
+def is_path(value: object) -> TypeIs[Path]:
+    """Type guard to check if value is a Path object.
+    
+    Args:
+        value: Value to check
+    
+    Returns:
+        True if value is a Path, enabling type narrowing
+    """
+    return isinstance(value, Path)
+
+
+def is_string_or_path(value: object) -> TypeIs[str | Path]:
+    """Type guard to check if value is a string or Path.
+    
+    Useful for file path validation where both types are acceptable.
+    
+    Args:
+        value: Value to check
+    
+    Returns:
+        True if value is str or Path, enabling type narrowing
+    """
+    return isinstance(value, (str, Path))
+
+
+def is_dict(value: object) -> TypeIs[dict[str, Any]]:
+    """Type guard to check if value is a dictionary.
+    
+    Args:
+        value: Value to check
+    
+    Returns:
+        True if value is a dict, enabling type narrowing
+    """
+    return isinstance(value, dict)
+
+
+def is_list(value: object) -> TypeIs[list[Any]]:
+    """Type guard to check if value is a list.
+    
+    Args:
+        value: Value to check
+    
+    Returns:
+        True if value is a list, enabling type narrowing
+    """
+    return isinstance(value, list)
+
+
+def is_callable(value: object) -> TypeIs[Callable[..., Any]]:
+    """Type guard to check if value is callable.
+    
+    Args:
+        value: Value to check
+    
+    Returns:
+        True if value is callable, enabling type narrowing
+    """
+    return callable(value)
+
+
+def is_none_or[T](value: T | None, type_check: type[T]) -> TypeIs[T]:
+    """Type guard for optional types (T | None).
+
+    Python 3.14 generic type parameter syntax with TypeIs.
+
+    Example:
+        data: str | None = get_data()
+        if is_none_or(data, str):
+            # data is narrowed to str type (not None)
+            print(data.upper())
+
+    Args:
+        value: Value that might be None
+        type_check: Expected type if not None
+
+    Returns:
+        True if value is not None and matches type_check
+    """
+    return value is not None and isinstance(value, type_check)
+
+
+def is_exception(value: object) -> TypeIs[Exception]:
+    """Type guard to check if value is an Exception.
+
+    Useful for error handling and exception filtering:
+        if is_exception(result):
+            # result is narrowed to Exception type
+            raise result
+        else:
+            # result is narrowed to non-Exception type
+            return result
+
+    Args:
+        value: Value to check
+
+    Returns:
+        True if value is an Exception, enabling type narrowing
+    """
+    return isinstance(value, Exception)

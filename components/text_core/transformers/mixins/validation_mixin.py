@@ -6,6 +6,7 @@ into transformer classes for consistent input validation.
 """
 
 from components.common_utils import validate_text_input
+from components.common_utils.validation_helpers import is_list, is_string
 from components.exceptions import ParameterValidationError, ValidationError
 
 
@@ -48,17 +49,17 @@ class ValidationMixin:
                 parameter_name="text",
             )
 
-            # Validate rule name
-            if not isinstance(rule_name, str) or not rule_name.strip():
+            # Validate rule name (Python 3.14 TypeIs for type narrowing)
+            if not is_string(rule_name) or not rule_name.strip():
                 raise ParameterValidationError(
                     "Rule name must be a non-empty string",
                     parameter_name="rule_name",
                     parameter_value=rule_name,
                 )
 
-            # Validate args if provided
+            # Validate args if provided (Python 3.14 TypeIs for type narrowing)
             if args is not None:
-                if not isinstance(args, list):
+                if not is_list(args):
                     raise ParameterValidationError(
                         "Arguments must be a list",
                         parameter_name="args",
@@ -67,7 +68,7 @@ class ValidationMixin:
                     )
 
                 for i, arg in enumerate(args):
-                    if not isinstance(arg, str):
+                    if not is_string(arg):
                         raise ParameterValidationError(
                             f"Argument at index {i} must be a string",
                             parameter_name=f"args[{i}]",
@@ -182,7 +183,8 @@ class ValidationMixin:
         Raises:
             ParameterValidationError: If validation fails
         """
-        if not isinstance(encoding, str):
+        # Python 3.14 TypeIs for type narrowing
+        if not is_string(encoding):
             raise ParameterValidationError(
                 f"{parameter_name} must be a string",
                 parameter_name=parameter_name,

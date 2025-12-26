@@ -18,6 +18,7 @@ from typing import Any
 import aiofiles
 import structlog
 
+from components.common_utils.validation_helpers import is_exception
 from components.config_manager.settings import ApplicationSettings, get_settings
 from components.exceptions import FileOperationError
 
@@ -340,10 +341,10 @@ class AsyncIOManager:
         tasks = [read_single_file(path) for path in file_paths]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        # Build result dictionary
+        # Build result dictionary (Python 3.14 TypeIs for type narrowing)
         result_dict = {}
         for result in results:
-            if isinstance(result, Exception):
+            if is_exception(result):
                 # This shouldn't happen with return_exceptions=True, but handle it
                 logger.error("unexpected_batch_read_error", error=str(result))
                 continue
@@ -352,7 +353,7 @@ class AsyncIOManager:
             result_dict[path] = content_or_exception
 
         successful_reads = sum(
-            1 for content in result_dict.values() if not isinstance(content, Exception)
+            1 for content in result_dict.values() if not is_exception(content)
         )
         logger.info(
             "batch_read_completed",
@@ -404,10 +405,10 @@ class AsyncIOManager:
         ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        # Build result dictionary
+        # Build result dictionary (Python 3.14 TypeIs for type narrowing)
         result_dict = {}
         for result in results:
-            if isinstance(result, Exception):
+            if is_exception(result):
                 logger.error("unexpected_batch_write_error", error=str(result))
                 continue
 
