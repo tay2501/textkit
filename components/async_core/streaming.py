@@ -10,8 +10,8 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import time
-from collections.abc import AsyncIterator
 from collections import deque
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from typing import Any
 

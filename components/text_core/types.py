@@ -25,7 +25,6 @@ from typing import (
     Annotated,
     Any,
     Protocol,
-    TypeGuard,
     TypeIs,
     TypeVar,
     runtime_checkable,

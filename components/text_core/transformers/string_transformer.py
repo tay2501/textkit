@@ -82,135 +82,167 @@ class StringTransformer(BaseTransformer):
             ),
         }
 
-    def _tsv_replacements(self, text: str, args: list[str]) -> str:
-        """Apply multiple replacements from TSV file.
-
-        Implements efficient batch text replacement using patterns loaded from
-        a TSV (Tab-Separated Values) file with Polars for high-performance I/O.
-        Follows CLI best practices with explicit flag-based options.
-
-        File Format:
-            old_text<TAB>new_text
-            Each line represents one replacement pattern.
+    def _parse_tsv_flags(self, args: list[str]) -> tuple[str, bool, bool]:
+        """Parse TSV command arguments and flags (complexity: 2).
 
         Args:
-            text: Input text to process
-            args: List containing:
-                - [0]: Path to TSV file (required)
-                - [1:]: Optional flags:
-                    -c: Case-sensitive matching (default: case-insensitive)
-                    -r: Enable regex mode (default: literal replacement)
+            args: List containing path and optional flags
 
         Returns:
-            Text with all replacements applied in order
+            Tuple of (file_path, case_sensitive, regex_mode)
 
         Raises:
-            ValueError: If TSV file path not provided or file not found
-            IOError: If TSV file cannot be read
-
-        Examples:
-            # Case-insensitive literal replacement (default)
-            /tsv replacements.tsv
-
-            # Case-sensitive replacement
-            /tsv replacements.tsv -c
-
-            # Regex replacement with case-insensitive
-            /tsv replacements.tsv -r
-
-            # Regex with case-sensitive
-            /tsv replacements.tsv -c -r
-
-        Performance:
-            - Uses Polars for 30x faster TSV loading vs pandas/csv
-            - Literal mode: O(n*m) where n=text length, m=patterns
-            - Regex mode: Single-pass O(n) using alternation
+            ValueError: If no file path provided
         """
-        from pathlib import Path
-
-        # Validate arguments
         if not args:
             raise ValueError("TSV file path is required")
 
         tsv_file = args[0]
         flags = args[1:] if len(args) > 1 else []
-
-        # Parse flags (CLI best practice: explicit flags)
         case_sensitive = "-c" in flags
         regex_mode = "-r" in flags
 
-        # Load replacement patterns from TSV file using Polars
+        return tsv_file, case_sensitive, regex_mode
+
+    def _load_tsv_with_polars(self, file_path) -> list[tuple[str, str]]:
+        """Load TSV replacements using Polars (complexity: 2).
+
+        Args:
+            file_path: Path to TSV file
+
+        Returns:
+            List of (old, new) replacement tuples
+        """
+        import polars as pl
+
+        df = pl.read_csv(
+            file_path,
+            separator="\t",
+            has_header=False,
+            new_columns=["old", "new"],
+            schema_overrides={"old": pl.String, "new": pl.String},
+            truncate_ragged_lines=True,
+        )
+
+        return [
+            (row[0], row[1])
+            for row in df.filter(
+                pl.col("old").is_not_null() & pl.col("new").is_not_null()
+            ).iter_rows()
+            if row[0] and row[1]
+        ]
+
+    def _load_tsv_with_csv(self, file_path, tsv_file: str) -> list[tuple[str, str]]:
+        """Load TSV replacements using csv module (complexity: 3).
+
+        Args:
+            file_path: Path object to TSV file
+            tsv_file: String representation for logging
+
+        Returns:
+            List of (old, new) replacement tuples
+        """
+        import csv
+        import logging
+        from pathlib import Path
+
+        logger = logging.getLogger(__name__)
+        replacements = []
+
+        with Path(file_path).open(encoding="utf-8", newline="") as f:
+            reader = csv.reader(f, delimiter="\t")
+            for line_num, row in enumerate(reader, start=1):
+                # Skip empty lines
+                if not row or not any(row):
+                    continue
+
+                # Validate TSV format
+                if len(row) < 2:
+                    logger.warning(
+                        f"Line {line_num} in {tsv_file} has insufficient columns, skipping"
+                    )
+                    continue
+
+                old_text, new_text = row[0], row[1]
+                replacements.append((old_text, new_text))
+
+        return replacements
+
+    def _load_tsv_file(self, tsv_file: str) -> list[tuple[str, str]]:
+        """Load replacement patterns from TSV file (complexity: 4).
+
+        Args:
+            tsv_file: Path to TSV file
+
+        Returns:
+            List of (old, new) replacement tuples
+
+        Raises:
+            ValueError: If file not found
+            OSError: If file cannot be read
+        """
+        import logging
+        from pathlib import Path
+
+        logger = logging.getLogger(__name__)
+
         try:
             file_path = Path(tsv_file)
             if not file_path.exists():
                 raise ValueError(f"TSV file not found: {tsv_file}")
 
-            # Use Polars for high-performance TSV loading
+            # Try Polars first (30x faster), fallback to csv
             try:
-                import polars as pl
-
-                # Read TSV with Polars (30x faster than pandas)
-                df = pl.read_csv(
-                    file_path,
-                    separator="\t",
-                    has_header=False,
-                    new_columns=["old", "new"],
-                    schema_overrides={"old": pl.String, "new": pl.String},
-                    truncate_ragged_lines=True,  # Handle incomplete lines
-                )
-
-                # Filter out empty rows and extract as list of tuples
-                replacements = [
-                    (row[0], row[1])
-                    for row in df.filter(
-                        pl.col("old").is_not_null() & pl.col("new").is_not_null()
-                    ).iter_rows()
-                    if row[0] and row[1]  # Additional validation
-                ]
-
+                replacements = self._load_tsv_with_polars(file_path)
             except ImportError:
-                # Fallback to standard library csv if Polars not available
-                import csv
-
-                replacements = []
-                with Path(file_path).open(encoding="utf-8", newline="") as f:
-                    reader = csv.reader(f, delimiter="\t")
-                    for line_num, row in enumerate(reader, start=1):
-                        # Skip empty lines
-                        if not row or not any(row):
-                            continue
-
-                        # Validate TSV format
-                        if len(row) < 2:
-                            import logging
-
-                            logger = logging.getLogger(__name__)
-                            logger.warning(
-                                f"Line {line_num} in {tsv_file} has insufficient columns, skipping"
-                            )
-                            continue
-
-                        old_text, new_text = row[0], row[1]
-                        replacements.append((old_text, new_text))
+                replacements = self._load_tsv_with_csv(file_path, tsv_file)
 
             if not replacements:
-                import logging
-
-                logger = logging.getLogger(__name__)
                 logger.warning(f"No valid replacements found in {tsv_file}")
-                return text
+
+            return replacements
 
         except FileNotFoundError:
             raise ValueError(f"TSV file not found: {tsv_file}") from None
         except Exception as e:
             raise OSError(f"Failed to read TSV file {tsv_file}: {e}") from e
 
+    def _tsv_replacements(self, text: str, args: list[str]) -> str:
+        """Apply multiple replacements from TSV file (complexity: 3).
+
+        Orchestrates TSV-based text replacement through extracted helper functions.
+
+        File Format:
+            old_text<TAB>new_text
+
+        Args:
+            text: Input text to process
+            args: List containing file path and optional flags (-c, -r)
+
+        Returns:
+            Text with all replacements applied
+
+        Raises:
+            ValueError: If file not found or arguments invalid
+            OSError: If file cannot be read
+
+        Performance:
+            - Polars: 30x faster TSV loading vs pandas/csv
+            - Regex mode: O(n) single-pass using alternation
+        """
+        # Parse arguments and flags
+        tsv_file, case_sensitive, regex_mode = self._parse_tsv_flags(args)
+
+        # Load replacement patterns from file
+        replacements = self._load_tsv_file(tsv_file)
+
+        if not replacements:
+            return text
+
         # Apply replacements based on mode
         if regex_mode:
-            # Regex mode: Single-pass replacement using re.sub
             return self._apply_regex_replacements(text, replacements, case_sensitive)
         else:
-            # Literal mode: Sequential replacement
             return self._apply_literal_replacements(text, replacements, case_sensitive)
 
     def _apply_literal_replacements(
@@ -408,18 +440,44 @@ class StringTransformer(BaseTransformer):
             )
             return text.replace(old_text, new_text)
 
+    def _extract_valid_lines(self, text: str) -> list[str]:
+        """Extract non-empty lines from text (complexity: 2).
+
+        Args:
+            text: Input text with line-separated values
+
+        Returns:
+            List of non-empty, stripped lines
+        """
+        return [stripped for line in text.splitlines() if (stripped := line.strip())]
+
+    def _add_sql_quotes(self, lines: list[str]) -> list[str]:
+        """Add SQL single quotes to lines (complexity: 1).
+
+        Args:
+            lines: List of string values
+
+        Returns:
+            List of SQL-quoted strings
+        """
+        return [f"'{line}'" for line in lines]
+
+    def _format_sql_in_clause(self, quoted_lines: list[str]) -> str:
+        """Format as SQL IN clause with trailing comma (complexity: 1).
+
+        Args:
+            quoted_lines: List of SQL-quoted strings
+
+        Returns:
+            SQL IN clause format with trailing comma
+        """
+        return ",\\n".join(quoted_lines) + ("," if quoted_lines else "")
+
     def _to_sql_in_list(self, text: str) -> str:
-        """Convert line-separated values to SQL IN clause format.
+        """Convert line-separated values to SQL IN clause format (complexity: 3).
 
-        High-performance implementation using StringZilla SIMD-optimized operations
-        combined with walrus operator for maximum efficiency. Leverages StringZilla's
-        split_iter for memory-efficient processing of large datasets.
-
-        Performance optimizations:
-        - SIMD-accelerated string splitting (up to 10x faster than standard Python)
-        - Memory-efficient lazy iteration (zero-copy string views)
-        - Single-pass processing with walrus operator (O(n) complexity)
-        - Enhanced exception handling with logging for better diagnostics
+        Simplified implementation with extracted methods for better maintainability.
+        Attempts StringZilla for performance, falls back to standard Python.
 
         Args:
             text: Input text with line-separated values
@@ -431,84 +489,22 @@ class StringTransformer(BaseTransformer):
             '001\\n002\\nA01\\nB02' -> "'001',\\n'002',\\n'A01',\\n'B02',"
         """
         try:
-            # Import StringZilla for high-performance string operations
+            # Try StringZilla for SIMD-optimized performance (10x faster)
             import stringzilla as sz
 
-            # Convert to StringZilla Str for SIMD-optimized operations
             sz_text = sz.Str(text)
-
-            # Use StringZilla's memory-efficient split_iter with lazy evaluation
-            # This provides up to 10x performance improvement over standard splitlines()
             lines = [
-                f"'{stripped}'"
+                stripped
                 for line in sz_text.split_iter(separator="\\n")
-                if (
-                    stripped := str(line).strip()
-                )  # Convert back to str for compatibility
+                if (stripped := str(line).strip())
             ]
+        except (ImportError, AttributeError):
+            # Fallback to standard Python (StringZilla not available or API incompatible)
+            lines = self._extract_valid_lines(text)
 
-            # Return result with trailing comma if lines exist, empty string otherwise
-            return ",\\n".join(lines) + ("," if lines else "")
-
-        except ImportError as e:
-            # StringZilla not available - fallback to standard implementation
-            import logging
-
-            logger = logging.getLogger(__name__)
-            logger.debug(f"StringZilla not available for SQL IN list processing: {e}")
-            # Fallback to standard Python implementation
-            try:
-                lines = [
-                    f"'{stripped}'"
-                    for line in text.splitlines()
-                    if (stripped := line.strip())
-                ]
-                return ",\\n".join(lines) + ("," if lines else "")
-            except AttributeError as e:
-                logger.error(f"Text input error in SQL IN list processing: {e}")
-                return ""
-            except TypeError as e:
-                logger.error(f"Type error in SQL IN list processing: {e}")
-                return ""
-        except AttributeError as e:
-            # StringZilla API compatibility issue
-            import logging
-
-            logger = logging.getLogger(__name__)
-            logger.warning(f"StringZilla API compatibility issue in SQL IN list: {e}")
-            # Fallback to standard Python implementation
-            try:
-                lines = [
-                    f"'{stripped}'"
-                    for line in text.splitlines()
-                    if (stripped := line.strip())
-                ]
-                return ",\\n".join(lines) + ("," if lines else "")
-            except (AttributeError, TypeError) as fallback_e:
-                logger.error(f"Fallback processing failed: {fallback_e}")
-                return ""
-        except Exception as e:
-            # Unexpected error in StringZilla processing
-            import logging
-
-            logger = logging.getLogger(__name__)
-            logger.error(
-                f"Unexpected error in StringZilla SQL IN list processing: {e}",
-                exc_info=True,
-            )
-            # Final fallback to standard implementation
-            try:
-                lines = [
-                    f"'{stripped}'"
-                    for line in text.splitlines()
-                    if (stripped := line.strip())
-                ]
-                return ",\\n".join(lines) + ("," if lines else "")
-            except Exception as fallback_e:
-                logger.error(
-                    f"All fallback methods failed: {fallback_e}", exc_info=True
-                )
-                return ""
+        # Apply SQL formatting using extracted methods
+        quoted = self._add_sql_quotes(lines)
+        return self._format_sql_in_clause(quoted)
 
     def _unicode_unescape(self, text: str) -> str:
         """Convert Unicode escape sequences to actual Unicode characters.

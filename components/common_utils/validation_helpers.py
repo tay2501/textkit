@@ -219,13 +219,128 @@ def validate_file_path(
     return path_obj
 
 
+def _check_required_parameters(
+    parameters: dict[str, Any], required: list[str]
+) -> None:
+    """Check for required parameters (complexity: 2).
+
+    Args:
+        parameters: Dictionary of parameter names and values
+        required: List of required parameter names
+
+    Raises:
+        ParameterValidationError: If required parameters are missing
+    """
+    missing = [name for name in required if name not in parameters]
+    if missing:
+        raise ParameterValidationError(
+            f"Missing required parameters: {', '.join(missing)}",
+            parameter_name="parameters",
+            parameter_value=list(parameters.keys()),
+            constraints={"required": required, "missing": missing},
+        )
+
+
+def _validate_parameter_type(
+    param_name: str, value: Any, expected_type: type | list[type]
+) -> None:
+    """Validate a single parameter's type (complexity: 3).
+
+    Args:
+        param_name: Parameter name
+        value: Parameter value
+        expected_type: Expected type or list of acceptable types
+
+    Raises:
+        ParameterValidationError: If type validation fails
+    """
+    if isinstance(expected_type, list):
+        # Multiple acceptable types
+        if not any(isinstance(value, t) for t in expected_type):
+            type_names = [t.__name__ for t in expected_type]
+            raise ParameterValidationError(
+                f"Parameter '{param_name}' must be one of types: {', '.join(type_names)}",
+                parameter_name=param_name,
+                parameter_value=value,
+                constraints={
+                    "expected_types": type_names,
+                    "actual_type": type(value).__name__,
+                },
+            )
+    else:
+        # Single expected type
+        if not isinstance(value, expected_type):
+            raise ParameterValidationError(
+                f"Parameter '{param_name}' must be of type {expected_type.__name__}",
+                parameter_name=param_name,
+                parameter_value=value,
+                constraints={
+                    "expected_type": expected_type.__name__,
+                    "actual_type": type(value).__name__,
+                },
+            )
+
+
+def _check_parameter_types(
+    parameters: dict[str, Any], types: dict[str, type | list[type]]
+) -> None:
+    """Check parameter types (complexity: 2).
+
+    Args:
+        parameters: Dictionary of parameter names and values
+        types: Dictionary of parameter types or list of acceptable types
+
+    Raises:
+        ParameterValidationError: If type validation fails
+    """
+    for param_name, expected_type in types.items():
+        if param_name in parameters:
+            _validate_parameter_type(param_name, parameters[param_name], expected_type)
+
+
+def _run_custom_validators(
+    parameters: dict[str, Any], validators: dict[str, Callable[[Any], bool]]
+) -> None:
+    """Run custom validators on parameters (complexity: 3).
+
+    Args:
+        parameters: Dictionary of parameter names and values
+        validators: Dictionary of custom validation functions
+
+    Raises:
+        ParameterValidationError: If validation fails
+    """
+    for param_name, validator in validators.items():
+        if param_name in parameters:
+            value = parameters[param_name]
+            try:
+                if not validator(value):
+                    raise ParameterValidationError(
+                        f"Parameter '{param_name}' failed custom validation",
+                        parameter_name=param_name,
+                        parameter_value=value,
+                        constraints={"custom_validator": validator.__name__},
+                    )
+            except ParameterValidationError:
+                raise
+            except Exception as e:
+                raise ParameterValidationError(
+                    f"Parameter '{param_name}' validation error: {e}",
+                    parameter_name=param_name,
+                    parameter_value=value,
+                    constraints={"custom_validator": validator.__name__},
+                ) from e
+
+
 def validate_parameters(
     parameters: dict[str, Any],
     required: list[str] | None = None,
     types: dict[str, type | list[type]] | None = None,
     validators: dict[str, Callable[[Any], bool]] | None = None,
 ) -> dict[str, Any]:
-    """Validate multiple parameters at once.
+    """Validate multiple parameters at once (complexity: 4).
+
+    Orchestrates parameter validation through extracted helper functions.
 
     Args:
         parameters: Dictionary of parameter names and values
@@ -243,67 +358,15 @@ def validate_parameters(
 
     # Check required parameters
     if required:
-        missing = [name for name in required if name not in parameters]
-        if missing:
-            raise ParameterValidationError(
-                f"Missing required parameters: {', '.join(missing)}",
-                parameter_name="parameters",
-                parameter_value=list(parameters.keys()),
-                constraints={"required": required, "missing": missing},
-            )
+        _check_required_parameters(parameters, required)
 
     # Check parameter types
     if types:
-        for param_name, expected_type in types.items():
-            if param_name in parameters:
-                value = parameters[param_name]
-
-                if isinstance(expected_type, list):
-                    # Multiple acceptable types
-                    if not any(isinstance(value, t) for t in expected_type):
-                        type_names = [t.__name__ for t in expected_type]
-                        raise ParameterValidationError(
-                            f"Parameter '{param_name}' must be one of types: {', '.join(type_names)}",
-                            parameter_name=param_name,
-                            parameter_value=value,
-                            constraints={
-                                "expected_types": type_names,
-                                "actual_type": type(value).__name__,
-                            },
-                        )
-                else:
-                    # Single expected type
-                    if not isinstance(value, expected_type):
-                        raise ParameterValidationError(
-                            f"Parameter '{param_name}' must be of type {expected_type.__name__}",
-                            parameter_name=param_name,
-                            parameter_value=value,
-                            constraints={
-                                "expected_type": expected_type.__name__,
-                                "actual_type": type(value).__name__,
-                            },
-                        )
+        _check_parameter_types(parameters, types)
 
     # Run custom validators
     if validators:
-        for param_name, validator in validators.items():
-            if param_name in parameters:
-                value = parameters[param_name]
-                try:
-                    if not validator(value):
-                        raise ParameterValidationError(
-                            f"Parameter '{param_name}' failed custom validation",
-                            parameter_name=param_name,
-                            parameter_value=value,
-                            constraints={"custom_validator": validator.__name__},
-                        )
-                except Exception as e:
-                    raise ParameterValidationError(
-                        f"Parameter '{param_name}' validation error: {e}",
-                        parameter_name=param_name,
-                        parameter_value=value,
-                        constraints={"custom_validator": validator.__name__},
-                    ) from e
+        _run_custom_validators(parameters, validators)
 
     return validated
 

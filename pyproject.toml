@@ -217,24 +217,17 @@ dev = [
 # Reference: https://docs.astral.sh/uv/configuration/files/
 [tool.uv]
 # Compile Python bytecode for faster application startup (10-20% improvement)
-# Implements Python 3.13 performance best practices
-# TEMPORARY: Disabled due to Python 3.13.7 asyncio compatibility issue
-compile-bytecode = false
+# Implements Python 3.14 performance best practices
+# Re-enabled for Python 3.14.2 (asyncio compatibility issue resolved)
+compile-bytecode = true
 
 # Allow pre-releases only when explicitly required by dependencies
 prerelease = "if-necessary-or-explicit"
 
-# NOTE: For Windows UTF-8 mode support (PEP 540/686), set environment variable:
-# Windows PowerShell: $env:PYTHONUTF8="1"; uv run python main.py
-# Windows CMD: set PYTHONUTF8=1 && uv run python main.py
-# Linux/macOS: PYTHONUTF8=1 uv run python main.py
-# Or create a .env file with: PYTHONUTF8=1
-#
-# Python 3.13+ JIT Compiler (15-30% speedup for compute-intensive tasks):
-# Windows PowerShell: $env:PYTHON_JIT="1"; uv run python main.py
-# Windows CMD: set PYTHON_JIT=1 && uv run python main.py
-# Linux/macOS: PYTHON_JIT=1 uv run python main.py
-# Reference: https://docs.python.org/3/whatsnew/3.13.html
+# NOTE: Performance optimization environment variables (set in .env file):
+# - PYTHON_JIT=1        # Python 3.14 JIT Compiler (15-30% speedup)
+# - PYTHONUTF8=1        # UTF-8 mode (optimal text processing)
+# Reference: https://docs.python.org/3/whatsnew/3.14.html
 
 # ============================================================================
 # Code Quality Tools Configuration (2025 Best Practices)

@@ -584,7 +584,7 @@ class AsyncIOManager:
             try:
                 # Use custom executor for improved I/O performance
                 async with aiofiles.open(
-                    file_path, mode="r", encoding=encoding, executor=_IO_EXECUTOR
+                    file_path, encoding=encoding, executor=_IO_EXECUTOR
                 ) as file:
                     # Stream file in chunks
                     while True:
@@ -643,7 +643,7 @@ class AsyncIOManager:
             try:
                 # Use custom executor for improved performance
                 async with aiofiles.open(
-                    file_path, mode="r", encoding=encoding, executor=_IO_EXECUTOR
+                    file_path, encoding=encoding, executor=_IO_EXECUTOR
                 ) as file:
                     content = await file.read()
 
