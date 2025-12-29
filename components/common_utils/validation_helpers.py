@@ -402,7 +402,7 @@ def type_guard(
 
 def is_string(value: object) -> TypeIs[str]:
     """Type guard to check if value is a string.
-    
+
     Python 3.14 TypeIs enables type narrowing:
         if is_string(data):
             # data is narrowed to str type
@@ -410,10 +410,10 @@ def is_string(value: object) -> TypeIs[str]:
         else:
             # data is narrowed to non-str type
             handle_non_string(data)
-    
+
     Args:
         value: Value to check
-    
+
     Returns:
         True if value is a string, enabling type narrowing
     """
@@ -422,10 +422,10 @@ def is_string(value: object) -> TypeIs[str]:
 
 def is_path(value: object) -> TypeIs[Path]:
     """Type guard to check if value is a Path object.
-    
+
     Args:
         value: Value to check
-    
+
     Returns:
         True if value is a Path, enabling type narrowing
     """
@@ -434,12 +434,12 @@ def is_path(value: object) -> TypeIs[Path]:
 
 def is_string_or_path(value: object) -> TypeIs[str | Path]:
     """Type guard to check if value is a string or Path.
-    
+
     Useful for file path validation where both types are acceptable.
-    
+
     Args:
         value: Value to check
-    
+
     Returns:
         True if value is str or Path, enabling type narrowing
     """
@@ -448,10 +448,10 @@ def is_string_or_path(value: object) -> TypeIs[str | Path]:
 
 def is_dict(value: object) -> TypeIs[dict[str, Any]]:
     """Type guard to check if value is a dictionary.
-    
+
     Args:
         value: Value to check
-    
+
     Returns:
         True if value is a dict, enabling type narrowing
     """
@@ -460,10 +460,10 @@ def is_dict(value: object) -> TypeIs[dict[str, Any]]:
 
 def is_list(value: object) -> TypeIs[list[Any]]:
     """Type guard to check if value is a list.
-    
+
     Args:
         value: Value to check
-    
+
     Returns:
         True if value is a list, enabling type narrowing
     """
@@ -472,10 +472,10 @@ def is_list(value: object) -> TypeIs[list[Any]]:
 
 def is_callable(value: object) -> TypeIs[Callable[..., Any]]:
     """Type guard to check if value is callable.
-    
+
     Args:
         value: Value to check
-    
+
     Returns:
         True if value is callable, enabling type narrowing
     """

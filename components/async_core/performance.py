@@ -610,7 +610,7 @@ class AsyncBenchmark:
         func: Callable,
         args: tuple,
         kwargs: dict,
-        concurrent_calls: list[int] = None,
+        concurrent_calls: list[int] | None = None,
         duration_seconds: float = 10.0,
     ) -> dict[str, Any]:
         """Perform stress testing with varying concurrency levels.

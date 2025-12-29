@@ -441,7 +441,7 @@ class CryptographyManager:
             - Maintains backward compatibility with environment variables
         """
         try:
-            passphrase, backend = self._passphrase_manager.get_passphrase()
+            passphrase, _backend = self._passphrase_manager.get_passphrase()
 
             if len(passphrase) < self.MINIMUM_PASSPHRASE_LENGTH:
                 raise CryptographyError(

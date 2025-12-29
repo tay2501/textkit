@@ -42,27 +42,27 @@ FileOperationError = FileAccessError
 __all__ = [
     # Base exceptions
     "BaseTextProcessingError",
-    "SystemError",
-    # Validation exceptions
-    "ValidationError",
-    "ParameterValidationError",
-    "DataValidationError",
-    "SchemaValidationError",
-    # Transformation exceptions
-    "TransformationError",
-    "TransformationTimeoutError",
-    "TransformationRuleError",
-    "EncodingTransformationError",
-    "CryptoTransformationError",
-    "CryptographyError",  # Backward compatibility alias
+    "ClipboardError",
     # Configuration exceptions
     "ConfigurationError",
     "ConfigurationLoadError",
-    "ConfigurationValidationError",
     "ConfigurationNotFoundError",
-    # IO exceptions
-    "IOError",
-    "ClipboardError",
+    "ConfigurationValidationError",
+    "CryptoTransformationError",
+    "CryptographyError",  # Backward compatibility alias
+    "DataValidationError",
+    "EncodingTransformationError",
     "FileAccessError",
     "FileOperationError",  # Backward compatibility alias
+    # IO exceptions
+    "IOError",
+    "ParameterValidationError",
+    "SchemaValidationError",
+    "SystemError",
+    # Transformation exceptions
+    "TransformationError",
+    "TransformationRuleError",
+    "TransformationTimeoutError",
+    # Validation exceptions
+    "ValidationError",
 ]

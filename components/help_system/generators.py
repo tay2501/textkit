@@ -30,7 +30,7 @@ class DynamicHelpGenerator(HelpGenerator):
         """
         self._transformation_engine = transformation_engine
 
-    def generate_help(self, context: dict[str, Any] = None) -> list[HelpSection]:
+    def generate_help(self, context: dict[str, Any] | None = None) -> list[HelpSection]:
         """Generate dynamic help content.
 
         Args:
@@ -93,7 +93,7 @@ class DynamicHelpGenerator(HelpGenerator):
         """
         return HelpSection("Quick Start", content.strip())
 
-    def _generate_examples_section(self, context: dict[str, Any] = None) -> HelpSection:
+    def _generate_examples_section(self, context: dict[str, Any] | None = None) -> HelpSection:
         """Generate examples section."""
         examples = [
             "Transform text case: '/u' (uppercase), '/l' (lowercase), '/p' (PascalCase)",
@@ -129,7 +129,7 @@ class RulesHelpGenerator(HelpGenerator):
         """
         self._transformation_engine = transformation_engine
 
-    def generate_help(self, context: dict[str, Any] = None) -> list[HelpSection]:
+    def generate_help(self, context: dict[str, Any] | None = None) -> list[HelpSection]:
         """Generate rules help content.
 
         Args:
