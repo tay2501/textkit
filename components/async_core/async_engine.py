@@ -295,6 +295,7 @@ class AsyncTextTransformationEngine:
             character_count: Number of characters processed
         """
         self._stats["total_time"] += processing_time
+        self._stats["total_characters"] += character_count
         if self._stats["total_time"] > 0:
             self._stats["average_throughput"] = (
                 self._stats["total_characters"] / self._stats["total_time"]

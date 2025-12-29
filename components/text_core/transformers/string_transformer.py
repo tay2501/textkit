@@ -115,22 +115,26 @@ class StringTransformer(BaseTransformer):
         """
         import polars as pl
 
-        df = pl.read_csv(
-            file_path,
-            separator="\t",
-            has_header=False,
-            new_columns=["old", "new"],
-            schema_overrides={"old": pl.String, "new": pl.String},
-            truncate_ragged_lines=True,
-        )
+        try:
+            df = pl.read_csv(
+                file_path,
+                separator="\t",
+                has_header=False,
+                new_columns=["old", "new"],
+                schema_overrides={"old": pl.String, "new": pl.String},
+                truncate_ragged_lines=True,
+            )
 
-        return [
-            (row[0], row[1])
-            for row in df.filter(
-                pl.col("old").is_not_null() & pl.col("new").is_not_null()
-            ).iter_rows()
-            if row[0] and row[1]
-        ]
+            return [
+                (row[0], row[1])
+                for row in df.filter(
+                    pl.col("old").is_not_null() & pl.col("new").is_not_null()
+                ).iter_rows()
+                if row[0] and row[1]
+            ]
+        except pl.exceptions.NoDataError:
+            # Empty file is valid - return empty list
+            return []
 
     def _load_tsv_with_csv(self, file_path, tsv_file: str) -> list[tuple[str, str]]:
         """Load TSV replacements using csv module (complexity: 3).
