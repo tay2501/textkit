@@ -86,6 +86,77 @@ class ValidationMixin:
                 f"Input validation failed: {e}", parameter_name="validation", cause=e
             ).add_context("rule_name", rule_name) from e
 
+    def _validate_argument_count(
+        self,
+        args: list[str],
+        rule_name: str,
+        required_count: int | None,
+        min_count: int | None,
+        max_count: int | None,
+    ) -> None:
+        """Validate argument count constraints (complexity: 4).
+
+        Args:
+            args: List of arguments
+            rule_name: Name of the rule for error messages
+            required_count: Exact number of required arguments
+            min_count: Minimum number of arguments
+            max_count: Maximum number of arguments
+
+        Raises:
+            ParameterValidationError: If count validation fails
+        """
+        if required_count is not None and len(args) != required_count:
+            raise ParameterValidationError(
+                f"Rule '{rule_name}' requires exactly {required_count} arguments, got {len(args)}",
+                parameter_name="args",
+                parameter_value=args,
+                constraints={
+                    "required_count": required_count,
+                    "actual_count": len(args),
+                },
+            )
+
+        if min_count is not None and len(args) < min_count:
+            raise ParameterValidationError(
+                f"Rule '{rule_name}' requires at least {min_count} arguments, got {len(args)}",
+                parameter_name="args",
+                parameter_value=args,
+                constraints={"min_count": min_count, "actual_count": len(args)},
+            )
+
+        if max_count is not None and len(args) > max_count:
+            raise ParameterValidationError(
+                f"Rule '{rule_name}' accepts at most {max_count} arguments, got {len(args)}",
+                parameter_name="args",
+                parameter_value=args,
+                constraints={"max_count": max_count, "actual_count": len(args)},
+            )
+
+    def _validate_allowed_values(
+        self, args: list[str], allowed_values: dict[int, list[str]]
+    ) -> None:
+        """Validate argument values against allowed lists (complexity: 3).
+
+        Args:
+            args: List of arguments
+            allowed_values: Dict mapping positions to allowed values
+
+        Raises:
+            ParameterValidationError: If value validation fails
+        """
+        for position, allowed in allowed_values.items():
+            if position < len(args) and args[position] not in allowed:
+                raise ParameterValidationError(
+                    f"Argument at position {position} must be one of: {', '.join(allowed)}",
+                    parameter_name=f"args[{position}]",
+                    parameter_value=args[position],
+                    constraints={
+                        "allowed_values": allowed,
+                        "position": position,
+                    },
+                )
+
     def validate_rule_arguments(
         self,
         args: list[str],
@@ -95,7 +166,9 @@ class ValidationMixin:
         max_count: int | None = None,
         allowed_values: dict[int, list[str]] | None = None,
     ) -> list[str]:
-        """Validate transformation rule arguments.
+        """Validate transformation rule arguments (complexity: 4).
+
+        Orchestrates validation through extracted helper methods.
 
         Args:
             args: List of arguments to validate
@@ -112,47 +185,14 @@ class ValidationMixin:
             ParameterValidationError: If validation fails
         """
         try:
-            # Check argument count
-            if required_count is not None and len(args) != required_count:
-                raise ParameterValidationError(
-                    f"Rule '{rule_name}' requires exactly {required_count} arguments, got {len(args)}",
-                    parameter_name="args",
-                    parameter_value=args,
-                    constraints={
-                        "required_count": required_count,
-                        "actual_count": len(args),
-                    },
-                )
+            # Validate argument count through helper method
+            self._validate_argument_count(
+                args, rule_name, required_count, min_count, max_count
+            )
 
-            if min_count is not None and len(args) < min_count:
-                raise ParameterValidationError(
-                    f"Rule '{rule_name}' requires at least {min_count} arguments, got {len(args)}",
-                    parameter_name="args",
-                    parameter_value=args,
-                    constraints={"min_count": min_count, "actual_count": len(args)},
-                )
-
-            if max_count is not None and len(args) > max_count:
-                raise ParameterValidationError(
-                    f"Rule '{rule_name}' accepts at most {max_count} arguments, got {len(args)}",
-                    parameter_name="args",
-                    parameter_value=args,
-                    constraints={"max_count": max_count, "actual_count": len(args)},
-                )
-
-            # Check allowed values
+            # Validate allowed values through helper method
             if allowed_values:
-                for position, allowed in allowed_values.items():
-                    if position < len(args) and args[position] not in allowed:
-                        raise ParameterValidationError(
-                            f"Argument at position {position} must be one of: {', '.join(allowed)}",
-                            parameter_name=f"args[{position}]",
-                            parameter_value=args[position],
-                            constraints={
-                                "allowed_values": allowed,
-                                "position": position,
-                            },
-                        )
+                self._validate_allowed_values(args, allowed_values)
 
             return args
 

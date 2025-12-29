@@ -34,13 +34,140 @@ class TransformationOrchestrator:
         self.logger = get_structured_logger(__name__)
         self.transformation_factory = transformation_factory or TransformationFactory()
 
+    def _record_rule_success(
+        self,
+        rule: ParsedRule,
+        rule_start_time: float,
+        result: str,
+        i: int,
+        text: str,
+        applied_rules: list[str],
+        rule_timings: list[dict[str, Any]],
+    ) -> None:
+        """Record successful rule execution (complexity: 2).
+
+        Args:
+            rule: The transformation rule
+            rule_start_time: Start time of rule execution
+            result: Transformation result
+            i: Rule index
+            text: Original input text
+            applied_rules: List to append rule name
+            rule_timings: List to append timing data
+        """
+        rule_elapsed = (time.perf_counter() - rule_start_time) * 1000
+        rule_timings.append(
+            {
+                "rule_name": rule.name,
+                "elapsed_ms": rule_elapsed,
+                "input_length": len(text) if i == 0 else None,
+                "output_length": len(result),
+            }
+        )
+        applied_rules.append(rule.name)
+
+        self.logger.debug(
+            "rule_applied_successfully",
+            rule_name=rule.name,
+            rule_index=i,
+            elapsed_ms=rule_elapsed,
+            input_length=len(text) if i == 0 else None,
+            output_length=len(result),
+        )
+
+    def _handle_rule_failure(
+        self,
+        e: Exception,
+        rule: ParsedRule,
+        rule_start_time: float,
+        i: int,
+        applied_rules: list[str],
+        rule_timings: list[dict[str, Any]],
+    ) -> None:
+        """Handle rule execution failure (complexity: 3).
+
+        Args:
+            e: The exception that occurred
+            rule: The transformation rule
+            rule_start_time: Start time of rule execution
+            i: Rule index
+            applied_rules: List of successfully applied rules
+            rule_timings: List to append timing data
+
+        Raises:
+            TransformationError: Always raises with enhanced context
+        """
+        rule_elapsed = (time.perf_counter() - rule_start_time) * 1000
+        rule_timings.append(
+            {
+                "rule_name": rule.name,
+                "elapsed_ms": rule_elapsed,
+                "error": str(e),
+                "error_type": type(e).__name__,
+            }
+        )
+
+        # Enhance error with rule context
+        if isinstance(e, TransformationError):
+            e.add_context("rule_index", i)
+            e.add_context("applied_rules", applied_rules)
+            raise
+        else:
+            raise (
+                TransformationError(
+                    f"Rule '{rule.name}' failed: {e}",
+                    operation="rule_application",
+                    cause=e,
+                )
+                .add_context("rule_name", rule.name)
+                .add_context("rule_index", i)
+                .add_context("applied_rules", applied_rules)
+            ) from e
+
+    def _build_execution_metadata(
+        self,
+        applied_rules: list[str],
+        rule_timings: list[dict[str, Any]],
+        text: str,
+        result: str,
+        start_time: float,
+        warnings: list[str],
+    ) -> dict[str, Any]:
+        """Build execution metadata (complexity: 1).
+
+        Args:
+            applied_rules: List of applied rule names
+            rule_timings: List of timing data
+            text: Original input text
+            result: Final transformation result
+            start_time: Execution start time
+            warnings: List of warnings
+
+        Returns:
+            Execution metadata dictionary
+        """
+        total_elapsed = (time.perf_counter() - start_time) * 1000
+
+        return {
+            "applied_rules": applied_rules,
+            "rule_count": len(applied_rules),
+            "total_elapsed_ms": total_elapsed,
+            "rule_timings": rule_timings,
+            "input_length": len(text),
+            "output_length": len(result),
+            "compression_ratio": len(result) / len(text) if text else 1.0,
+            "warnings": warnings,
+        }
+
     def execute_transformations(
         self,
         text: str,
         parsed_rules: list[ParsedRule],
         context: dict[str, Any] | None = None,
     ) -> tuple[str, dict[str, Any]]:
-        """Execute a sequence of transformation rules.
+        """Execute a sequence of transformation rules (complexity: 4).
+
+        Orchestrates rule execution through extracted helper methods.
 
         Args:
             text: Input text to transform
@@ -68,9 +195,9 @@ class TransformationOrchestrator:
         ):
             start_time = time.perf_counter()
             result = text
-            applied_rules = []
-            rule_timings = []
-            warnings = []
+            applied_rules: list[str] = []
+            rule_timings: list[dict[str, Any]] = []
+            warnings: list[str] = []
 
             try:
                 for i, rule in enumerate(parsed_rules):
@@ -87,68 +214,21 @@ class TransformationOrchestrator:
                             },
                         )
 
-                        rule_elapsed = (time.perf_counter() - rule_start_time) * 1000
-                        rule_timings.append(
-                            {
-                                "rule_name": rule.name,
-                                "elapsed_ms": rule_elapsed,
-                                "input_length": len(text) if i == 0 else None,
-                                "output_length": len(result),
-                            }
-                        )
-
-                        applied_rules.append(rule.name)
-
-                        self.logger.debug(
-                            "rule_applied_successfully",
-                            rule_name=rule.name,
-                            rule_index=i,
-                            elapsed_ms=rule_elapsed,
-                            input_length=len(text) if i == 0 else None,
-                            output_length=len(result),
+                        # Record success through helper method
+                        self._record_rule_success(
+                            rule, rule_start_time, result, i, text, applied_rules, rule_timings
                         )
 
                     except Exception as e:
-                        rule_elapsed = (time.perf_counter() - rule_start_time) * 1000
-                        rule_timings.append(
-                            {
-                                "rule_name": rule.name,
-                                "elapsed_ms": rule_elapsed,
-                                "error": str(e),
-                                "error_type": type(e).__name__,
-                            }
+                        # Handle failure through helper method
+                        self._handle_rule_failure(
+                            e, rule, rule_start_time, i, applied_rules, rule_timings
                         )
 
-                        # Enhance error with rule context
-                        if isinstance(e, TransformationError):
-                            e.add_context("rule_index", i)
-                            e.add_context("applied_rules", applied_rules)
-                            raise
-                        else:
-                            raise (
-                                TransformationError(
-                                    f"Rule '{rule.name}' failed: {e}",
-                                    operation="rule_application",
-                                    cause=e,
-                                )
-                                .add_context("rule_name", rule.name)
-                                .add_context("rule_index", i)
-                                .add_context("applied_rules", applied_rules)
-                            ) from e
-
-                total_elapsed = (time.perf_counter() - start_time) * 1000
-
-                # Prepare execution metadata
-                metadata = {
-                    "applied_rules": applied_rules,
-                    "rule_count": len(applied_rules),
-                    "total_elapsed_ms": total_elapsed,
-                    "rule_timings": rule_timings,
-                    "input_length": len(text),
-                    "output_length": len(result),
-                    "compression_ratio": len(result) / len(text) if text else 1.0,
-                    "warnings": warnings,
-                }
+                # Build metadata through helper method
+                metadata = self._build_execution_metadata(
+                    applied_rules, rule_timings, text, result, start_time, warnings
+                )
 
                 self.logger.info("transformation_orchestration_completed", **metadata)
 
