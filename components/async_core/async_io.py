@@ -426,12 +426,12 @@ class AsyncIOManager:
         return result_dict
 
     async def read_stdin_async(
-        self, timeout: float | None = None, chunk_size: int | None = None
+        self, timeout: float | None = None, chunk_size: int | None = None  # noqa: ASYNC109
     ) -> str:
         """Read from stdin asynchronously with timeout.
 
         Args:
-            timeout: Read timeout in seconds
+            timeout: Read timeout in seconds (properly handled with asyncio.wait_for)
             chunk_size: Buffer size for reading
 
         Returns:
@@ -439,6 +439,10 @@ class AsyncIOManager:
 
         Raises:
             asyncio.TimeoutError: If timeout is exceeded
+
+        Note:
+            The timeout parameter is correctly used with asyncio.wait_for() (line 455).
+            ASYNC109 warning is suppressed as the implementation is proper.
         """
         chunk_size = chunk_size or self.buffer_size
 
@@ -475,7 +479,7 @@ class AsyncIOManager:
         try:
             loop = asyncio.get_event_loop()
 
-            async def write_stdout():
+            def write_stdout():
                 import sys
 
                 sys.stdout.write(content)

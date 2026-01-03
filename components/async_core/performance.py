@@ -14,7 +14,7 @@ from collections import defaultdict, deque
 from collections.abc import Callable
 from contextlib import suppress
 from dataclasses import dataclass, field
-from typing import Any, NamedTuple
+from typing import Any, ClassVar, NamedTuple
 
 import structlog
 
@@ -32,7 +32,7 @@ class PerformanceMetric(NamedTuple):
     duration: float
     data_size: int
     success: bool
-    metadata: dict[str, Any] = {}
+    metadata: dict[str, Any] | None = None
 
 
 @dataclass

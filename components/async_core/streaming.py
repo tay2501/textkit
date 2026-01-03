@@ -190,8 +190,11 @@ class AsyncTextStreamer:
             )
 
             # Wait until buffer reduces
+            # TODO: Replace with asyncio.Event for better efficiency (ASYNC110)
+            # Current implementation uses polling; future versions should use
+            # event-driven signaling when buffer space becomes available
             while self._buffer_size > self.config.max_buffer_size * 0.8:
-                await asyncio.sleep(0.01)  # Small delay to allow buffer to drain
+                await asyncio.sleep(0.1)  # Delay to allow buffer to drain
 
     async def cancel_stream(self, stream_id: str) -> bool:
         """Cancel an active stream.

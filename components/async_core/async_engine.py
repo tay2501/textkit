@@ -376,8 +376,11 @@ def async_timed(func):
 
 
 # Utility function for graceful shutdown
-async def shutdown_async_engine():
-    """Gracefully shutdown async engine resources."""
+def shutdown_async_engine():
+    """Gracefully shutdown async engine resources.
+
+    Note: This is a synchronous function as executor.shutdown() is blocking.
+    """
     global _cpu_executor
     if _cpu_executor:
         _cpu_executor.shutdown(wait=True)

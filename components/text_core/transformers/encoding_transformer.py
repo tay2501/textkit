@@ -5,7 +5,7 @@ Simplified character encoding transformer that leverages
 the enhanced base transformer and mixins for clean, maintainable code.
 """
 
-from typing import Any
+from typing import Any, ClassVar
 
 from components.exceptions import EncodingTransformationError
 from components.text_core.types import TransformationRule, TransformationRuleType
@@ -31,7 +31,7 @@ class EncodingTransformer(EnhancedBaseTransformer):
     """
 
     # Common encoding aliases for better compatibility
-    ENCODING_ALIASES = {
+    ENCODING_ALIASES: ClassVar[dict[str, str]] = {
         # Japanese encodings
         "sjis": "shift_jis",
         "shift-jis": "shift_jis",

@@ -8,6 +8,7 @@ with comprehensive error handling and type safety.
 from __future__ import annotations
 
 from datetime import datetime
+from typing import ClassVar
 
 from components.io.clipboard import ClipboardMonitor
 
@@ -228,7 +229,7 @@ class CommandProcessor:
     """
 
     # Command definitions for help and validation
-    CLIPBOARD_COMMANDS = {
+    CLIPBOARD_COMMANDS: ClassVar[dict[str, str]] = {
         "refresh": "Refresh input text from clipboard",
         "reload": "Alias for refresh",
         "replace": "Short alias for refresh",
@@ -239,7 +240,7 @@ class CommandProcessor:
         "cmd": "Short alias for commands",
     }
 
-    SYSTEM_COMMANDS = {
+    SYSTEM_COMMANDS: ClassVar[dict[str, str]] = {
         "help": "Show transformation rules",
         "h": "Short alias for help",
         "?": "Short alias for help",

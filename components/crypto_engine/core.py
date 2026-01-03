@@ -125,8 +125,8 @@ class CryptographyManager:
                     # Type narrowing: cast to partial RSAConfig for safe update
                     rsa_updates = cast(dict[str, int | str], security_config["rsa"])
                     self.rsa_config.update(rsa_updates)  # type: ignore[typeddict-item]
-            except Exception:
-                # Use defaults if config loading fails
+            except Exception:  # noqa: S110
+                # Use defaults if config loading fails (intentional fallback)
                 pass
 
         # Set up key paths
