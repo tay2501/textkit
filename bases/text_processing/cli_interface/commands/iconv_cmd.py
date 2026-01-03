@@ -50,7 +50,7 @@ def register_iconv_command(
             bool, typer.Option("--to-clipboard", help="Write output to clipboard")
         ] = False,
         clipboard: Annotated[
-            bool,
+            bool | None,
             typer.Option(
                 "--clipboard/--no-clipboard",
                 help="(Deprecated) Copy result to clipboard",

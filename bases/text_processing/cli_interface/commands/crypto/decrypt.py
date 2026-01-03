@@ -6,6 +6,7 @@ using RSA+AES.
 
 from __future__ import annotations
 
+import sys
 from typing import TYPE_CHECKING, Annotated
 
 import typer
@@ -123,8 +124,8 @@ def create_decrypt_command(
             # Decrypt text
             result = app_instance.decrypt_text(input_text)
 
-            # Output result
-            console.print(result)
+            # Output result directly to stdout (consistent with encrypt.py)
+            sys.stdout.write(result + "\n")
 
             # Handle clipboard output using common utility
             handle_clipboard_output(app_instance, result, to_clipboard, timeout)

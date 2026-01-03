@@ -6,6 +6,7 @@ using RSA+AES.
 
 from __future__ import annotations
 
+import sys
 from typing import TYPE_CHECKING, Annotated
 
 import typer
@@ -114,9 +115,9 @@ def create_encrypt_command(
             # Encrypt text
             result = app_instance.encrypt_text(input_text)
 
-            # Output result (no_wrap prevents line breaks in Base64 strings)
-            console.print(result, no_wrap=True)
-            console.print(f"\n[cyan]Encrypted length:[/cyan] {len(result)} characters")
+            # Output result directly to stdout (avoids Rich Console buffering issues)
+            sys.stdout.write(result + "\n")
+            console.print(f"[cyan]Encrypted length:[/cyan] {len(result)} characters")
 
             # Handle clipboard output using common utility
             handle_clipboard_output(app_instance, result, to_clipboard, timeout)

@@ -190,23 +190,23 @@ def create_output_option(default: str | None = None) -> type:
 
 
 __all__ = [
+    "ClipboardOption",
+    "ErrorHandlingOption",
+    "ForceOption",
+    "FromClipboardOption",
     # Input/Output
     "InputTextOption",
     "OutputPathOption",
-    "ClipboardOption",
-    "FromClipboardOption",
-    "ToClipboardOption",
+    "QuietOption",
+    # Arguments
+    "RulesArgument",
     # Encoding
     "SourceEncodingOption",
     "TargetEncodingOption",
-    "ErrorHandlingOption",
-    # Arguments
-    "RulesArgument",
     "TextArgument",
+    "ToClipboardOption",
     # Utility
     "VerboseOption",
-    "QuietOption",
-    "ForceOption",
     # Helpers
     "create_input_option",
     "create_output_option",

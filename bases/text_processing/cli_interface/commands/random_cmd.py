@@ -112,7 +112,7 @@ def register_random_commands(
     def random_default(
         ctx: typer.Context,
         args: Annotated[
-            list[float],
+            list[float] | None,
             typer.Argument(
                 help="Arguments for random generation (0-3 values)",
                 show_default=False,

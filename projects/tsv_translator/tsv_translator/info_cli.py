@@ -56,7 +56,7 @@ def print_columns(columns: list[dict[str, Any]]) -> None:
         )
 
 
-def print_preview(preview_data: list[list[str]], headers: list[str] = None) -> None:
+def print_preview(preview_data: list[list[str]], headers: list[str] | None = None) -> None:
     """Print file content preview."""
     if not preview_data:
         print("\nPreview: (empty file)")

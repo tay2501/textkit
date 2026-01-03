@@ -30,7 +30,7 @@ def transform_text(
     @app.command("transform")
     def _transform_text_impl(
         rules: Annotated[
-            str,
+            str | None,
             typer.Argument(
                 help="Transformation rules (e.g., '/t/l' for trim+lowercase)"
             ),
@@ -52,7 +52,7 @@ def transform_text(
             bool, typer.Option("--to-clipboard", help="Write output to clipboard")
         ] = False,
         clipboard: Annotated[
-            bool,
+            bool | None,
             typer.Option(
                 "--clipboard/--no-clipboard",
                 help="(Deprecated) Copy result to clipboard",
