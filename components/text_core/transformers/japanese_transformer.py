@@ -19,7 +19,7 @@ class JapaneseTransformer(BaseTransformer):
                 name="Full-to-Half Width",
                 description="Convert full-width characters to half-width (jaconv z2h)",
                 function=self._full_to_half,
-                example="ｈｅｌｌｏ１２３ → hello123",
+                example="ｈｅｌｌｏ１２３ → hello123",  # noqa: RUF001
                 rule_type=TransformationRuleType.ADVANCED,
                 requires_args=False,
             ),
@@ -27,7 +27,7 @@ class JapaneseTransformer(BaseTransformer):
                 name="Half-to-Full Width",
                 description="Convert half-width characters to full-width (jaconv h2z)",
                 function=self._half_to_full,
-                example="hello123 → ｈｅｌｌｏ１２３",
+                example="hello123 → ｈｅｌｌｏ１２３",  # noqa: RUF001
                 rule_type=TransformationRuleType.ADVANCED,
                 requires_args=False,
             ),

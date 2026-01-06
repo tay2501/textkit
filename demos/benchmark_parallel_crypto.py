@@ -20,7 +20,7 @@ logger = structlog.get_logger(__name__)
 def format_time(seconds: float) -> str:
     """Format time in appropriate unit."""
     if seconds < 0.001:
-        return f"{seconds * 1000000:.2f}µs"
+        return f"{seconds * 1000000:.2f}μs"
     elif seconds < 1:
         return f"{seconds * 1000:.2f}ms"
     else:

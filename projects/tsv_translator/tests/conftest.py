@@ -66,9 +66,9 @@ def config_with_logging(temp_dir: Path) -> Configuration:
 def japanese_text_samples() -> dict[str, str]:
     """Sample Japanese text for width conversion testing."""
     return {
-        "full_width": "ＡＢＣａｂｃ１２３！＠＃",
+        "full_width": "ＡＢＣａｂｃ１２３！＠＃",  # noqa: RUF001
         "half_width": "ABCabc123!@#",
-        "mixed": "ABCａｂｃ123！＠＃",
+        "mixed": "ABCａｂｃ123！＠＃",  # noqa: RUF001
         "katakana_full": "アイウエオカキクケコ",
         "katakana_half": "ｱｲｳｴｵｶｷｸｹｺ",
         "hiragana": "あいうえおかきくけこ",

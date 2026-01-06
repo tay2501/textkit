@@ -535,7 +535,7 @@ class TestTransformerProtocol:
         transformer = BasicTransformer()
         rules = transformer.get_rules()
 
-        for _rule_name, rule in rules.items():
+        for rule in rules.values():
             assert isinstance(rule, TransformationRule)
             assert isinstance(rule.name, str)
             assert isinstance(rule.description, str)

@@ -58,9 +58,7 @@ async def test_async_engine_streaming():
 
     if hasattr(stream, "__aiter__"):
         # It's a streaming response
-        result_chunks = []
-        async for chunk in stream:
-            result_chunks.append(chunk)
+        result_chunks = [chunk async for chunk in stream]
 
         result = "".join(result_chunks)
         expected = large_text.upper()
@@ -119,9 +117,7 @@ async def test_streaming_basic_functionality():
     # Test streaming from string
     test_text = "hello world " * 100
 
-    results = []
-    async for chunk in streamer.stream_transform(test_text, "/u"):
-        results.append(chunk)
+    results = [chunk async for chunk in streamer.stream_transform(test_text, "/u")]
 
     result = "".join(results)
     assert result == test_text.upper(), "Streaming transformation failed"
@@ -279,9 +275,7 @@ async def test_streaming_file_operations():
         await io_manager.write_file_async(test_file, test_content)
 
         # Test streaming read
-        chunks = []
-        async for chunk in io_manager.read_file_streaming(test_file, chunk_size=100):
-            chunks.append(chunk)
+        chunks = [chunk async for chunk in io_manager.read_file_streaming(test_file, chunk_size=100)]
 
         streamed_content = "".join(chunks)
         assert streamed_content == test_content, "Streamed content mismatch"

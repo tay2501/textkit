@@ -260,7 +260,7 @@ class TransformationOrchestrator:
                     ).add_context("error_metadata", error_metadata) from e
 
     def _apply_single_rule(
-        self, text: str, rule: ParsedRule, rule_context: dict[str, Any] | None = None
+        self, text: str, rule: ParsedRule, _rule_context: dict[str, Any] | None = None
     ) -> str:
         """Apply a single transformation rule.
 

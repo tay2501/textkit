@@ -597,7 +597,7 @@ class ApplicationSettings(BaseSettings):
 
         return v
 
-    def model_post_init(self, __context: Any) -> None:
+    def model_post_init(self, _: Any) -> None:
         """Post-initialization hook."""
         logger.info(
             "configuration_initialized",

@@ -265,13 +265,13 @@ class TSVConversionOptions:
     """大文字小文字を区別しない変換を実行するかどうか"""
 
     preserve_original_case: bool = True
-    """元のテキストの大文字小文字を保持するかどうか（case_insensitive有効時のみ）"""
+    """元のテキストの大文字小文字を保持するかどうか(case_insensitive有効時のみ)"""
 
     match_whole_words_only: bool = False
-    """単語境界のみでマッチングを行うかどうか（将来の拡張用）"""
+    """単語境界のみでマッチングを行うかどうか(将来の拡張用)"""
 
     enable_regex_patterns: bool = False
-    """正規表現パターンの使用を許可するかどうか（将来の拡張用）"""
+    """正規表現パターンの使用を許可するかどうか(将来の拡張用)"""
 
 
 @runtime_checkable
@@ -283,13 +283,13 @@ class TSVConversionStrategyProtocol(Protocol):
     """
 
     def convert_text(
-        self, text: str, conversion_dict: dict[str, str], options: TSVConversionOptions
+        self, text: str, _conversion_dict: dict[str, str], options: TSVConversionOptions
     ) -> str:
         """テキスト変換を実行.
 
         Args:
             text: 変換対象のテキスト
-            conversion_dict: 変換辞書（キー: 変換前, 値: 変換後）
+            conversion_dict: 変換辞書(キー: 変換前, 値: 変換後)
             options: 変換オプション
 
         Returns:
@@ -301,7 +301,7 @@ class TSVConversionStrategyProtocol(Protocol):
         ...
 
     def prepare_conversion_dict(
-        self, raw_dict: dict[str, str], options: TSVConversionOptions
+        self, _raw_dict: dict[str, str], options: TSVConversionOptions
     ) -> dict[str, str]:
         """変換辞書を前処理.
 

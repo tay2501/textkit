@@ -1,5 +1,6 @@
 """Tests for width converter functionality."""
 
+# ruff: noqa: RUF001
 import pytest
 
 from tsv_translator.width_converter import WidthConverter

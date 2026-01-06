@@ -178,10 +178,7 @@ class TestTSVPerformance:
             lines.append(f"This is a test with {old} in the middle of text.")
 
         # Add some text that won't be replaced
-        for i in range(20):
-            lines.append(
-                f"This is unmatched text line {i} that should remain unchanged."
-            )
+        lines.extend(f"This is unmatched text line {i} that should remain unchanged." for i in range(20))
 
         return "\n".join(lines)
 

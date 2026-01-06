@@ -25,7 +25,7 @@ class TransformationBase(ABC):
         """抽象基底クラスの初期化
 
         Args:
-            config: 変換設定辞書（オプション）
+            config: 変換設定辞書(オプション)
         """
         self._config: ConfigDict = config or {}
         self._is_initialized: bool = False
@@ -51,7 +51,7 @@ class TransformationBase(ABC):
         """適用される変換ルールを取得する抽象メソッド
 
         Returns:
-            変換ルール文字列（例: '/t', '/l', '/u'など）
+            変換ルール文字列(例: '/t', '/l', '/u'など)
         """
         ...
 
@@ -129,14 +129,14 @@ class TransformationBase(ABC):
             return {}
 
     def set_arguments(self, args: list[str]) -> None:
-        """変換処理の引数を設定（オプションメソッド）
+        """変換処理の引数を設定(オプションメソッド)
 
         Args:
             args: 変換処理に渡す引数のリスト
 
         Note:
             このメソッドは引数を必要とする変換クラスでオーバーライドされる
-            基本実装では何も行わない（明示的なno-op）
+            基本実装では何も行わない(明示的なno-op)
         """
         # Explicit no-op: This is an optional hook method
         # Subclasses that need arguments will override this method
@@ -215,7 +215,7 @@ class TextTransformerProtocol(Protocol):
         """適用される変換ルールを取得
 
         Returns:
-            変換ルール文字列（例: '/t', '/l', '/u'など）
+            変換ルール文字列(例: '/t', '/l', '/u'など)
         """
         ...
 
@@ -275,7 +275,7 @@ class ChainableTransformationBase(TransformationBase):
         """チェイン可能変換クラスの初期化
 
         Args:
-            config: 変換設定辞書（オプション）
+            config: 変換設定辞書(オプション)
         """
         super().__init__(config)
         self._chain: list[TransformationBase] = []

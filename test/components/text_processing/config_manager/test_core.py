@@ -362,9 +362,7 @@ class TestConfigurationManager:
     def test_concurrent_access_simulation(self, config_manager):
         """Test behavior under simulated concurrent access."""
         # Load same config multiple times to simulate concurrent access
-        results = []
-        for _ in range(5):
-            results.append(config_manager.load_transformation_rules())
+        results = [config_manager.load_transformation_rules() for _ in range(5)]
 
         # All results should be equal (same content)
         for i in range(1, len(results)):
