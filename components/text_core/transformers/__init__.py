@@ -12,6 +12,7 @@ from .hash_transformer import HashTransformer
 from .japanese_transformer import JapaneseTransformer
 from .json_transformer import JsonTransformer
 from .line_ending_transformer import LineEndingTransformer
+from .sql_formatter import SqlInClauseFormatter
 from .string_transformer import StringTransformer
 
 __all__ = [
@@ -23,6 +24,7 @@ __all__ = [
     "JapaneseTransformer",
     "JsonTransformer",
     "LineEndingTransformer",
+    "SqlInClauseFormatter",
     "StringTransformer",
     "TransformerProtocol",
 ]

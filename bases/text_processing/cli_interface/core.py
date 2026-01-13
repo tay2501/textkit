@@ -118,6 +118,8 @@ textkit
 ├── crypto        Cryptographic operations
 │   ├── encrypt   RSA+AES hybrid encryption
 │   └── decrypt   RSA+AES hybrid decryption
+├── sql           SQL query construction helpers
+│   └── in-clause Format text list into SQL IN clause values
 ├── rules         Explore transformation rules (direct listing)
 │   └── list      [Legacy] Display all available rules with examples
 ├── clipboard     Clipboard operations (recommended - pbcopy/pbpaste style)
@@ -392,6 +394,15 @@ def _register_all_commands() -> None:
     from .commands.random_cmd import register_random_commands
 
     register_random_commands(
+        app=app,
+        get_app_func=get_app,
+        handle_cli_error_func=error_handler.handle_cli_error,
+    )
+
+    # sql subcommand group: textkit sql {in-clause}
+    from .commands.sql_cmd import register_sql_commands
+
+    register_sql_commands(
         app=app,
         get_app_func=get_app,
         handle_cli_error_func=error_handler.handle_cli_error,
