@@ -58,7 +58,7 @@ class TestSQLTSVConversion:
         result = transformer._tsv_replacements(sample_sql, [str(tsv_file)])
 
         end_time = time.perf_counter()
-        current, peak = tracemalloc.get_traced_memory()
+        _current, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
 
         elapsed_time = end_time - start_time
@@ -131,7 +131,7 @@ class TestSQLTSVConversion:
         result = transformer._tsv_replacements(sample_sql, [str(tsv_file)])
 
         end_time = time.perf_counter()
-        current, peak = tracemalloc.get_traced_memory()
+        _current, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
 
         elapsed_time = end_time - start_time
@@ -198,7 +198,7 @@ class TestSQLTSVConversion:
         result = transformer._tsv_replacements(sample_sql, [str(tsv_file)])
 
         end_time = time.perf_counter()
-        current, peak = tracemalloc.get_traced_memory()
+        _current, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
 
         elapsed_time = end_time - start_time
@@ -400,7 +400,7 @@ class TestSQLTSVConversion:
             transformer._tsv_replacements(sample_sql, [str(tsv_file)])
 
             elapsed = time.perf_counter() - start_time
-            current, peak = tracemalloc.get_traced_memory()
+            _current, peak = tracemalloc.get_traced_memory()
             tracemalloc.stop()
 
             throughput = len(sample_sql) / elapsed if elapsed > 0 else 0

@@ -214,7 +214,7 @@ class TestTSVPerformance:
         result = transformer._tsv_replacements(test_input, [str(tsv_file)])
 
         end_time = time.perf_counter()
-        current, peak = tracemalloc.get_traced_memory()
+        _current, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
 
         elapsed_time = end_time - start_time
@@ -283,7 +283,7 @@ class TestTSVPerformance:
         result = transformer._tsv_replacements(test_input, [str(tsv_file), "-r"])
 
         end_time = time.perf_counter()
-        current, peak = tracemalloc.get_traced_memory()
+        _current, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
 
         elapsed_time = end_time - start_time
@@ -383,7 +383,7 @@ class TestTSVPerformance:
         result = transformer._tsv_replacements(test_input, [str(tsv_file)])
 
         end_time = time.perf_counter()
-        current, peak = tracemalloc.get_traced_memory()
+        _current, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
 
         elapsed_time = end_time - start_time
@@ -468,7 +468,7 @@ class TestTSVPerformance:
         result = transformer._tsv_replacements(test_input, [str(tsv_file)])
 
         end_time = time.perf_counter()
-        current, peak = tracemalloc.get_traced_memory()
+        _current, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
 
         elapsed_time = end_time - start_time
@@ -554,7 +554,7 @@ class TestTSVPerformance:
         result = transformer._tsv_replacements(test_input, [str(tsv_file)])
 
         end_time = time.perf_counter()
-        current, peak = tracemalloc.get_traced_memory()
+        _current, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
 
         elapsed_time = end_time - start_time

@@ -237,7 +237,7 @@ def test_timer_memory_overhead(benchmark):
         timer.daemon = True
         timer.start()
 
-        current, peak = tracemalloc.get_traced_memory()
+        _current, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
         timer.cancel()
 

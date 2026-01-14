@@ -143,7 +143,7 @@ class TestSecurePassphraseManager:
                 patch.object(manager, "_get_from_tpm", return_value=None),
                 patch.object(manager, "_get_from_keyring", return_value=None),
             ):
-                passphrase, backend = manager.get_passphrase()
+                _passphrase, backend = manager.get_passphrase()
                 # Should fall back to env var
                 assert backend == PassphraseBackend.ENV_VAR
         finally:

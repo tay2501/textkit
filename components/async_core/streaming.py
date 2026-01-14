@@ -59,6 +59,8 @@ class AsyncTextStreamer:
         self._active_streams: dict[str, asyncio.Task] = {}
         self._stream_semaphore = asyncio.Semaphore(self.config.max_concurrent_streams)
         self._buffer_size = 0
+        self._buffer_drained = asyncio.Event()  # Event for backpressure signaling
+        self._buffer_drained.set()  # Initially not blocked
 
         logger.info(
             "async_streamer_initialized",
@@ -144,8 +146,10 @@ class AsyncTextStreamer:
 
                 yield transformed_chunk
 
-                # Reduce buffer size after yielding
+                # Reduce buffer size after yielding and signal if below threshold
                 self._buffer_size -= len(transformed_chunk)
+                if self._buffer_size <= self.config.max_buffer_size * 0.8:
+                    self._buffer_drained.set()
 
             except Exception as e:
                 logger.error("chunk_transformation_failed", error=str(e))
@@ -174,14 +178,17 @@ class AsyncTextStreamer:
 
                 self._buffer_size += len(transformed_chunk)
                 yield transformed_chunk
+                # Reduce buffer size and signal if below threshold
                 self._buffer_size -= len(transformed_chunk)
+                if self._buffer_size <= self.config.max_buffer_size * 0.8:
+                    self._buffer_drained.set()
 
             except Exception as e:
                 logger.error("iterator_chunk_transformation_failed", error=str(e))
                 yield chunk
 
     async def _check_backpressure(self) -> None:
-        """Check and handle backpressure conditions."""
+        """Check and handle backpressure conditions using event-driven waiting."""
         if self._buffer_size > self.config.max_buffer_size:
             logger.warning(
                 "backpressure_triggered",
@@ -189,12 +196,9 @@ class AsyncTextStreamer:
                 max_buffer_size=self.config.max_buffer_size,
             )
 
-            # Wait until buffer reduces
-            # TODO: Replace with asyncio.Event for better efficiency (ASYNC110)
-            # Current implementation uses polling; future versions should use
-            # event-driven signaling when buffer space becomes available
-            while self._buffer_size > self.config.max_buffer_size * 0.8:
-                await asyncio.sleep(0.1)  # Delay to allow buffer to drain
+            # Event-driven wait for buffer to drain (no busy-wait polling)
+            self._buffer_drained.clear()
+            await self._buffer_drained.wait()
 
     async def cancel_stream(self, stream_id: str) -> bool:
         """Cancel an active stream.

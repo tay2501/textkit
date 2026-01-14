@@ -207,7 +207,7 @@ def test_clipboard_clear_failure_is_handled_gracefully():
     def mock_clear_with_error():
         nonlocal clear_attempted
         clear_attempted = True
-        raise Exception("Clear failed")
+        raise Exception("Clear failed")  # noqa: TRY002 - test mock exception
 
     def _clear_clipboard() -> None:
         with contextlib.suppress(Exception):

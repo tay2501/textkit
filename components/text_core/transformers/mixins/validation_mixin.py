@@ -5,6 +5,8 @@ Provides standardized validation patterns that can be mixed
 into transformer classes for consistent input validation.
 """
 
+import contextlib
+
 from components.common_utils import validate_text_input
 from components.common_utils.validation_helpers import is_list, is_string
 from components.exceptions import ParameterValidationError, ValidationError
@@ -255,11 +257,10 @@ class ValidationMixin:
             normalized = encoding.lower().replace("-", "_")
 
             if normalized in aliases:
-                try:
+                # Verify codec exists before returning alias
+                with contextlib.suppress(LookupError):
                     codecs.lookup(aliases[normalized])
                     return aliases[normalized]
-                except LookupError:
-                    pass
 
             raise ParameterValidationError(
                 f"Unsupported encoding: {encoding}",

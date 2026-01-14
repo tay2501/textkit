@@ -10,6 +10,7 @@ Python 3.14 Enhancement:
 """
 
 import codecs
+import contextlib
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, TypeIs, TypeVar
@@ -131,11 +132,10 @@ def validate_encoding_name(encoding: Any, parameter_name: str = "encoding") -> s
         }
 
         if normalized in aliases:
-            try:
+            # Verify codec exists before returning alias
+            with contextlib.suppress(LookupError):
                 codecs.lookup(aliases[normalized])
                 return aliases[normalized]
-            except LookupError:
-                pass
 
         raise (
             DataValidationError(

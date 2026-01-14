@@ -14,7 +14,7 @@ from collections import defaultdict, deque
 from collections.abc import Callable
 from contextlib import suppress
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, NamedTuple
+from typing import Any, NamedTuple
 
 import structlog
 
@@ -427,6 +427,69 @@ class AsyncBenchmark:
         self.monitor = monitor or PerformanceMonitor()
         self.settings = settings or get_settings()
 
+    def _calculate_benchmark_stats(
+        self, case_name: str, args: tuple, kwargs: dict, iterations: int,
+        successful_runs: int, durations: list[float]
+    ) -> dict[str, Any]:
+        """Calculate statistics for a benchmark case.
+
+        Args:
+            case_name: Name of the test case
+            args: Function arguments
+            kwargs: Function keyword arguments
+            iterations: Total number of iterations
+            successful_runs: Number of successful runs
+            durations: List of execution durations
+
+        Returns:
+            Case statistics dictionary
+        """
+        return {
+            "case_name": case_name,
+            "args_size": len(str(args)),
+            "kwargs_size": len(str(kwargs)),
+            "iterations": iterations,
+            "successful_runs": successful_runs,
+            "success_rate_percent": (successful_runs / iterations) * 100,
+            "min_duration_ms": min(durations) * 1000,
+            "max_duration_ms": max(durations) * 1000,
+            "mean_duration_ms": statistics.mean(durations) * 1000,
+            "median_duration_ms": statistics.median(durations) * 1000,
+            "stdev_duration_ms": statistics.stdev(durations) * 1000 if len(durations) > 1 else 0,
+            "percentile_95_ms": statistics.quantiles(durations, n=20)[18] * 1000
+            if len(durations) > 5 else 0,
+            "percentile_99_ms": statistics.quantiles(durations, n=100)[98] * 1000
+            if len(durations) > 10 else 0,
+        }
+
+    def _calculate_overall_summary(self, durations: list[float], test_cases_count: int) -> dict[str, Any]:
+        """Calculate overall benchmark summary.
+
+        Args:
+            durations: All execution durations across test cases
+            test_cases_count: Number of test cases
+
+        Returns:
+            Summary statistics dictionary
+        """
+        if not durations:
+            return {}
+
+        return {
+            "total_test_cases": test_cases_count,
+            "total_iterations": len(durations),
+            "overall_min_duration_ms": min(durations) * 1000,
+            "overall_max_duration_ms": max(durations) * 1000,
+            "overall_mean_duration_ms": statistics.mean(durations) * 1000,
+            "overall_median_duration_ms": statistics.median(durations) * 1000,
+            "overall_stdev_duration_ms": statistics.stdev(durations) * 1000
+            if len(durations) > 1 else 0,
+            "overall_percentile_95_ms": statistics.quantiles(durations, n=20)[18] * 1000
+            if len(durations) > 5 else 0,
+            "overall_percentile_99_ms": statistics.quantiles(durations, n=100)[98] * 1000
+            if len(durations) > 10 else 0,
+        }
+
     async def benchmark_function(
         self,
         func: Callable,
@@ -452,102 +515,77 @@ class AsyncBenchmark:
             iterations=iterations,
         )
 
-        results = {"function_name": func.__name__, "test_cases": [], "summary": {}}
-
-        all_durations = []
+        results: dict[str, Any] = {"function_name": func.__name__, "test_cases": [], "summary": {}}
+        all_durations: list[float] = []
 
         for case_index, (args, kwargs) in enumerate(test_cases):
             case_name = f"case_{case_index}"
 
-            # Warmup
+            # Warmup phase
             for _ in range(warmup_iterations):
                 with suppress(Exception):
-                    # Ignore warmup errors
                     await func(*args, **kwargs)
 
-            # Actual benchmark
-            case_durations = []
-            successful_runs = 0
+            # Benchmark phase
+            case_durations, successful_runs = await self._run_benchmark_iterations(
+                func, args, kwargs, iterations, case_name
+            )
+            all_durations.extend(case_durations)
 
-            for iteration in range(iterations):
-                start_time = time.perf_counter()
-
-                try:
-                    await func(*args, **kwargs)
-                    successful_runs += 1
-                except Exception as e:
-                    logger.debug(
-                        "benchmark_iteration_failed",
-                        case=case_name,
-                        iteration=iteration,
-                        error=str(e),
-                    )
-
-                duration = time.perf_counter() - start_time
-                case_durations.append(duration)
-                all_durations.append(duration)
-
-            # Calculate case statistics
-            case_stats = {
-                "case_name": case_name,
-                "args_size": len(str(args)),
-                "kwargs_size": len(str(kwargs)),
-                "iterations": iterations,
-                "successful_runs": successful_runs,
-                "success_rate_percent": (successful_runs / iterations) * 100,
-                "min_duration_ms": min(case_durations) * 1000,
-                "max_duration_ms": max(case_durations) * 1000,
-                "mean_duration_ms": statistics.mean(case_durations) * 1000,
-                "median_duration_ms": statistics.median(case_durations) * 1000,
-                "stdev_duration_ms": statistics.stdev(case_durations) * 1000
-                if len(case_durations) > 1
-                else 0,
-                "percentile_95_ms": statistics.quantiles(case_durations, n=20)[18]
-                * 1000
-                if len(case_durations) > 5
-                else 0,
-                "percentile_99_ms": statistics.quantiles(case_durations, n=100)[98]
-                * 1000
-                if len(case_durations) > 10
-                else 0,
-            }
-
+            # Calculate and store case statistics
+            case_stats = self._calculate_benchmark_stats(
+                case_name, args, kwargs, iterations, successful_runs, case_durations
+            )
             results["test_cases"].append(case_stats)
 
-        # Overall summary
-        if all_durations:
-            results["summary"] = {
-                "total_test_cases": len(test_cases),
-                "total_iterations": len(all_durations),
-                "overall_min_duration_ms": min(all_durations) * 1000,
-                "overall_max_duration_ms": max(all_durations) * 1000,
-                "overall_mean_duration_ms": statistics.mean(all_durations) * 1000,
-                "overall_median_duration_ms": statistics.median(all_durations) * 1000,
-                "overall_stdev_duration_ms": statistics.stdev(all_durations) * 1000
-                if len(all_durations) > 1
-                else 0,
-                "overall_percentile_95_ms": statistics.quantiles(all_durations, n=20)[
-                    18
-                ]
-                * 1000
-                if len(all_durations) > 5
-                else 0,
-                "overall_percentile_99_ms": statistics.quantiles(all_durations, n=100)[
-                    98
-                ]
-                * 1000
-                if len(all_durations) > 10
-                else 0,
-            }
+        # Calculate overall summary
+        results["summary"] = self._calculate_overall_summary(all_durations, len(test_cases))
 
         logger.info(
             "benchmark_completed",
             function=func.__name__,
             total_duration=sum(all_durations),
-            mean_duration_ms=statistics.mean(all_durations) * 1000,
+            mean_duration_ms=statistics.mean(all_durations) * 1000 if all_durations else 0,
         )
 
         return results
+
+    async def _run_benchmark_iterations(
+        self, func: Callable, args: tuple, kwargs: dict, iterations: int, case_name: str
+    ) -> tuple[list[float], int]:
+        """Run benchmark iterations for a single test case.
+
+        Args:
+            func: Function to benchmark
+            args: Function arguments
+            kwargs: Function keyword arguments
+            iterations: Number of iterations
+            case_name: Name of the test case for logging
+
+        Returns:
+            Tuple of (durations list, successful run count)
+        """
+        durations: list[float] = []
+        successful_runs = 0
+
+        for iteration in range(iterations):
+            start_time = time.perf_counter()
+
+            try:
+                await func(*args, **kwargs)
+                successful_runs += 1
+            except Exception as e:
+                logger.debug(
+                    "benchmark_iteration_failed",
+                    case=case_name,
+                    iteration=iteration,
+                    error=str(e),
+                )
+
+            duration = time.perf_counter() - start_time
+            durations.append(duration)
+
+        return durations, successful_runs
 
     async def compare_functions(
         self, functions: list[Callable], test_cases: list[tuple], iterations: int = 50
@@ -605,6 +643,137 @@ class AsyncBenchmark:
 
         return results
 
+    async def _run_stress_phase(
+        self,
+        func: Callable,
+        args: tuple,
+        kwargs: dict,
+        concurrency: int,
+        duration_seconds: float,
+    ) -> dict[str, Any]:
+        """Execute a single stress test phase at a specific concurrency level.
+
+        Args:
+            func: Async function to stress test
+            args: Function arguments
+            kwargs: Function keyword arguments
+            concurrency: Number of concurrent calls to maintain
+            duration_seconds: Duration of the stress test phase
+
+        Returns:
+            Phase statistics dictionary
+        """
+
+        async def _stress_worker(
+            counters: dict[str, int],
+            durations_list: list[float],
+        ) -> None:
+            """Execute a single stress test iteration."""
+            start_time = time.perf_counter()
+            try:
+                await func(*args, **kwargs)
+                counters["successful"] += 1
+            except Exception:
+                counters["errors"] += 1
+
+            duration = time.perf_counter() - start_time
+            durations_list.append(duration)
+            counters["completed"] += 1
+
+        phase_start = time.perf_counter()
+        counters: dict[str, int] = {"completed": 0, "successful": 0, "errors": 0}
+        durations: list[float] = []
+
+        logger.info("stress_phase_starting", concurrency=concurrency)
+
+        # Create and manage concurrent workers
+        tasks: list[asyncio.Task] = []
+        end_time = time.perf_counter() + duration_seconds
+
+        while time.perf_counter() < end_time:
+            # Maintain target concurrency
+            while len(tasks) < concurrency and time.perf_counter() < end_time:
+                task = asyncio.create_task(_stress_worker(counters, durations))
+                tasks.append(task)
+
+            # Clean up completed tasks
+            tasks = [task for task in tasks if not task.done()]
+
+            # Small delay to prevent busy waiting
+            await asyncio.sleep(0.01)
+
+        # Wait for remaining tasks
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
+
+        phase_duration = time.perf_counter() - phase_start
+        return self._calculate_phase_stats(concurrency, phase_duration, counters, durations)
+
+    def _calculate_phase_stats(
+        self,
+        concurrency: int,
+        phase_duration: float,
+        counters: dict[str, int],
+        durations: list[float],
+    ) -> dict[str, Any]:
+        """Calculate statistics for a stress test phase.
+
+        Args:
+            concurrency: Concurrency level of the phase
+            phase_duration: Total duration of the phase in seconds
+            counters: Dictionary with completed, successful, error counts
+            durations: List of individual call durations
+
+        Returns:
+            Phase statistics dictionary
+        """
+        completed_calls = counters["completed"]
+        successful_calls = counters["successful"]
+        error_count = counters["errors"]
+
+        return {
+            "concurrency_level": concurrency,
+            "phase_duration_seconds": phase_duration,
+            "completed_calls": completed_calls,
+            "successful_calls": successful_calls,
+            "error_count": error_count,
+            "success_rate_percent": (successful_calls / completed_calls * 100)
+            if completed_calls > 0
+            else 0,
+            "calls_per_second": completed_calls / phase_duration,
+            "successful_calls_per_second": successful_calls / phase_duration,
+            "mean_duration_ms": statistics.mean(durations) * 1000 if durations else 0,
+            "median_duration_ms": statistics.median(durations) * 1000 if durations else 0,
+            "max_duration_ms": max(durations) * 1000 if durations else 0,
+            "percentile_95_ms": statistics.quantiles(durations, n=20)[18] * 1000
+            if len(durations) > 5
+            else 0,
+        }
+
+    def _generate_stress_recommendations(
+        self, stress_phases: list[dict[str, Any]]
+    ) -> dict[str, Any]:
+        """Generate recommendations from stress test results.
+
+        Args:
+            stress_phases: List of stress test phase statistics
+
+        Returns:
+            Recommendations dictionary
+        """
+        if not stress_phases:
+            return {}
+
+        best_phase = max(stress_phases, key=lambda x: x["successful_calls_per_second"])
+
+        return {
+            "optimal_concurrency": best_phase["concurrency_level"],
+            "max_throughput_calls_per_sec": best_phase["successful_calls_per_second"],
+            "performance_degradation_threshold": self._find_degradation_threshold(
+                stress_phases
+            ),
+        }
+
     async def stress_test(
         self,
         func: Callable,
@@ -625,36 +794,9 @@ class AsyncBenchmark:
         Returns:
             Stress test results
         """
-
-        async def _stress_worker(
-            test_func: Callable,
-            test_args: tuple,
-            test_kwargs: dict,
-            counters: dict[str, int],
-            durations_list: list[float],
-        ) -> None:
-            """Execute a single stress test iteration.
-
-            Args:
-                test_func: Function to test
-                test_args: Function arguments
-                test_kwargs: Function keyword arguments
-                counters: Dictionary containing completed, successful, and error counts
-                durations_list: List to append execution durations
-            """
-            start_time = time.perf_counter()
-            try:
-                await test_func(*test_args, **test_kwargs)
-                counters["successful"] += 1
-            except Exception:
-                counters["errors"] += 1
-
-            duration = time.perf_counter() - start_time
-            durations_list.append(duration)
-            counters["completed"] += 1
-
         if concurrent_calls is None:
             concurrent_calls = [1, 5, 10, 20, 50]
+
         logger.info(
             "stress_test_starting",
             function=func.__name__,
@@ -662,89 +804,23 @@ class AsyncBenchmark:
             duration_seconds=duration_seconds,
         )
 
-        results = {
+        results: dict[str, Any] = {
             "function_name": func.__name__,
             "stress_phases": [],
             "recommendations": {},
         }
 
+        # Run each stress phase
         for concurrency in concurrent_calls:
-            phase_start = time.perf_counter()
-            counters = {"completed": 0, "successful": 0, "errors": 0}
-            durations = []
-
-            logger.info("stress_phase_starting", concurrency=concurrency)
-
-            # Create concurrent workers
-            tasks = []
-            end_time = time.perf_counter() + duration_seconds
-
-            while time.perf_counter() < end_time:
-                # Maintain target concurrency
-                while len(tasks) < concurrency and time.perf_counter() < end_time:
-                    task = asyncio.create_task(
-                        _stress_worker(func, args, kwargs, counters, durations)
-                    )
-                    tasks.append(task)
-
-                # Clean up completed tasks
-                done_tasks = [task for task in tasks if task.done()]
-                for task in done_tasks:
-                    tasks.remove(task)
-
-                # Small delay to prevent busy waiting
-                await asyncio.sleep(0.01)
-
-            # Wait for remaining tasks
-            if tasks:
-                await asyncio.gather(*tasks, return_exceptions=True)
-
-            phase_duration = time.perf_counter() - phase_start
-            completed_calls = counters["completed"]
-            successful_calls = counters["successful"]
-            error_count = counters["errors"]
-
-            # Calculate phase statistics
-            phase_stats = {
-                "concurrency_level": concurrency,
-                "phase_duration_seconds": phase_duration,
-                "completed_calls": completed_calls,
-                "successful_calls": successful_calls,
-                "error_count": error_count,
-                "success_rate_percent": (successful_calls / completed_calls * 100)
-                if completed_calls > 0
-                else 0,
-                "calls_per_second": completed_calls / phase_duration,
-                "successful_calls_per_second": successful_calls / phase_duration,
-                "mean_duration_ms": statistics.mean(durations) * 1000
-                if durations
-                else 0,
-                "median_duration_ms": statistics.median(durations) * 1000
-                if durations
-                else 0,
-                "max_duration_ms": max(durations) * 1000 if durations else 0,
-                "percentile_95_ms": statistics.quantiles(durations, n=20)[18] * 1000
-                if len(durations) > 5
-                else 0,
-            }
-
+            phase_stats = await self._run_stress_phase(
+                func, args, kwargs, concurrency, duration_seconds
+            )
             results["stress_phases"].append(phase_stats)
 
         # Generate recommendations
-        if results["stress_phases"]:
-            best_phase = max(
-                results["stress_phases"], key=lambda x: x["successful_calls_per_second"]
-            )
-
-            results["recommendations"] = {
-                "optimal_concurrency": best_phase["concurrency_level"],
-                "max_throughput_calls_per_sec": best_phase[
-                    "successful_calls_per_second"
-                ],
-                "performance_degradation_threshold": self._find_degradation_threshold(
-                    results["stress_phases"]
-                ),
-            }
+        results["recommendations"] = self._generate_stress_recommendations(
+            results["stress_phases"]
+        )
 
         logger.info("stress_test_completed", total_phases=len(results["stress_phases"]))
 

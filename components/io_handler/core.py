@@ -7,6 +7,7 @@ pipe handling, and stdin/stdout processing with robust error handling.
 
 from __future__ import annotations
 
+import contextlib
 import sys
 from typing import Any
 
@@ -296,36 +297,27 @@ class InputOutputManager:
         Args:
             text: Text to output
         """
-        # Try stderr first (usually always available)
-        try:
+        # Emergency fallback chain: stderr → stdout → clipboard → file
+        # Each step intentionally suppresses exceptions to try next fallback
+        with contextlib.suppress(Exception):
             print(text, file=sys.stderr)
             sys.stderr.flush()
             return
-        except Exception:
-            pass
 
-        # Try stdout
-        try:
+        with contextlib.suppress(Exception):
             print(text)
             sys.stdout.flush()
             return
-        except Exception:
-            pass
 
-        # Try clipboard as last resort
         if self.clipboard_available:
-            try:
+            with contextlib.suppress(Exception):
                 pyperclip.copy(text)
                 return
-            except Exception:
-                pass
 
-        # If all else fails, store in a temporary file
-        try:
+        # Final fallback: emergency file
+        with contextlib.suppress(Exception):
             from pathlib import Path
 
             emergency_file = Path("emergency_output.txt")
             with Path(emergency_file).open("w", encoding="utf-8") as f:
                 f.write(text)
-        except Exception:
-            pass  # Nothing more we can do

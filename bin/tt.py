@@ -44,12 +44,11 @@ def get_input_text(io_manager: InputOutputManager, text: str | None) -> str:
     if not sys.stdin.isatty():
         return sys.stdin.read().rstrip("\n")
 
-    try:
+    # Clipboard access may fail (no display, permissions, etc.) - fall through to error
+    with contextlib.suppress(Exception):
         clipboard_text = io_manager.get_clipboard_text()
         if clipboard_text:
             return clipboard_text
-    except Exception:
-        pass
 
     raise ValueError("No input. Provide via: argument (-t), stdin pipe, or clipboard")
 

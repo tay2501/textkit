@@ -46,7 +46,7 @@ except ImportError:
             for key, value in kwargs.items():
                 setattr(self, key, value)
 
-    def Field(**kwargs):
+    def Field(**kwargs):  # noqa: N802 - Pydantic Field compatibility stub
         """Stub for pydantic Field."""
         return None
 

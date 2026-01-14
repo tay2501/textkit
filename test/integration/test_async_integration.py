@@ -281,7 +281,7 @@ async def test_streaming_file_operations():
         assert streamed_content == test_content, "Streamed content mismatch"
 
         # Test streaming write
-        async def content_generator():
+        async def content_generator():  # noqa: RUF029 - async generator for streaming
             for line in lines:
                 yield line
 

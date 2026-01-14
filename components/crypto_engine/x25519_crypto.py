@@ -22,6 +22,7 @@ References:
 
 from __future__ import annotations
 
+import contextlib
 import os
 import secrets
 from pathlib import Path
@@ -78,7 +79,7 @@ class X25519CryptographyManager:
     """
 
     # Class-level constants for security configuration
-    DEFAULT_PASSPHRASE_ENV_VAR: Final[str] = "TEXTKIT_KEY_PASSPHRASE"
+    DEFAULT_PASSPHRASE_ENV_VAR: Final[str] = "TEXTKIT_KEY_PASSPHRASE"  # noqa: S105 - env var name, not password
     DEFAULT_KEY_SIZE: Final[int] = 32  # X25519 key size (256 bits)
     DEFAULT_NONCE_SIZE: Final[int] = 12  # ChaCha20-Poly1305 nonce (96 bits)
     HKDF_INFO_ENCRYPTION: Final[bytes] = b"textkit.encryption.v1"
@@ -112,13 +113,11 @@ class X25519CryptographyManager:
 
         # Load configuration if available
         if config_manager:
-            try:
+            # Load security config if available; use defaults on failure
+            with contextlib.suppress(Exception):
                 security_config = config_manager.load_security_config()
                 if "x25519" in security_config:
                     self.crypto_config.update(security_config["x25519"])
-            except Exception:
-                # Use defaults if config loading fails
-                pass
 
         # Set up key paths
         self.key_directory = Path(str(self.crypto_config["key_directory"]))

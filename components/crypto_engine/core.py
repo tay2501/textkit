@@ -85,7 +85,7 @@ class CryptographyManager:
     """
 
     # Class-level constants for security configuration
-    DEFAULT_PASSPHRASE_ENV_VAR: Final[str] = "TEXTKIT_KEY_PASSPHRASE"
+    DEFAULT_PASSPHRASE_ENV_VAR: Final[str] = "TEXTKIT_KEY_PASSPHRASE"  # noqa: S105 - env var name, not password
     DEFAULT_KEY_SIZE: Final[int] = 4096
     DEFAULT_AES_KEY_SIZE: Final[int] = 32  # AES-256
     DEFAULT_CTR_NONCE_SIZE: Final[int] = 16  # 128-bit nonce for CTR mode

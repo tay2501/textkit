@@ -5,6 +5,7 @@ Simplified character encoding transformer that leverages
 the enhanced base transformer and mixins for clean, maintainable code.
 """
 
+import contextlib
 from typing import Any, ClassVar
 
 from components.exceptions import EncodingTransformationError
@@ -257,13 +258,12 @@ class EncodingTransformer(EnhancedBaseTransformer):
             detected = self._detect_encoding_advanced(data)
 
             if CHARSET_NORMALIZER_AVAILABLE:
-                try:
+                # Try to get confidence score if charset-normalizer available
+                with contextlib.suppress(Exception):
                     result = from_bytes(data).best()
                     if result:
                         confidence = getattr(result, "coherence", 0) / 100.0
                         return f"Detected encoding: {detected} (confidence: {confidence:.2f})"
-                except Exception:
-                    pass
 
             return f"Detected encoding: {detected}"
         except UnicodeError:
@@ -400,15 +400,12 @@ class EncodingTransformer(EnhancedBaseTransformer):
             source_encoding = self._normalize_encoding_name(source_encoding)
             target_encoding = self._normalize_encoding_name(target_encoding)
 
-            # Handle auto-detection
+            # Handle auto-detection; if detection fails, assume text is already decoded
             if source_encoding == "auto":
-                try:
+                with contextlib.suppress(UnicodeError, LookupError):
                     data = text.encode("latin-1")
                     source_encoding = self._detect_encoding_advanced(data)
                     text = data.decode(source_encoding, errors=error_mode)
-                except (UnicodeError, LookupError):  # Python 3.14 PEP 758: brackets optional
-                    # Assume text is already properly decoded
-                    pass
 
             # Convert to target encoding
             if target_encoding != source_encoding:
@@ -442,14 +439,13 @@ class EncodingTransformer(EnhancedBaseTransformer):
         if not CHARSET_NORMALIZER_AVAILABLE:
             return "utf-8"  # Fallback if library not available
 
-        try:
+        # charset-normalizer detection with utf-8 fallback
+        with contextlib.suppress(Exception):
             result = from_bytes(data).best()
             if result and result.encoding:
                 return result.encoding
-        except Exception:
-            pass
 
-        return "utf-8"  # Final fallback  # Final fallback  # Final fallback
+        return "utf-8"  # Final fallback
 
     def _extract_error_context(
         self, text: str, error: Exception, context_chars: int = 5

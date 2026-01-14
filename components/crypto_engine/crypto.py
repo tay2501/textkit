@@ -728,8 +728,7 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
                 self.public_key_path.chmod(
                     int(self.rsa_config["public_key_permissions"], 8)
                 )
-            except OSError:
-                # Windows doesn't support chmod the same way
+            except OSError:  # noqa: S110 - Windows doesn't support chmod; intentionally ignored
                 pass
 
             logger.info(

@@ -258,7 +258,7 @@ class TestStringTransformer:
 
     def test_unicode_escape_roundtrip(self):
         """Test Unicode escape/unescape roundtrip."""
-        original = "日本語テスト：あいうえお"
+        original = "日本語テスト：あいうえお"  # noqa: RUF001 - Intentional test data
         escaped = self.transformer.transform(original, "ue")
         unescaped = self.transformer.transform(escaped, "ud")
         assert unescaped == original
@@ -339,7 +339,7 @@ class TestStringTransformer:
     def test_tsv_replacements_file_not_found(self):
         """Test error handling when TSV file doesn't exist."""
         with pytest.raises(
-            (ValueError, IOError), match="TSV file not found|Failed to read TSV file"
+            (ValueError, IOError), match=r"TSV file not found|Failed to read TSV file"
         ):
             self.transformer._tsv_replacements("test", ["nonexistent.tsv"])
 
@@ -386,9 +386,9 @@ class TestStringTransformer:
         tsv_file.write_text("こんにちは\thello\n世界\tworld\n", encoding="utf-8")
 
         result = self.transformer._tsv_replacements(
-            "こんにちは、世界！", [str(tsv_file)]
+            "こんにちは、世界！", [str(tsv_file)]  # noqa: RUF001 - Intentional test data
         )
-        assert result == "hello、world！"
+        assert result == "hello、world！"  # noqa: RUF001 - Intentional test data
 
 
 class TestLineEndingTransformer:

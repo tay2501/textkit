@@ -124,11 +124,8 @@ Examples:
 
         return parser
 
-    def _run_interactive_mode(self) -> None:
-        """Run interactive mode."""
-        from .models.interactive import CommandProcessor, InteractiveSession
-
-        # Only show messages in non-silent mode
+    def _display_interactive_welcome(self) -> None:
+        """Display welcome message for interactive mode."""
         if not self.silent_mode:
             logger.info("Interactive mode")
             logger.info(
@@ -138,6 +135,39 @@ Examples:
                 "Enter transformation rules (e.g. '/t/l' for trim + lowercase) or commands."
             )
             logger.info("Type 'quit' or 'exit' to leave.\n")
+
+    def _handle_transformation_input(self, user_input: str) -> None:
+        """Handle transformation rule input.
+
+        Args:
+            user_input: The transformation rule string from user
+        """
+        # Get current clipboard text
+        input_text = self.io_manager.get_input_text()
+        if not input_text:
+            logger.warning(
+                "No input text available. Try 'refresh' to load from clipboard."
+            )
+            return
+
+        # Apply transformation
+        result_text = self.transformation_engine.apply_transformations(
+            input_text, user_input
+        )
+
+        # Handle output based on mode
+        if self.silent_mode:
+            logger.info(result_text)
+        else:
+            self.io_manager.set_output_text(result_text)
+            display_text = result_text[:100] + "..." if len(result_text) > 100 else result_text
+            logger.info(f"Result copied to clipboard: '{display_text}'")
+
+    def _run_interactive_mode(self) -> None:
+        """Run interactive mode."""
+        from .models.interactive import CommandProcessor, InteractiveSession
+
+        self._display_interactive_welcome()
 
         # Initialize interactive session
         session = InteractiveSession(self.io_manager, self.transformation_engine)
@@ -160,45 +190,11 @@ Examples:
                         elif result.message == "SHOW_HELP":
                             self.display_help()
                     else:
-                        # It's a transformation rule
+                        # Handle transformation rule
                         try:
-                            # Get current clipboard text
-                            input_text = self.io_manager.get_input_text()
-                            if not input_text:
-                                logger.warning(
-                                    "No input text available. Try 'refresh' to load from clipboard."
-                                )
-                                continue
-
-                            # Apply transformation
-                            result_text = (
-                                self.transformation_engine.apply_transformations(
-                                    input_text, user_input
-                                )
-                            )
-
-                            # Handle output based on mode
-                            if self.silent_mode:
-                                # Silent mode: only show the result, no clipboard copy
-                                logger.info(result_text)
-                            else:
-                                # Normal mode: copy to clipboard and show success message
-                                self.io_manager.set_output_text(result_text)
-                                display_text = (
-                                    result_text[:100] + "..."
-                                    if len(result_text) > 100
-                                    else result_text
-                                )
-                                logger.info(
-                                    f"Result copied to clipboard: '{display_text}'"
-                                )
-
+                            self._handle_transformation_input(user_input)
                         except (ValidationError, Exception) as e:
-                            error_type = (
-                                "Transformation"
-                                if isinstance(e, ValidationError)
-                                else "Unexpected"
-                            )
+                            error_type = "Transformation" if isinstance(e, ValidationError) else "Unexpected"
                             logger.error(f"{error_type} error: {e}")
 
                 except KeyboardInterrupt:
@@ -208,7 +204,6 @@ Examples:
                     break
 
         finally:
-            # Cleanup
             session.cleanup()
 
     def _run_rule_mode(self, rule: str, rule_args: list[str] | None = None) -> None:

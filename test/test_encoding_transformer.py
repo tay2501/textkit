@@ -475,7 +475,7 @@ class TestEncodingTransformer:
     def test_unicode_encode_surrogate_pairs_handling(self):
         """Test Unicode encode behavior with characters requiring surrogate pairs."""
         # Characters beyond U+FFFF
-        input_text = "𝕳𝖊𝖑𝖑𝖔"  # Mathematical Fraktur letters (U+1D577, etc.)
+        input_text = "𝕳𝖊𝖑𝖑𝖔"  # noqa: RUF001 - Intentional test data (Mathematical Fraktur)
         result = self.transformer.transform(input_text, "unicode-encode")
         assert isinstance(result, str)
         assert len(result) > 0
