@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Encrypt - Simple RSA+AES hybrid encryption tool.
 
-Unix-philosophy compliant:
-- Do one thing: encrypt text
-- Pipeline-friendly
-- Simple interface
+Follows clig.dev guidelines:
+- stdout for data, stderr for messages
+- Supports NO_COLOR environment variable
+- Verbosity levels: default (silent), -v (info), -vv (debug)
 
 Examples:
     encrypt                          # Encrypt clipboard
@@ -14,32 +14,79 @@ Examples:
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
-# Add parent directory to path
+# Add parent directory to path (must be before local imports)
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-import contextlib
-
-import typer
-from rich.console import Console
-
-from components.crypto_engine import CryptographyManager
-from components.io_handler import InputOutputManager
-
-console = Console()
+# Version constant
+__version__ = "1.1.0"
 
 
-def get_input_text(io_manager: InputOutputManager, text: str | None) -> str:
+def _setup_logging(verbosity: int) -> None:
+    """Configure logging based on verbosity level."""
+    import io
+    import logging
+
+    import structlog
+
+    if verbosity == 0:
+        os.environ["TEXTKIT_LOG_LEVEL"] = "CRITICAL"
+        logging.disable(logging.CRITICAL)
+        null_sink = io.StringIO()
+        structlog.configure(
+            processors=[structlog.dev.ConsoleRenderer()],
+            wrapper_class=structlog.make_filtering_bound_logger(logging.CRITICAL),
+            logger_factory=structlog.WriteLoggerFactory(file=null_sink),
+        )
+    elif verbosity == 1:
+        logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stderr)
+        structlog.configure(
+            wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
+        )
+    else:
+        logging.basicConfig(
+            level=logging.DEBUG, format="%(levelname)s: %(message)s", stream=sys.stderr
+        )
+        structlog.configure(
+            wrapper_class=structlog.make_filtering_bound_logger(logging.DEBUG),
+        )
+
+
+def _get_console():
+    """Get Rich console with NO_COLOR support (lazy load)."""
+    from rich.console import Console
+
+    no_color = os.environ.get("NO_COLOR") is not None
+    return Console(no_color=no_color, stderr=True)
+
+
+def _print_error(message: str) -> None:
+    """Print error message to stderr."""
+    console = _get_console()
+    console.print(f"[red]Encryption failed:[/red] {message}")
+
+
+def _print_version() -> None:
+    """Print version to stdout."""
+    print(f"encrypt version {__version__} (Polylith)")
+
+
+def get_input_text(text: str | None) -> str:
     """Get input from argument, stdin, or clipboard."""
+    import contextlib
+
     if text is not None:
         return text
 
     if not sys.stdin.isatty():
         return sys.stdin.read().rstrip("\n")
 
-    # Clipboard access may fail (no display, permissions, etc.) - fall through to error
+    from components.io_handler import InputOutputManager
+
+    io_manager = InputOutputManager()
     with contextlib.suppress(Exception):
         clipboard_text = io_manager.get_clipboard_text()
         if clipboard_text:
@@ -48,47 +95,103 @@ def get_input_text(io_manager: InputOutputManager, text: str | None) -> str:
     raise ValueError("No input. Provide via: argument (-t), stdin pipe, or clipboard")
 
 
-def main(
-    text: str | None = typer.Option(None, "--text", "-t", help="Text to encrypt"),
-    no_clipboard: bool = typer.Option(
-        False, "--no-clipboard", "-n", help="Disable clipboard"
-    ),
-    version: bool = typer.Option(False, "--version", "-v", help="Show version"),
-) -> None:
-    """Encrypt text using RSA+AES hybrid encryption.
+def output_text(text: str, no_clipboard: bool, quiet: bool = False) -> None:
+    """Output to stdout and optionally clipboard."""
+    import contextlib
 
-    \b
-    Examples:
-        encrypt                          # Encrypt clipboard
-        echo "secret" | encrypt          # Pipe mode
-        encrypt -t "secret text"         # Direct input
-    """
+    print(text)
+
+    if not no_clipboard and sys.stdout.isatty():
+        from components.io_handler import InputOutputManager
+
+        io_manager = InputOutputManager()
+        with contextlib.suppress(Exception):
+            io_manager.set_clipboard_text(text)
+            if not quiet and sys.stderr.isatty():
+                print("Copied.", file=sys.stderr)
+
+
+def main(
+    text: str | None = None,
+    no_clipboard: bool = False,
+    quiet: bool = False,
+    verbose: int = 0,
+    version: bool = False,
+) -> int:
+    """Encrypt text using RSA+AES hybrid encryption."""
     if version:
-        console.print("encrypt version 1.0.0 (Polylith)")
-        return
+        _print_version()
+        return 0
+
+    _setup_logging(verbose)
 
     try:
-        io_manager = InputOutputManager()
+        from components.crypto_engine import CryptographyManager
+
         crypto = CryptographyManager()
-
-        # Get input
-        input_text = get_input_text(io_manager, text)
-
-        # Encrypt
+        input_text = get_input_text(text)
         encrypted = crypto.encrypt_text(input_text)
-
-        # Output
-        print(encrypted)
-
-        # Copy to clipboard if enabled
-        if not no_clipboard and sys.stdout.isatty():
-            with contextlib.suppress(Exception):
-                io_manager.set_clipboard_text(encrypted)
+        output_text(encrypted, no_clipboard, quiet)
+        return 0
 
     except Exception as e:
-        console.print(f"[red]Encryption failed:[/red] {e}")
-        raise typer.Exit(code=1) from e
+        _print_error(str(e))
+        return 1
+
+
+def cli() -> None:
+    """CLI entry point using Typer (lazy loaded)."""
+    import typer
+
+    def version_callback(value: bool) -> None:
+        if value:
+            _print_version()
+            raise typer.Exit()
+
+    app = typer.Typer(add_completion=False)
+
+    @app.command()
+    def _main(
+        text: str | None = typer.Option(None, "--text", "-t", help="Text to encrypt"),
+        no_clipboard: bool = typer.Option(
+            False, "--no-clipboard", "-n", help="Disable clipboard"
+        ),
+        quiet: bool = typer.Option(
+            False, "--quiet", "-q", help="Suppress informational messages"
+        ),
+        verbose: int = typer.Option(
+            0, "--verbose", "-v", count=True, help="Increase verbosity"
+        ),
+        version: bool = typer.Option(
+            False,
+            "--version",
+            "-V",
+            help="Show version",
+            callback=version_callback,
+            is_eager=True,
+        ),
+    ) -> None:
+        """Encrypt text using RSA+AES hybrid encryption.
+
+        \b
+        Examples:
+            encrypt                          # Encrypt clipboard
+            echo "secret" | encrypt          # Pipe mode
+            encrypt -t "secret text"         # Direct input
+            encrypt -q                       # Quiet mode
+            encrypt -v                       # Verbose mode
+        """
+        exit_code = main(
+            text=text,
+            no_clipboard=no_clipboard,
+            quiet=quiet,
+            verbose=verbose,
+            version=version,
+        )
+        raise typer.Exit(code=exit_code)
+
+    app()
 
 
 if __name__ == "__main__":
-    typer.run(main)
+    cli()

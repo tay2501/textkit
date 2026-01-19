@@ -545,7 +545,79 @@ python -m cProfile -s cumtime bin/tt.py --help
 
 ---
 
+## Benchmark Results (2026-01-18)
+
+### Startup Time Breakdown
+
+| Component | Time (ms) | Notes |
+|-----------|-----------|-------|
+| Python interpreter | 45 | Baseline |
+| uv run overhead | 430 | Package resolution |
+| tt --version | 507 | Typer import (~77ms) |
+| tt transform | 751 | Full processing (~244ms) |
+
+### Import Time Analysis (Top Contributors)
+
+```
+import time:  31645 |  click.core
+import time:  25895 |  typer.main
+import time:  11302 |  click._winconsole
+import time:  10505 |  inspect
+import time:   9989 |  site
+```
+
+### Command Comparison
+
+| Command | Before | After | Improvement |
+|---------|--------|-------|-------------|
+| `uv run python bin/tt.py` | 47 chars | - | Baseline |
+| `uv run tt` | 9 chars | 522ms | **81% fewer chars** |
+| Shell alias `tt` | 2 chars | ~80ms* | **96% fewer chars** |
+
+*Estimated without uv overhead
+
+### Recommendations for Further Optimization
+
+1. **Remove uv overhead**: Use shell alias pointing directly to venv Python
+2. **Nuitka compilation**: Could reduce to ~100ms startup
+3. **Lazy Typer**: Defer Typer import for --version only
+
+---
+
+## Implementation Status
+
+### Phase 1: Quick Wins ✅ Complete
+- [x] Shell alias documentation (bin/README.md)
+- [x] `-q/--quiet` flag implementation
+- [x] TTY detection for output control
+- [x] structlog suppression
+
+### Phase 2: Core Improvements ✅ Complete
+- [x] Lazy imports (typer, rich, structlog, components)
+- [x] Verbosity levels (-v, -vv)
+- [x] clig.dev compliance (NO_COLOR, stderr separation)
+- [x] Version callback fix
+
+### Phase 3: Distribution ✅ Complete
+- [x] UV tool packaging (`uv run tt`)
+- [x] Startup time benchmark
+- [ ] PyInstaller build (skipped - path issues on Windows)
+
+### Phase 4: Advanced (Future)
+- [ ] StringZilla integration
+- [ ] Nuitka optimization
+- [ ] Async processing for large files
+
+---
+
 ## Changelog
+
+### 2026-01-18 - Phase 1-3 Implementation
+- Implemented lazy imports reducing startup overhead
+- Added `-v/-vv` verbosity levels
+- Added NO_COLOR environment variable support
+- Configured UV tool packaging (`uv run tt`)
+- Documented startup benchmark results
 
 ### 2026-01-14 - Initial Proposal
 - Documented 3 improvement areas with evidence-based solutions

@@ -29,6 +29,11 @@ dependencies = [
     "polars>=1.35.2",
 ]
 
+[project.scripts]
+tt = "bin.tt:cli"
+encrypt = "bin.encrypt:cli"
+decrypt = "bin.decrypt:cli"
+
 [project.optional-dependencies]
 dev = [
     "hatch-polylith-bricks>=1.5.2",
@@ -46,7 +51,10 @@ docs = [
 ]
 
 [tool.hatch.build]
-dev-mode-dirs = ["components", "bases", "development", "."]
+dev-mode-dirs = ["components", "bases", "development", "bin", "."]
+
+[tool.hatch.build.targets.wheel]
+packages = ["components", "bases", "bin"]
 
 # Polylithビルドフック設定（必須）
 [tool.hatch.build.hooks.polylith-bricks]

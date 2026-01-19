@@ -155,6 +155,60 @@ TEXTKIT_QUIET=1 uv run python main.py text transform /l -i "HELLO"
 
 ---
 
+## Quick Setup: Shell Aliases (Recommended)
+
+Reduce typing by 60-75% with shell aliases. This follows the same pattern as Docker, Git, and kubectl.
+
+### Bash / Zsh (~/.bashrc or ~/.zshrc)
+
+```bash
+# Basic aliases
+alias tt='uv run python /path/to/textkit/bin/tt.py'
+alias encrypt='uv run python /path/to/textkit/bin/encrypt.py'
+alias decrypt='uv run python /path/to/textkit/bin/decrypt.py'
+
+# Power user shortcuts
+alias ttc='tt -c -C'        # Transform clipboard → clipboard
+alias ttl='tt //l'           # Lowercase shortcut
+alias ttu='tt //u'           # Uppercase shortcut
+alias ttt='tt //t'           # Trim shortcut
+
+# Combined operations
+alias ttlc='tt //t//l -c -C' # Trim + lowercase + clipboard
+```
+
+### PowerShell ($PROFILE)
+
+```powershell
+# Basic functions
+function tt { uv run python H:\path\to\textkit\bin\tt.py $args }
+function encrypt { uv run python H:\path\to\textkit\bin\encrypt.py $args }
+function decrypt { uv run python H:\path\to\textkit\bin\decrypt.py $args }
+
+# Power user shortcuts
+function ttc { tt $args }
+function ttl { tt //l $args }
+function ttu { tt //u $args }
+```
+
+### Fish Shell (~/.config/fish/config.fish)
+
+```fish
+# Abbreviations (expand on type - educational)
+abbr -a tt 'uv run python /path/to/textkit/bin/tt.py'
+abbr -a ttc 'uv run python /path/to/textkit/bin/tt.py -c -C'
+```
+
+### Typing Comparison
+
+| Before (verbose) | After (alias) | Savings |
+|------------------|---------------|----------|
+| `uv run python bin/tt.py //t//l -c -C` | `ttlc` | 92% |
+| `uv run python bin/tt.py //l -t "TEXT"` | `ttl -t "TEXT"` | 65% |
+| `uv run python bin/encrypt.py` | `encrypt` | 75% |
+
+---
+
 ## Running Tools
 
 ### From Workspace Root
