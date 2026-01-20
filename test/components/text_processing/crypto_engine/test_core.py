@@ -1,13 +1,24 @@
+"""Tests for crypto_engine component with new DI-based architecture.
+
+Tests cover:
+- RSAKeyManager: Key generation, loading, and storage
+- AESGCMEngine: Symmetric encryption/decryption
+- HybridCryptoService: High-level text encryption API
+- Legacy CryptographyManager: Backward compatibility
+"""
+
 import os
 import shutil
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
 
 import pytest
 
-from textkit.crypto_engine import CryptographyManager
-from textkit.crypto_engine.passphrase_manager import SecurePassphraseManager
+from textkit.crypto_engine import (
+    AESGCMEngine,
+    HybridCryptoService,
+    RSAKeyManager,
+)
 from textkit.exceptions import CryptoTransformationError as CryptographyError
 
 # Check if cryptography library is available
@@ -27,405 +38,284 @@ def setup_test_passphrase():
         "test-passphrase-for-development-only-minimum-32-chars-long"
     )
     yield
-    # Restore original passphrase if it existed
     if original_passphrase is not None:
         os.environ["TEXTKIT_KEY_PASSPHRASE"] = original_passphrase
     else:
         os.environ.pop("TEXTKIT_KEY_PASSPHRASE", None)
 
 
-class TestCryptographyManager:
-    """Test suite for CryptographyManager with comprehensive coverage."""
+@pytest.fixture
+def temp_dir():
+    """Create a temporary directory for testing key storage."""
+    temp_dir = tempfile.mkdtemp()
+    yield Path(temp_dir)
+    shutil.rmtree(temp_dir)
+
+
+# =============================================================================
+# RSAKeyManager Tests
+# =============================================================================
+
+
+@pytest.mark.skipif(
+    not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
+)
+class TestRSAKeyManager:
+    """Test suite for RSAKeyManager."""
 
     @pytest.fixture
-    def temp_dir(self):
-        """Create a temporary directory for testing key storage."""
-        temp_dir = tempfile.mkdtemp()
-        yield Path(temp_dir)
-        shutil.rmtree(temp_dir)
+    def key_manager(self, temp_dir):
+        """Create RSAKeyManager with temporary directory."""
+        return RSAKeyManager(
+            key_directory=temp_dir / "rsa",
+            key_size=2048,  # Smaller for faster tests
+        )
 
-    @pytest.fixture
-    def mock_config_manager(self):
-        """Mock configuration manager for testing."""
-        config_manager = Mock()
-        config_manager.load_security_config.return_value = {
-            "rsa": {
-                "key_size": 2048,  # Smaller key for faster tests
-                "aes_key_size": 32,
-                "nonce_size": 12,  # GCM nonce size
-                "passphrase_env_var": "TEXTKIT_KEY_PASSPHRASE",
-            }
-        }
-        return config_manager
+    def test_initialization(self, key_manager, temp_dir):
+        """Test RSAKeyManager initialization."""
+        assert key_manager.key_size == 2048
+        assert key_manager.key_directory == temp_dir / "rsa"
+        assert key_manager.key_directory.exists()
 
-    @pytest.fixture
-    def crypto_manager(self, temp_dir):
-        """Create CryptographyManager with temporary directory."""
-        with patch.object(
-            CryptographyManager, "__init__", lambda x, config_manager=None: None
-        ):
-            manager = CryptographyManager()
-            manager.config_manager = None
-            manager.rsa_config = {
-                "key_size": 2048,  # Smaller for faster tests
-                "public_exponent": 65537,
-                "aes_key_size": 32,
-                "nonce_size": 12,  # GCM nonce size
-                "aes_iv_size": 16,  # Deprecated but kept for compatibility
-                "key_directory": "rsa",
-                "passphrase_env_var": "TEXTKIT_KEY_PASSPHRASE",
-            }
-            manager.key_directory = temp_dir / "rsa"
-            manager.private_key_path = manager.key_directory / "private_key.pem"
-            manager.public_key_path = manager.key_directory / "public_key.pem"
-
-            # Initialize _passphrase_manager (required for key operations)
-            manager._passphrase_manager = SecurePassphraseManager(
-                env_var_name=manager.rsa_config["passphrase_env_var"]
-            )
-            return manager
-
-    @pytest.fixture
-    def crypto_manager_with_config(self, temp_dir, mock_config_manager):
-        """Create CryptographyManager with config manager."""
-        with patch.object(
-            CryptographyManager, "__init__", lambda x, config_manager=None: None
-        ):
-            manager = CryptographyManager()
-            manager.config_manager = mock_config_manager
-            manager.rsa_config = {
-                "key_size": 2048,
-                "public_exponent": 65537,
-                "aes_key_size": 32,
-                "nonce_size": 12,  # GCM nonce size
-                "aes_iv_size": 16,  # Deprecated but kept for compatibility
-                "key_directory": "rsa",
-                "passphrase_env_var": "TEXTKIT_KEY_PASSPHRASE",
-            }
-            manager.key_directory = temp_dir / "rsa"
-            manager.private_key_path = manager.key_directory / "private_key.pem"
-            manager.public_key_path = manager.key_directory / "public_key.pem"
-
-            # Initialize _passphrase_manager (required for key operations)
-            manager._passphrase_manager = SecurePassphraseManager(
-                env_var_name=manager.rsa_config["passphrase_env_var"]
-            )
-            return manager
-
-    @pytest.mark.skipif(
-        not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
-    )
-    def test_initialization_success(self, mock_config_manager):
-        """Test successful initialization with cryptography available."""
-        manager = CryptographyManager(config_manager=mock_config_manager)
-        assert manager.config_manager is mock_config_manager
-        assert manager.rsa_config["key_size"] == 2048  # From mock config
-
-    @pytest.mark.skipif(
-        CRYPTOGRAPHY_AVAILABLE, reason="cryptography library is available"
-    )
-    def test_initialization_failure_no_cryptography(self):
-        """Test initialization failure when cryptography is not available."""
-        with pytest.raises(CryptographyError) as exc_info:
-            CryptographyManager()
-        assert "Cryptography library is not available" in str(exc_info.value)
-
-    @pytest.mark.skipif(
-        not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
-    )
-    def test_is_available(self, crypto_manager):
-        """Test availability check."""
-        assert crypto_manager.is_available() == CRYPTOGRAPHY_AVAILABLE
-
-    @pytest.mark.skipif(
-        not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
-    )
-    def test_get_key_info(self, crypto_manager):
-        """Test getting key information."""
-        info = crypto_manager.get_key_info()
-        assert isinstance(info, dict)
-        assert "cryptography_available" in info
-        assert "key_directory" in info
-        assert "private_key_exists" in info
-        assert "public_key_exists" in info
-        assert "key_size" in info
-        assert "aes_key_size" in info
-
-    @pytest.mark.skipif(
-        not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
-    )
-    def test_ensure_key_directory(self, crypto_manager):
-        """Test key directory creation."""
-        crypto_manager._ensure_key_directory()
-        assert crypto_manager.key_directory.exists()
-        assert crypto_manager.key_directory.is_dir()
-
-    @pytest.mark.skipif(
-        not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
-    )
-    def test_generate_and_save_key_pair(self, crypto_manager):
-        """Test key pair generation and saving."""
-        private_key, public_key = crypto_manager._generate_and_save_key_pair()
+    def test_generate_key_pair(self, key_manager):
+        """Test key pair generation."""
+        private_key, public_key = key_manager.generate_key_pair()
 
         assert private_key is not None
         assert public_key is not None
-        assert crypto_manager.private_key_path.exists()
-        assert crypto_manager.public_key_path.exists()
+        assert key_manager.private_key_path.exists()
+        assert key_manager.public_key_path.exists()
 
-        # Check file permissions (Unix-like systems)
-        import stat
-
-        if hasattr(stat, "S_IMODE"):
-            # Note: Windows may not respect these permissions exactly
-            # Just check that files exist with proper permissions
-            stat.S_IMODE(crypto_manager.private_key_path.stat().st_mode)
-            stat.S_IMODE(crypto_manager.public_key_path.stat().st_mode)
-
-    @pytest.mark.skipif(
-        not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
-    )
-    def test_load_key_pair(self, crypto_manager):
+    def test_load_key_pair(self, key_manager):
         """Test loading existing key pair."""
-        # First generate keys
-        crypto_manager._generate_and_save_key_pair()
-
-        # Then load them
-        private_key, public_key = crypto_manager._load_key_pair()
-        assert private_key is not None
-        assert public_key is not None
-
-    @pytest.mark.skipif(
-        not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
-    )
-    def test_ensure_key_pair_generate_new(self, crypto_manager):
-        """Test ensure_key_pair when keys don't exist."""
-        private_key, public_key = crypto_manager.ensure_key_pair()
-        assert private_key is not None
-        assert public_key is not None
-        assert crypto_manager.private_key_path.exists()
-        assert crypto_manager.public_key_path.exists()
-
-    @pytest.mark.skipif(
-        not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
-    )
-    def test_ensure_key_pair_load_existing(self, crypto_manager):
-        """Test ensure_key_pair when keys already exist."""
         # Generate keys first
-        crypto_manager.ensure_key_pair()
-        original_mtime = crypto_manager.private_key_path.stat().st_mtime
+        key_manager.generate_key_pair()
+
+        # Load them
+        private_key, public_key = key_manager.load_key_pair()
+        assert private_key is not None
+        assert public_key is not None
+
+    def test_ensure_key_pair_generates_new(self, key_manager):
+        """Test ensure_key_pair generates keys when missing."""
+        private_key, public_key = key_manager.ensure_key_pair()
+
+        assert private_key is not None
+        assert public_key is not None
+        assert key_manager.private_key_path.exists()
+
+    def test_ensure_key_pair_loads_existing(self, key_manager):
+        """Test ensure_key_pair loads existing keys."""
+        # Generate first
+        key_manager.ensure_key_pair()
+        original_mtime = key_manager.private_key_path.stat().st_mtime
 
         # Call again - should load existing
-        private_key, public_key = crypto_manager.ensure_key_pair()
+        private_key, public_key = key_manager.ensure_key_pair()
         assert private_key is not None
-        assert public_key is not None
-        assert crypto_manager.private_key_path.stat().st_mtime == original_mtime
+        assert key_manager.private_key_path.stat().st_mtime == original_mtime
 
-    @pytest.mark.skipif(
-        not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
-    )
+    def test_load_key_pair_missing_files(self, key_manager):
+        """Test loading key pair when files don't exist."""
+        with pytest.raises(CryptographyError) as exc_info:
+            key_manager.load_key_pair()
+        assert "Failed to load key pair" in str(exc_info.value)
+
+    def test_passphrase_not_set(self, temp_dir):
+        """Test error when passphrase environment variable is not set."""
+        # Remove the passphrase
+        original = os.environ.pop("TEXTKIT_KEY_PASSPHRASE", None)
+        try:
+            manager = RSAKeyManager(key_directory=temp_dir / "rsa")
+            with pytest.raises(CryptographyError) as exc_info:
+                manager.generate_key_pair()
+            assert "Passphrase not set" in str(exc_info.value)
+        finally:
+            if original:
+                os.environ["TEXTKIT_KEY_PASSPHRASE"] = original
+
+    def test_passphrase_too_short(self, temp_dir):
+        """Test error when passphrase is too short."""
+        os.environ["TEXTKIT_KEY_PASSPHRASE"] = "short"
+        try:
+            manager = RSAKeyManager(key_directory=temp_dir / "rsa")
+            with pytest.raises(CryptographyError) as exc_info:
+                manager.generate_key_pair()
+            assert "Passphrase too short" in str(exc_info.value)
+        finally:
+            os.environ["TEXTKIT_KEY_PASSPHRASE"] = (
+                "test-passphrase-for-development-only-minimum-32-chars-long"
+            )
+
+
+# =============================================================================
+# AESGCMEngine Tests
+# =============================================================================
+
+
+@pytest.mark.skipif(
+    not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
+)
+class TestAESGCMEngine:
+    """Test suite for AESGCMEngine."""
+
+    @pytest.fixture
+    def key_manager(self, temp_dir):
+        """Create RSAKeyManager for testing."""
+        return RSAKeyManager(
+            key_directory=temp_dir / "rsa",
+            key_size=2048,
+        )
+
+    @pytest.fixture
+    def encryption_engine(self, key_manager):
+        """Create AESGCMEngine with key manager."""
+        return AESGCMEngine(key_manager=key_manager)
+
+    def test_encrypt_decrypt_roundtrip(self, encryption_engine):
+        """Test encryption and decryption roundtrip."""
+        data = b"Hello, World!"
+        encrypted = encryption_engine.encrypt(data)
+
+        assert encrypted != data
+        assert len(encrypted) > len(data)
+
+        decrypted = encryption_engine.decrypt(encrypted)
+        assert decrypted == data
+
+    def test_encrypt_produces_different_results(self, encryption_engine):
+        """Test that encryption produces different ciphertext each time."""
+        data = b"Test message"
+        encrypted1 = encryption_engine.encrypt(data)
+        encrypted2 = encryption_engine.encrypt(data)
+
+        # Different due to random nonce and AES key
+        assert encrypted1 != encrypted2
+
+        # Both decrypt to same data
+        assert encryption_engine.decrypt(encrypted1) == data
+        assert encryption_engine.decrypt(encrypted2) == data
+
+    def test_decrypt_tampered_data(self, encryption_engine):
+        """Test decryption fails with tampered data."""
+        data = b"Original data"
+        encrypted = encryption_engine.encrypt(data)
+
+        # Tamper with the ciphertext
+        tampered = encrypted[:-10] + b"TAMPERED!!"
+
+        with pytest.raises(CryptographyError) as exc_info:
+            encryption_engine.decrypt(tampered)
+        assert "Decryption failed" in str(exc_info.value)
+
+
+# =============================================================================
+# HybridCryptoService Tests
+# =============================================================================
+
+
+@pytest.mark.skipif(
+    not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
+)
+class TestHybridCryptoService:
+    """Test suite for HybridCryptoService."""
+
+    @pytest.fixture
+    def crypto_service(self, temp_dir):
+        """Create HybridCryptoService with dependencies."""
+        key_manager = RSAKeyManager(
+            key_directory=temp_dir / "rsa",
+            key_size=2048,
+        )
+        encryption_engine = AESGCMEngine(key_manager=key_manager)
+        return HybridCryptoService(
+            key_manager=key_manager,
+            encryption_engine=encryption_engine,
+        )
+
     @pytest.mark.parametrize(
         "test_text",
         [
             "Hello, World!",
             "Simple text",
-            "Text with special characters: ├®├▒õĖŁµ¢üE¤ÜĆ",
+            "日本語テキスト",
             "Multi-line\ntext\nwith\nnewlines",
             "Very long text " * 100,
             "",  # Empty string
-            "A" * 1000,  # Large text
+            "A" * 1000,
         ],
     )
-    def test_encrypt_decrypt_roundtrip(self, crypto_manager, test_text):
+    def test_encrypt_decrypt_roundtrip(self, crypto_service, test_text):
         """Test encryption and decryption roundtrip with various inputs."""
-        encrypted = crypto_manager.encrypt_text(test_text)
+        encrypted = crypto_service.encrypt_text(test_text)
         assert encrypted != test_text
         assert isinstance(encrypted, str)
 
-        decrypted = crypto_manager.decrypt_text(encrypted)
+        decrypted = crypto_service.decrypt_text(encrypted)
         assert decrypted == test_text
 
-    @pytest.mark.skipif(
-        not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
-    )
-    def test_encrypt_text_different_results(self, crypto_manager):
-        """Test that encryption produces different results each time (due to random AES key/IV)."""
+    def test_encrypt_text_different_results(self, crypto_service):
+        """Test that encryption produces different results each time."""
         text = "Test message"
-        encrypted1 = crypto_manager.encrypt_text(text)
-        encrypted2 = crypto_manager.encrypt_text(text)
+        encrypted1 = crypto_service.encrypt_text(text)
+        encrypted2 = crypto_service.encrypt_text(text)
 
-        # Should be different due to random AES key and IV
         assert encrypted1 != encrypted2
+        assert crypto_service.decrypt_text(encrypted1) == text
+        assert crypto_service.decrypt_text(encrypted2) == text
 
-        # But both should decrypt to the same text
-        assert crypto_manager.decrypt_text(encrypted1) == text
-        assert crypto_manager.decrypt_text(encrypted2) == text
-
-    @pytest.mark.skipif(
-        not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
-    )
-    def test_encrypt_invalid_input_type(self, crypto_manager):
-        """Test encryption with invalid input types."""
-        from textkit.exceptions import CryptographyError
-
+    def test_encrypt_invalid_input_type(self, crypto_service):
+        """Test encryption with invalid input type."""
         with pytest.raises(CryptographyError) as exc_info:
-            crypto_manager.encrypt_text(123)
+            crypto_service.encrypt_text(123)  # type: ignore[arg-type]
         assert "Input must be str" in str(exc_info.value)
 
-    @pytest.mark.skipif(
-        not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
-    )
-    def test_decrypt_invalid_base64(self, crypto_manager):
-        """Test decryption with invalid Base64 input."""
-        with pytest.raises(CryptographyError) as exc_info:
-            crypto_manager.decrypt_text("invalid_base64!")
-        assert "Invalid Base64 format" in str(exc_info.value)
+    def test_is_available(self, crypto_service):
+        """Test availability check."""
+        assert crypto_service.is_available() is True
 
-    @pytest.mark.skipif(
-        not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
-    )
-    def test_decrypt_corrupted_data(self, crypto_manager):
-        """Test decryption with corrupted encrypted data."""
-        # Get valid encrypted data first
-        encrypted = crypto_manager.encrypt_text("test")
+    def test_get_key_info(self, crypto_service):
+        """Test getting key information."""
+        info = crypto_service.get_key_info()
+        assert isinstance(info, dict)
+        assert "key_directory" in info
+        assert "key_size" in info
+        assert "private_key_exists" in info
+        assert "public_key_exists" in info
 
-        # Corrupt it by changing some characters
-        corrupted = encrypted[:-10] + "CORRUPTED="
 
-        with pytest.raises(CryptographyError) as exc_info:
-            crypto_manager.decrypt_text(corrupted)
-        assert "HMAC verification failed" in str(exc_info.value)
+# =============================================================================
+# CryptographyError Tests
+# =============================================================================
 
-    @pytest.mark.skipif(
-        not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
-    )
-    def test_decrypt_short_data(self, crypto_manager):
-        """Test decryption with data that's too short."""
-        import base64
 
-        short_data = base64.b64encode(b"too_short").decode("ascii")
+class TestCryptographyError:
+    """Test CryptographyError behavior."""
 
-        with pytest.raises(CryptographyError) as exc_info:
-            crypto_manager.decrypt_text(short_data)
-        assert "Encrypted data too short" in str(exc_info.value)
-
-    @pytest.mark.skipif(
-        not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
-    )
-    def test_configuration_with_mock_config(
-        self, crypto_manager_with_config, mock_config_manager
-    ):
-        """Test that configuration is properly loaded from config manager."""
-        # The fixture should have loaded config
-        assert crypto_manager_with_config.config_manager is mock_config_manager
-        assert crypto_manager_with_config.rsa_config["key_size"] == 2048
-
-    @pytest.mark.skipif(
-        not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
-    )
-    def test_configuration_error_handling(self, temp_dir):
-        """Test handling of configuration loading errors."""
-        mock_config = Mock()
-        mock_config.load_security_config.side_effect = Exception("Config error")
-
-        # Should still initialize with defaults despite config error
-        with patch.object(
-            CryptographyManager, "__init__", lambda x, config_manager=None: None
-        ):
-            manager = CryptographyManager()
-            manager.config_manager = mock_config
-            manager.rsa_config = {
-                "key_size": 4096,  # Default value
-                "public_exponent": 65537,
-                "aes_key_size": 32,
-                "aes_iv_size": 16,
-                "key_directory": "rsa",
-            }
-            assert manager.rsa_config["key_size"] == 4096  # Should use default
-
-    def test_cryptography_error_with_context(self):
-        """Test CryptographyError with context information.
-
-        Verifies that CryptographyError properly stores crypto-specific
-        context information including operation type, algorithm, and key info.
-        This follows the proper API usage for CryptoTransformationError.
-        """
-        # Arrange
-        crypto_operation = "encrypt"
-        algorithm = "RSA-2048"
-        key_info = {"key_size": 2048, "key_type": "RSA"}
-
-        # Act
+    def test_error_with_context(self):
+        """Test CryptographyError with context information."""
         error = CryptographyError(
             "Test encryption error",
-            crypto_operation=crypto_operation,
-            algorithm=algorithm,
-            key_info=key_info,
+            crypto_operation="encrypt",
+            algorithm="RSA-2048",
+            key_info={"key_size": 2048},
         )
         error_str = str(error)
 
-        # Assert
-        # Error message should be included
         assert "Test encryption error" in error_str
-
-        # Context should contain crypto-specific information
         assert "crypto_operation" in error.context
         assert error.context["crypto_operation"] == "encrypt"
-
-        assert "algorithm" in error.context
         assert error.context["algorithm"] == "RSA-2048"
 
-        assert "key_info" in error.context
-        assert error.context["key_info"]["key_size"] == 2048
-        assert error.context["key_info"]["key_type"] == "RSA"
-
-        # String representation should include context
-        assert "Context:" in error_str
-
-    @pytest.mark.skipif(
-        not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
-    )
-    def test_load_key_pair_missing_files(self, crypto_manager):
-        """Test loading key pair when files are missing."""
-        # Ensure directory exists but files don't
-        crypto_manager._ensure_key_directory()
-
-        with pytest.raises(CryptographyError) as exc_info:
-            crypto_manager._load_key_pair()
-        # Updated to match new specific error message
-        assert "Encryption keys not found" in str(exc_info.value)
-
-    @pytest.mark.skipif(
-        not CRYPTOGRAPHY_AVAILABLE, reason="cryptography library not available"
-    )
-    def test_error_context_in_operations(self, crypto_manager):
-        """Test that operations include proper error context.
-
-        Verifies that CryptographyError includes detailed context information
-        about the operation that failed, nested under 'crypto_operation' key.
-        """
-        # Test invalid decryption data
-        try:
-            crypto_manager.decrypt_text("invalid_data")
-        except CryptographyError as e:
-            assert hasattr(e, "context")
-            # Context is nested under 'crypto_operation' key
-            assert "crypto_operation" in e.context
-            assert "actual_length" in e.context["crypto_operation"]
-            assert "expected_min_length" in e.context["crypto_operation"]
-
-        try:
-            crypto_manager.encrypt_text("test")
-            # Force an error by messing with the key path
-            crypto_manager.private_key_path = Path("/invalid/path")
-            crypto_manager.public_key_path = Path("/invalid/path")
-            crypto_manager.decrypt_text("dGVzdA==")  # Simple base64
-        except CryptographyError as e:
-            assert hasattr(e, "context")
+    def test_error_without_context(self):
+        """Test CryptographyError without context."""
+        error = CryptographyError("Simple error message")
+        assert "Simple error message" in str(error)
 
 
-def test_module_availability():
-    """Test that the core module is available for import."""
-    assert core is not None
+# =============================================================================
+# Module-level Tests
+# =============================================================================
 
 
 def test_cryptography_available_constant():

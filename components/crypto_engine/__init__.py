@@ -28,7 +28,7 @@ from .service import HybridCryptoService
 
 
 # Backward compatibility: Provide legacy CryptographyManager
-# TODO: Remove in v2.0.0
+# TODO(tay2501): Remove in v2.0.0 https://github.com/tay2501/textkit/issues/1
 class CryptographyManager(HybridCryptoService):
     """Legacy CryptographyManager for backward compatibility.
 
@@ -59,18 +59,14 @@ class CryptographyManager(HybridCryptoService):
 
 
 __all__ = [
-    # Protocols
-    "ConfigManagerProtocol",
-    "KeyManagerProtocol",
-    "EncryptionEngineProtocol",
-    "TextCryptoServiceProtocol",
-    # Implementations
-    "RSAKeyManager",
     "AESGCMEngine",
+    "ConfigManagerProtocol",
+    "CryptographyManager",
+    "EncryptionEngineProtocol",
     "HybridCryptoService",
-    # DI
+    "KeyManagerProtocol",
+    "RSAKeyManager",
+    "TextCryptoServiceProtocol",
     "get_crypto_service",
     "register_crypto_services",
-    # Legacy
-    "CryptographyManager",
 ]
