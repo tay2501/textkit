@@ -8,7 +8,6 @@ from pathlib import Path
 import pytest
 
 from tsv_translator.infrastructure.configuration import Configuration
-from tsv_translator.infrastructure.logging_config import setup_logging
 
 
 @pytest.fixture
@@ -58,7 +57,6 @@ def config_with_logging(temp_dir: Path) -> Configuration:
         enable_file_logging=True,
         log_file_path=str(log_file),
     )
-    setup_logging(config)
     return config
 
 
