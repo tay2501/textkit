@@ -28,8 +28,9 @@ import secrets
 from pathlib import Path
 from typing import Final, cast
 
-from .core import CryptographyError
-from .types import ConfigManagerProtocol
+from textkit.exceptions import CryptoTransformationError as CryptographyError
+
+from .protocols import ConfigManagerProtocol
 
 # Type aliases for clarity
 X25519KeyPair = tuple["X25519PrivateKey", "X25519PublicKey"]

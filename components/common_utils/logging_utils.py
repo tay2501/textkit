@@ -11,14 +11,7 @@ from collections.abc import Callable
 from contextlib import contextmanager, suppress
 from typing import Any, TypeVar
 
-try:
-    import structlog
-
-    STRUCTLOG_AVAILABLE = True
-except ImportError:
-    import logging
-
-    STRUCTLOG_AVAILABLE = False
+import structlog
 
 T = TypeVar("T")
 
@@ -33,23 +26,10 @@ def get_structured_logger(name: str, context: dict[str, Any] | None = None):
     Returns:
         Configured logger instance
     """
-    if STRUCTLOG_AVAILABLE:
-        logger = structlog.get_logger(name)
-        if context:
-            logger = logger.bind(**context)
-        return logger
-    else:
-        # Fallback to standard logging
-        logger = logging.getLogger(name)
-        if not logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter(
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            )
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
-            logger.setLevel(logging.INFO)
-        return logger
+    logger = structlog.get_logger(name)
+    if context:
+        logger = logger.bind(**context)
+    return logger
 
 
 @contextmanager

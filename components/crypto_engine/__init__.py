@@ -1,22 +1,76 @@
+"""Cryptography component providing secure encryption/decryption.
+
+This component implements hybrid RSA+AES-GCM encryption with:
+- RSA-4096 for key exchange
+- AES-256-GCM for data encryption (AEAD)
+- Passphrase-protected private keys
+- Secure file permissions
+- Protocol-based dependency injection
+
+Architecture:
+- key_management.py: RSA key operations
+- encryption.py: AES-GCM operations
+- service.py: High-level text encryption API
+- factory.py: DI integration
+- protocols.py: Interface definitions
 """
-Crypto Engine Component - Cryptography and hashing operations.
 
-This component provides encryption, decryption, and hashing capabilities
-for secure text processing operations.
+from .encryption import AESGCMEngine
+from .factory import get_crypto_service, register_crypto_services
+from .key_management import RSAKeyManager
+from .protocols import (
+    ConfigManagerProtocol,
+    EncryptionEngineProtocol,
+    KeyManagerProtocol,
+    TextCryptoServiceProtocol,
+)
+from .service import HybridCryptoService
 
-Supported Crypto Stacks:
-    - X25519CryptographyManager: Modern X25519 + ChaCha20-Poly1305 (WireGuard/Signal)
-    - CryptographyManager: Legacy RSA-4096 + AES-CTR (backward compatibility)
-"""
 
-from .core import CRYPTOGRAPHY_AVAILABLE, CryptographyError, CryptographyManager
-from .parallel_crypto import ParallelCryptoEngine
-from .x25519_crypto import X25519CryptographyManager
+# Backward compatibility: Provide legacy CryptographyManager
+# TODO: Remove in v2.0.0
+class CryptographyManager(HybridCryptoService):
+    """Legacy CryptographyManager for backward compatibility.
+
+    DEPRECATED: Use get_crypto_service() instead.
+    Will be removed in v2.0.0.
+    """
+
+    def __init__(self, config_manager=None):
+        """Initialize legacy manager.
+
+        Args:
+            config_manager: Ignored (kept for API compatibility)
+        """
+        import warnings
+
+        warnings.warn(
+            "CryptographyManager is deprecated. Use get_crypto_service() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        # Use DI to get services
+        service = get_crypto_service()
+        super().__init__(
+            key_manager=service.key_manager,
+            encryption_engine=service.encryption_engine,
+        )
+
 
 __all__ = [
-    "CRYPTOGRAPHY_AVAILABLE",
-    "CryptographyError",
+    # Protocols
+    "ConfigManagerProtocol",
+    "KeyManagerProtocol",
+    "EncryptionEngineProtocol",
+    "TextCryptoServiceProtocol",
+    # Implementations
+    "RSAKeyManager",
+    "AESGCMEngine",
+    "HybridCryptoService",
+    # DI
+    "get_crypto_service",
+    "register_crypto_services",
+    # Legacy
     "CryptographyManager",
-    "ParallelCryptoEngine",
-    "X25519CryptographyManager",
 ]

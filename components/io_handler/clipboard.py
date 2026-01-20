@@ -7,15 +7,16 @@ capabilities for auto-detection functionality.
 
 from __future__ import annotations
 
-import logging
 import threading
 import time
 from typing import Final
 
+import structlog
+
 from components.exceptions import ClipboardError, ValidationError
 from components.text_core.types import IOManagerProtocol, ThreadCallback
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 # Module-level constants for clipboard monitoring
 _DEFAULT_CHECK_INTERVAL: Final[float] = 1.0  # seconds
@@ -208,5 +209,5 @@ class ClipboardMonitor:
 
             except Exception as e:
                 # Log error but continue monitoring
-                logger.error(f"Error during clipboard check: {e}")
+                logger.error("clipboard_check_error", error=str(e))
                 time.sleep(self.check_interval)

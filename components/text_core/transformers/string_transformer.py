@@ -1,8 +1,14 @@
 """String manipulation transformation strategies."""
 
+from pathlib import Path
+
+import structlog
+
 from components.text_core.types import TransformationRule, TransformationRuleType
 
 from .base_transformer import BaseTransformer
+
+logger = structlog.get_logger(__name__)
 
 
 class StringTransformer(BaseTransformer):
@@ -104,7 +110,7 @@ class StringTransformer(BaseTransformer):
 
         return tsv_file, case_sensitive, regex_mode
 
-    def _load_tsv_with_polars(self, file_path) -> list[tuple[str, str]]:
+    def _load_tsv_with_polars(self, file_path: Path) -> list[tuple[str, str]]:
         """Load TSV replacements using Polars (complexity: 2).
 
         Args:
@@ -136,7 +142,7 @@ class StringTransformer(BaseTransformer):
             # Empty file is valid - return empty list
             return []
 
-    def _load_tsv_with_csv(self, file_path, tsv_file: str) -> list[tuple[str, str]]:
+    def _load_tsv_with_csv(self, file_path: Path, tsv_file: str) -> list[tuple[str, str]]:
         """Load TSV replacements using csv module (complexity: 3).
 
         Args:
@@ -147,10 +153,7 @@ class StringTransformer(BaseTransformer):
             List of (old, new) replacement tuples
         """
         import csv
-        import logging
-        from pathlib import Path
 
-        logger = logging.getLogger(__name__)
         replacements = []
 
         with Path(file_path).open(encoding="utf-8", newline="") as f:
@@ -163,7 +166,10 @@ class StringTransformer(BaseTransformer):
                 # Validate TSV format
                 if len(row) < 2:
                     logger.warning(
-                        f"Line {line_num} in {tsv_file} has insufficient columns, skipping"
+                        "insufficient_tsv_columns",
+                        line=line_num,
+                        file=tsv_file,
+                        reason="skipping",
                     )
                     continue
 
@@ -185,11 +191,6 @@ class StringTransformer(BaseTransformer):
             ValueError: If file not found
             OSError: If file cannot be read
         """
-        import logging
-        from pathlib import Path
-
-        logger = logging.getLogger(__name__)
-
         try:
             file_path = Path(tsv_file)
             if not file_path.exists():
@@ -202,7 +203,7 @@ class StringTransformer(BaseTransformer):
                 replacements = self._load_tsv_with_csv(file_path, tsv_file)
 
             if not replacements:
-                logger.warning(f"No valid replacements found in {tsv_file}")
+                logger.warning("no_valid_replacements", file=tsv_file)
 
             return replacements
 
@@ -418,29 +419,20 @@ class StringTransformer(BaseTransformer):
 
         except ImportError as e:
             # StringZilla not available - fallback to standard implementation
-            import logging
-
-            logger = logging.getLogger(__name__)
             logger.debug(
-                f"StringZilla not available, falling back to standard implementation: {e}"
+                "stringzilla_unavailable", fallback=True, error=str(e)
             )
             return text.replace(old_text, new_text)
         except AttributeError as e:
             # StringZilla API compatibility issue - fallback to standard implementation
-            import logging
-
-            logger = logging.getLogger(__name__)
             logger.warning(
-                f"StringZilla API issue, falling back to standard implementation: {e}"
+                "stringzilla_api_issue", fallback=True, error=str(e)
             )
             return text.replace(old_text, new_text)
         except Exception as e:
             # Unexpected error in StringZilla - fallback with logging
-            import logging
-
-            logger = logging.getLogger(__name__)
             logger.error(
-                f"Unexpected error in StringZilla processing: {e}", exc_info=True
+                "stringzilla_unexpected_error", error=str(e), exc_info=True
             )
             return text.replace(old_text, new_text)
 

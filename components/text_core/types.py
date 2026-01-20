@@ -40,28 +40,30 @@ try:
         field_validator,
     )
 except ImportError:
+    from typing import Any, Callable
+
     # Fallback for environments where pydantic is not available
     class BaseModel:
-        def __init__(self, **kwargs):
+        def __init__(self, **kwargs: Any) -> None:
             for key, value in kwargs.items():
                 setattr(self, key, value)
 
-    def Field(**kwargs):  # noqa: N802 - Pydantic Field compatibility stub
+    def Field(**kwargs: Any) -> Any:  # noqa: N802 - Pydantic Field compatibility stub
         """Stub for pydantic Field."""
         return None
 
-    def computed_field(*args, **kwargs):
+    def computed_field(*args: Any, **kwargs: Any) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
         """Stub for pydantic computed_field."""
 
-        def decorator(func):
+        def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
             return func
 
         return decorator
 
-    def field_validator(*args, **kwargs):
+    def field_validator(*args: Any, **kwargs: Any) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
         """Stub for pydantic field_validator."""
 
-        def decorator(func):
+        def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
             return func
 
         return decorator

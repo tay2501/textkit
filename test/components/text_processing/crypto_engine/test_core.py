@@ -5,12 +5,18 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
-from textkit.crypto_engine import core
-from textkit.crypto_engine.core import (
-    CRYPTOGRAPHY_AVAILABLE,
-    CryptographyError,
-    CryptographyManager,
-)
+
+from textkit.crypto_engine import CryptographyManager
+from textkit.crypto_engine.passphrase_manager import SecurePassphraseManager
+from textkit.exceptions import CryptoTransformationError as CryptographyError
+
+# Check if cryptography library is available
+try:
+    import cryptography  # noqa: F401
+
+    CRYPTOGRAPHY_AVAILABLE = True
+except ImportError:
+    CRYPTOGRAPHY_AVAILABLE = False
 
 
 @pytest.fixture(autouse=True)
@@ -74,7 +80,7 @@ class TestCryptographyManager:
             manager.public_key_path = manager.key_directory / "public_key.pem"
 
             # Initialize _passphrase_manager (required for key operations)
-            manager._passphrase_manager = core.SecurePassphraseManager(
+            manager._passphrase_manager = SecurePassphraseManager(
                 env_var_name=manager.rsa_config["passphrase_env_var"]
             )
             return manager
@@ -101,7 +107,7 @@ class TestCryptographyManager:
             manager.public_key_path = manager.key_directory / "public_key.pem"
 
             # Initialize _passphrase_manager (required for key operations)
-            manager._passphrase_manager = core.SecurePassphraseManager(
+            manager._passphrase_manager = SecurePassphraseManager(
                 env_var_name=manager.rsa_config["passphrase_env_var"]
             )
             return manager

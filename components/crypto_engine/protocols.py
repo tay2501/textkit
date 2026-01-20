@@ -1,87 +1,164 @@
-"""
-Protocol definitions for crypto_engine component.
+"""Type protocols for crypto_engine component.
 
-This module provides Protocol-based type definitions for improved type safety
-and reduced reliance on 'Any' types. Protocols define structural interfaces
-without requiring explicit inheritance.
+This module defines runtime-checkable protocols for dependency injection
+and type-safe interfaces, following modern Python typing best practices.
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, TypedDict, runtime_checkable
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
-    # Import actual types only for type checking (not at runtime)
+    # Import only for type checking to avoid circular dependencies
     from cryptography.hazmat.primitives.asymmetric.rsa import (
         RSAPrivateKey,
         RSAPublicKey,
     )
-
-    # Use actual types for type checking
-    RSAPrivateKeyProtocol = RSAPrivateKey
-    RSAPublicKeyProtocol = RSAPublicKey
 else:
-    # At runtime, these can be Any or a simple class
-    from typing import Any
-
-    RSAPrivateKeyProtocol = Any  # type: ignore[misc,assignment]
-    RSAPublicKeyProtocol = Any  # type: ignore[misc,assignment]
+    # At runtime, use Any to avoid import errors if cryptography not installed
+    RSAPrivateKey = Any
+    RSAPublicKey = Any
 
 
 @runtime_checkable
 class ConfigManagerProtocol(Protocol):
-    """Protocol for configuration managers used by CryptographyManager.
+    """Protocol for configuration manager with security config support.
 
-    Defines the minimum interface required for providing security configuration
-    to the cryptography components.
+    Implementers must provide method to load security configuration
+    containing RSA and encryption settings.
     """
 
-    def load_security_config(self) -> dict[str, dict[str, int | str | bool]]:
-        """Load security configuration including RSA settings.
+    def load_security_config(self) -> dict[str, Any]:
+        """Load security configuration from settings.
 
         Returns:
-            Dictionary containing security configuration with at least:
-            - "rsa": dict with RSA encryption settings
-                - "key_size": int (e.g., 4096)
-                - "public_exponent": int (e.g., 65537)
-                - "aes_key_size": int (e.g., 32)
-                - "nonce_size": int (e.g., 12)
-                - "passphrase_env_var": str (e.g., "TEXTKIT_KEY_PASSPHRASE")
+            Dictionary containing security settings with at least 'rsa' key:
+            {
+                "rsa": {
+                    "key_size": int,
+                    "public_exponent": int,
+                    "key_directory": str,
+                    ...
+                }
+            }
         """
         ...
 
 
-# Note: RSAPrivateKeyProtocol and RSAPublicKeyProtocol are now type aliases
-# to the actual cryptography library types (when TYPE_CHECKING is True)
-# or Any (at runtime). This provides full type safety during static analysis
-# while maintaining runtime flexibility.
+@runtime_checkable
+class KeyManagerProtocol(Protocol):
+    """Protocol for RSA key pair management operations."""
+
+    # Required attributes for key management
+    key_directory: Path
+    key_size: int
+    private_key_path: Path
+    public_key_path: Path
+
+    def generate_key_pair(self) -> tuple[RSAPrivateKey, RSAPublicKey]:
+        """Generate new RSA key pair.
+
+        Returns:
+            Tuple of (private_key, public_key)
+        """
+        ...
+
+    def load_key_pair(self) -> tuple[RSAPrivateKey, RSAPublicKey]:
+        """Load existing RSA key pair from storage.
+
+        Returns:
+            Tuple of (private_key, public_key)
+
+        Raises:
+            CryptographyError: If keys cannot be loaded
+        """
+        ...
+
+    def ensure_key_pair(self) -> tuple[RSAPrivateKey, RSAPublicKey]:
+        """Ensure RSA key pair exists, generate if needed.
+
+        Returns:
+            Tuple of (private_key, public_key)
+        """
+        ...
 
 
-# TypedDict for RSA configuration
-class RSAConfig(TypedDict):
-    """Type definition for RSA configuration dictionary.
+@runtime_checkable
+class EncryptionEngineProtocol(Protocol):
+    """Protocol for encryption/decryption operations."""
 
-    All fields are required for proper cryptographic operations.
+    def encrypt(self, data: bytes) -> bytes:
+        """Encrypt binary data.
 
-    Attributes:
-        key_size: RSA key size in bits (e.g., 4096)
-        public_exponent: RSA public exponent (e.g., 65537)
-        aes_key_size: AES key size in bytes (e.g., 32 for AES-256)
-        nonce_size: GCM nonce size in bytes (e.g., 12)
-        aes_iv_size: Deprecated IV size (kept for compatibility)
-        key_directory: Directory for key storage
-        passphrase_env_var: Environment variable name for passphrase
+        Args:
+            data: Raw bytes to encrypt
+
+        Returns:
+            Encrypted bytes
+        """
+        ...
+
+    def decrypt(self, encrypted_data: bytes) -> bytes:
+        """Decrypt binary data.
+
+        Args:
+            encrypted_data: Encrypted bytes to decrypt
+
+        Returns:
+            Decrypted bytes
+
+        Raises:
+            CryptographyError: If decryption fails or data is tampered
+        """
+        ...
+
+
+@runtime_checkable
+class TextCryptoServiceProtocol(Protocol):
+    """High-level protocol for text encryption/decryption services.
+
+    This is the main interface for application code to use
+    for encrypting and decrypting text data.
     """
 
-    key_size: int
-    public_exponent: int
-    aes_key_size: int
-    nonce_size: int
-    aes_iv_size: int
-    key_directory: str
-    passphrase_env_var: str
+    def encrypt_text(self, text: str) -> str:
+        """Encrypt text to base64-encoded string.
 
+        Args:
+            text: Plaintext to encrypt
 
-# Type aliases for convenience
-RSAKeyPair = tuple[RSAPrivateKeyProtocol, RSAPublicKeyProtocol]
-SecurityConfig = dict[str, dict[str, int | str | bool]]
+        Returns:
+            Base64-encoded encrypted data
+        """
+        ...
+
+    def decrypt_text(self, encrypted_text: str) -> str:
+        """Decrypt base64-encoded string to text.
+
+        Args:
+            encrypted_text: Base64-encoded encrypted data
+
+        Returns:
+            Decrypted plaintext
+
+        Raises:
+            CryptographyError: If decryption fails
+        """
+        ...
+
+    def is_available(self) -> bool:
+        """Check if cryptography is available.
+
+        Returns:
+            True if cryptography library is installed and functional
+        """
+        ...
+
+    def get_key_info(self) -> dict[str, Any]:
+        """Get key configuration information.
+
+        Returns:
+            Dictionary with key configuration details
+        """
+        ...
