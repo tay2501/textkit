@@ -7,11 +7,8 @@ import os
 
 import pytest
 from textkit.config_manager import ConfigurationManager
-from textkit.crypto_engine import (
-    CRYPTOGRAPHY_AVAILABLE,
-    CryptographyManager,
-    ParallelCryptoEngine,
-)
+from textkit.crypto_engine import CRYPTOGRAPHY_AVAILABLE, CryptographyManager
+from textkit.crypto_engine.parallel_crypto import ParallelCryptoEngine
 from textkit.exceptions import CryptoTransformationError
 
 

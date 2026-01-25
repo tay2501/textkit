@@ -15,6 +15,7 @@ Architecture:
 - protocols.py: Interface definitions
 """
 
+from .crypto import CRYPTOGRAPHY_AVAILABLE
 from .encryption import AESGCMEngine
 from .factory import get_crypto_service, register_crypto_services
 from .key_management import RSAKeyManager
@@ -59,6 +60,7 @@ class CryptographyManager(HybridCryptoService):
 
 
 __all__ = [
+    "CRYPTOGRAPHY_AVAILABLE",
     "AESGCMEngine",
     "ConfigManagerProtocol",
     "CryptographyManager",

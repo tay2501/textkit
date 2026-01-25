@@ -13,7 +13,6 @@ import tempfile
 from pathlib import Path
 
 import pytest
-
 from textkit.crypto_engine import (
     AESGCMEngine,
     HybridCryptoService,
@@ -111,7 +110,7 @@ class TestRSAKeyManager:
         original_mtime = key_manager.private_key_path.stat().st_mtime
 
         # Call again - should load existing
-        private_key, public_key = key_manager.ensure_key_pair()
+        private_key, _public_key = key_manager.ensure_key_pair()
         assert private_key is not None
         assert key_manager.private_key_path.stat().st_mtime == original_mtime
 

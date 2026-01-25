@@ -40,7 +40,8 @@ try:
         field_validator,
     )
 except ImportError:
-    from typing import Any, Callable
+    from collections.abc import Callable
+    from typing import Any
 
     # Fallback for environments where pydantic is not available
     class BaseModel:
