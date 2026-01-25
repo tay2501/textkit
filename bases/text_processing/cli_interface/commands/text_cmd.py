@@ -13,7 +13,8 @@ Design References:
     - Kubernetes: kubectl get pods, kubectl create deployment
 """
 
-from typing import Annotated
+from collections.abc import Callable
+from typing import Annotated, Any
 
 import typer
 from rich.console import Console
@@ -35,10 +36,10 @@ console = Console(stderr=True)
 
 
 def create_text_subcommand(
-    get_app_func: callable,
-    normalize_rule_func: callable,
-    get_input_text_func: callable,
-    handle_cli_error_func: callable,
+    get_app_func: Callable[..., Any],
+    normalize_rule_func: Callable[..., Any],
+    get_input_text_func: Callable[..., Any],
+    handle_cli_error_func: Callable[..., Any],
 ) -> typer.Typer:
     """Create and configure the text subcommand group.
 
@@ -293,7 +294,7 @@ def create_text_subcommand(
     return text_app
 
 
-def _show_available_rules(get_app_func: callable) -> None:
+def _show_available_rules(get_app_func: Callable[..., Any]) -> None:
     """Display quick reference for transformation rules with practical examples."""
     try:
         app_instance = get_app_func()

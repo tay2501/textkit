@@ -15,7 +15,8 @@ Design References:
 
 from __future__ import annotations
 
-from typing import Annotated
+from collections.abc import Callable
+from typing import Annotated, Any
 
 import typer
 from rich.console import Console
@@ -31,8 +32,8 @@ console = Console()
 
 
 def create_crypto_subcommand(
-    get_app_func: callable,
-    handle_cli_error_func: callable,
+    get_app_func: Callable[..., Any],
+    handle_cli_error_func: Callable[..., Any],
 ) -> typer.Typer:
     """Create and configure the crypto subcommand group.
 
@@ -346,10 +347,10 @@ def create_crypto_subcommand(
 
 def register_crypto_commands(
     app: typer.Typer,
-    get_app_func: callable,
-    get_input_text_func: callable,
-    output_result_func: callable,
-    handle_cli_error_func: callable,
+    get_app_func: Callable[..., Any],
+    get_input_text_func: Callable[..., Any],
+    output_result_func: Callable[..., Any],
+    handle_cli_error_func: Callable[..., Any],
 ) -> None:
     """Register legacy crypto commands with deprecation warnings.
 
@@ -409,10 +410,10 @@ def register_crypto_commands(
 
 # Export individual functions for backward compatibility
 def encrypt_text_func(
-    get_app_func: callable,
-    get_input_text_func: callable,
-    output_result_func: callable,
-    handle_cli_error_func: callable,
+    get_app_func: Callable[..., Any],
+    get_input_text_func: Callable[..., Any],
+    output_result_func: Callable[..., Any],
+    handle_cli_error_func: Callable[..., Any],
 ) -> callable:
     """Create encrypt_text function with dependencies injected."""
 
@@ -434,10 +435,10 @@ def encrypt_text_func(
 
 
 def decrypt_text_func(
-    get_app_func: callable,
-    get_input_text_func: callable,
-    output_result_func: callable,
-    handle_cli_error_func: callable,
+    get_app_func: Callable[..., Any],
+    get_input_text_func: Callable[..., Any],
+    output_result_func: Callable[..., Any],
+    handle_cli_error_func: Callable[..., Any],
 ) -> callable:
     """Create decrypt_text function with dependencies injected."""
 

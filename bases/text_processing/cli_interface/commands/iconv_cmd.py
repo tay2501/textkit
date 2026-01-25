@@ -6,7 +6,8 @@ separated from the main CLI interface for better maintainability.
 
 from __future__ import annotations
 
-from typing import Annotated
+from collections.abc import Callable
+from typing import Annotated, Any
 
 import typer
 from rich.console import Console
@@ -16,10 +17,10 @@ console = Console()
 
 def register_iconv_command(
     app: typer.Typer,
-    get_app_func: callable,
-    get_input_text_func: callable,
-    output_result_enhanced_func: callable,
-    handle_cli_error_func: callable,
+    get_app_func: Callable[..., Any],
+    get_input_text_func: Callable[..., Any],
+    output_result_enhanced_func: Callable[..., Any],
+    handle_cli_error_func: Callable[..., Any],
 ) -> None:
     """Register iconv command with the application."""
 
@@ -155,10 +156,10 @@ def register_iconv_command(
 
 
 def iconv_command_func(
-    get_app_func: callable,
-    get_input_text_func: callable,
-    output_result_enhanced_func: callable,
-    handle_cli_error_func: callable,
+    get_app_func: Callable[..., Any],
+    get_input_text_func: Callable[..., Any],
+    output_result_enhanced_func: Callable[..., Any],
+    handle_cli_error_func: Callable[..., Any],
 ) -> callable:
     """Create iconv_command function with dependencies injected."""
 

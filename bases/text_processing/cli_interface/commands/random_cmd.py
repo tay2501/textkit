@@ -11,7 +11,8 @@ from __future__ import annotations
 import contextlib
 import secrets
 import threading
-from typing import TYPE_CHECKING, Annotated
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Annotated, Any
 
 import typer
 from rich.console import Console
@@ -84,8 +85,8 @@ def _schedule_clipboard_clear(
 
 def register_random_commands(
     app: typer.Typer,
-    get_app_func: callable,
-    handle_cli_error_func: callable,
+    get_app_func: Callable[..., Any],
+    handle_cli_error_func: Callable[..., Any],
 ) -> None:
     """Register cryptographically secure random commands.
 

@@ -6,6 +6,9 @@ separated from the main CLI interface for better maintainability.
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import Any
+
 import typer
 from rich.console import Console
 from rich.table import Table
@@ -15,8 +18,8 @@ console = Console()
 
 def register_status_commands(
     app: typer.Typer,
-    get_app_func: callable,
-    handle_cli_error_func: callable,
+    get_app_func: Callable[..., Any],
+    handle_cli_error_func: Callable[..., Any],
 ) -> None:
     """Register status and version commands with the application."""
 
@@ -125,8 +128,8 @@ def register_status_commands(
 
 
 def show_status_func(
-    get_app_func: callable,
-    handle_cli_error_func: callable,
+    get_app_func: Callable[..., Any],
+    handle_cli_error_func: Callable[..., Any],
 ) -> callable:
     """Create show_status function with dependencies injected."""
 
@@ -160,7 +163,7 @@ def show_status_func(
     return _show_status
 
 
-def show_version_func(handle_cli_error_func: callable) -> callable:
+def show_version_func(handle_cli_error_func: Callable[..., Any]) -> callable:
     """Create show_version function with dependencies injected."""
 
     def _show_version() -> None:

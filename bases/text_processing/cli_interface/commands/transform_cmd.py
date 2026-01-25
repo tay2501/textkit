@@ -6,7 +6,8 @@ separated from the main CLI interface for better maintainability.
 
 from __future__ import annotations
 
-from typing import Annotated
+from collections.abc import Callable
+from typing import Annotated, Any
 
 import typer
 from rich.console import Console
@@ -20,10 +21,10 @@ console = Console()
 
 def transform_text(
     app: typer.Typer,
-    get_app_func: callable,
-    normalize_rule_func: callable,
-    get_input_text_func: callable,
-    handle_cli_error_func: callable,
+    get_app_func: Callable[..., Any],
+    normalize_rule_func: Callable[..., Any],
+    get_input_text_func: Callable[..., Any],
+    handle_cli_error_func: Callable[..., Any],
 ) -> None:
     """Register transform command with the application."""
 
@@ -177,7 +178,7 @@ def transform_text(
             handle_cli_error_func(e, "text transformation")
 
 
-def _show_available_rules(get_app_func: callable) -> None:
+def _show_available_rules(get_app_func: Callable[..., Any]) -> None:
     """Show available transformation rules."""
     try:
         app_instance = get_app_func()

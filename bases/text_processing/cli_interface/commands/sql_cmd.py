@@ -6,7 +6,8 @@ focusing on common tasks like formatting IN clause values.
 
 from __future__ import annotations
 
-from typing import Annotated
+from collections.abc import Callable
+from typing import Annotated, Any
 
 import typer
 from rich.console import Console
@@ -29,8 +30,8 @@ def _get_logger():
 
 def register_sql_commands(
     app: typer.Typer,
-    get_app_func: callable,
-    handle_cli_error_func: callable,
+    get_app_func: Callable[..., Any],
+    handle_cli_error_func: Callable[..., Any],
 ) -> None:
     """Register SQL commands with the application.
 

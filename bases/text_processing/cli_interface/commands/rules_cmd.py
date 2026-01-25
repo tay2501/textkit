@@ -15,7 +15,8 @@ Design References:
 
 from __future__ import annotations
 
-from typing import Annotated
+from collections.abc import Callable
+from typing import Annotated, Any
 
 import typer
 from rich.console import Console
@@ -25,8 +26,8 @@ console = Console()
 
 
 def create_rules_subcommand(
-    get_app_func: callable,
-    handle_cli_error_func: callable,
+    get_app_func: Callable[..., Any],
+    handle_cli_error_func: Callable[..., Any],
 ) -> typer.Typer:
     """Create and configure the rules subcommand group.
 
@@ -220,8 +221,8 @@ def create_rules_subcommand(
 
 def register_rules_command(
     app: typer.Typer,
-    get_app_func: callable,
-    handle_cli_error_func: callable,
+    get_app_func: Callable[..., Any],
+    handle_cli_error_func: Callable[..., Any],
 ) -> None:
     """Register legacy rules command with deprecation warning.
 
@@ -287,8 +288,8 @@ def register_rules_command(
 
 
 def show_rules_func(
-    get_app_func: callable,
-    handle_cli_error_func: callable,
+    get_app_func: Callable[..., Any],
+    handle_cli_error_func: Callable[..., Any],
 ) -> callable:
     """Create show_rules function with dependencies injected."""
 
