@@ -123,7 +123,12 @@ exclude = [
 ]
 
 [tool.ruff.lint]
-# Enable recommended rule sets (2025 best practices)
+# 2026 Best Practice: Require explicit selection of preview rules
+# Prevents accidental activation of unstable rules when selecting categories
+preview = true
+explicit-preview-rules = true
+
+# Enable recommended rule sets (2026 best practices)
 select = [
     "E",      # pycodestyle errors
     "F",      # Pyflakes

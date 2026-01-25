@@ -108,7 +108,7 @@ class SystemError(BaseTextProcessingError):
     """
 
     def __init__(
-        self, message: str, system_info: dict[str, Any] | None = None, **kwargs
+        self, message: str, system_info: dict[str, Any] | None = None, **kwargs: Any
     ) -> None:
         """Initialize system error.
 

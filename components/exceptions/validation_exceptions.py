@@ -23,7 +23,7 @@ class ValidationError(BaseTextProcessingError):
         field_name: str | None = None,
         invalid_value: Any = None,
         expected_type: type | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """Initialize validation error.
 
@@ -57,7 +57,7 @@ class ParameterValidationError(ValidationError):
         parameter_name: str,
         parameter_value: Any = None,
         constraints: dict[str, Any] | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """Initialize parameter validation error.
 
@@ -87,7 +87,7 @@ class DataValidationError(ValidationError):
         message: str,
         data_type: str | None = None,
         validation_rules: list[str] | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """Initialize data validation error.
 
@@ -117,7 +117,7 @@ class SchemaValidationError(ValidationError):
         schema_path: str | None = None,
         expected_schema: dict[str, Any] | None = None,
         actual_structure: dict[str, Any] | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """Initialize schema validation error.
 

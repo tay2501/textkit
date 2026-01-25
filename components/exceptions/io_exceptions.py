@@ -6,6 +6,7 @@ including clipboard, file system, and network operations.
 """
 
 from pathlib import Path
+from typing import Any
 
 from .base_exceptions import BaseTextProcessingError
 
@@ -21,7 +22,7 @@ class IOError(BaseTextProcessingError):
         message: str,
         io_operation: str | None = None,
         resource_path: str | Path | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """Initialize I/O error.
 
@@ -47,7 +48,7 @@ class ClipboardError(IOError):
         message: str,
         clipboard_format: str | None = None,
         data_size: int | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """Initialize clipboard error.
 
@@ -74,7 +75,7 @@ class FileAccessError(IOError):
         file_path: str | Path,
         access_mode: str | None = None,
         permissions: str | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """Initialize file access error.
 
