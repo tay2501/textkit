@@ -11,6 +11,7 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from textkit.crypto_engine import (
@@ -121,14 +122,14 @@ class TestRSAKeyManager:
         assert "Failed to load key pair" in str(exc_info.value)
 
     def test_passphrase_not_set(self, temp_dir):
-        """Test error when passphrase environment variable is not set."""
-        # Remove the passphrase
+        """Test error when no passphrase is available in any backend."""
         original = os.environ.pop("TEXTKIT_KEY_PASSPHRASE", None)
         try:
-            manager = RSAKeyManager(key_directory=temp_dir / "rsa")
-            with pytest.raises(CryptographyError) as exc_info:
-                manager.generate_key_pair()
-            assert "Passphrase not set" in str(exc_info.value)
+            with patch("keyring.get_password", return_value=None):
+                manager = RSAKeyManager(key_directory=temp_dir / "rsa")
+                with pytest.raises(CryptographyError) as exc_info:
+                    manager.generate_key_pair()
+                assert "No passphrase found" in str(exc_info.value)
         finally:
             if original:
                 os.environ["TEXTKIT_KEY_PASSPHRASE"] = original
@@ -137,10 +138,11 @@ class TestRSAKeyManager:
         """Test error when passphrase is too short."""
         os.environ["TEXTKIT_KEY_PASSPHRASE"] = "short"
         try:
-            manager = RSAKeyManager(key_directory=temp_dir / "rsa")
-            with pytest.raises(CryptographyError) as exc_info:
-                manager.generate_key_pair()
-            assert "Passphrase too short" in str(exc_info.value)
+            with patch("keyring.get_password", return_value=None):
+                manager = RSAKeyManager(key_directory=temp_dir / "rsa")
+                with pytest.raises(CryptographyError) as exc_info:
+                    manager.generate_key_pair()
+                assert "Passphrase too short" in str(exc_info.value)
         finally:
             os.environ["TEXTKIT_KEY_PASSPHRASE"] = (
                 "test-passphrase-for-development-only-minimum-32-chars-long"

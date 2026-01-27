@@ -6,7 +6,6 @@ Separated from encryption logic for better testability and SRP compliance.
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
@@ -15,6 +14,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from textkit.exceptions import CryptoTransformationError as CryptographyError
+
+from .passphrase_manager import SecurePassphraseManager
 
 if TYPE_CHECKING:
     from cryptography.hazmat.primitives.asymmetric.rsa import (
@@ -34,31 +35,30 @@ class RSAKeyManager:
     - RSA-4096 key generation
     - PBKDF2 passphrase-based encryption (BestAvailableEncryption)
     - Secure file permissions (0o600 for private, 0o644 for public)
-    - Environment variable-based passphrase management
+    - Layered passphrase management (TPM/Keyring/Env via SecurePassphraseManager)
     """
 
     DEFAULT_KEY_SIZE = 4096
     DEFAULT_PUBLIC_EXPONENT = 65537
-    DEFAULT_PASSPHRASE_ENV_VAR = "TEXTKIT_KEY_PASSPHRASE"  # noqa: S105 (env var name, not a password)
     MINIMUM_PASSPHRASE_LENGTH = 32
 
     def __init__(
         self,
         key_directory: Path | str = "rsa",
         key_size: int = DEFAULT_KEY_SIZE,
-        passphrase_env_var: str = DEFAULT_PASSPHRASE_ENV_VAR,
+        passphrase_manager: SecurePassphraseManager | None = None,
     ) -> None:
         """Initialize RSA key manager.
 
         Args:
             key_directory: Directory for key storage
             key_size: RSA key size in bits (default: 4096)
-            passphrase_env_var: Environment variable name for passphrase
+            passphrase_manager: Secure passphrase manager (TPM/Keyring/Env)
         """
         self.key_directory = Path(key_directory)
         self.key_size = key_size
         self.public_exponent = self.DEFAULT_PUBLIC_EXPONENT
-        self.passphrase_env_var = passphrase_env_var
+        self._passphrase_manager = passphrase_manager or SecurePassphraseManager()
 
         # Ensure directory exists with secure permissions
         self.key_directory.mkdir(mode=0o700, exist_ok=True)
@@ -68,32 +68,41 @@ class RSAKeyManager:
         self.public_key_path = self.key_directory / "public_key.pem"
 
     def _get_passphrase(self) -> bytes:
-        """Get passphrase from environment variable.
+        """Get passphrase from secure storage (TPM/Keyring/Env).
+
+        Uses SecurePassphraseManager's layered security:
+        1. TPM 2.0 (highest security)
+        2. OS Keyring (high security)
+        3. Environment variable (fallback)
 
         Returns:
-            UTF-8 encoded passphrase
+            UTF-8 encoded passphrase bytes
 
         Raises:
-            CryptographyError: If passphrase not set or too short
+            CryptographyError: If passphrase not available or too short
         """
-        passphrase = os.environ.get(self.passphrase_env_var)
-
-        if not passphrase:
+        try:
+            passphrase_bytes, backend = self._passphrase_manager.get_passphrase()
+        except ValueError as e:
             raise CryptographyError(
-                f"Passphrase not set. Set environment variable: {self.passphrase_env_var}",
-                {"required_env_var": self.passphrase_env_var},
-            )
+                str(e),
+                {"hint": "Run: textkit crypto set-passphrase"},
+            ) from e
 
-        if len(passphrase) < self.MINIMUM_PASSPHRASE_LENGTH:
+        if len(passphrase_bytes) < self.MINIMUM_PASSPHRASE_LENGTH:
             raise CryptographyError(
                 f"Passphrase too short (minimum {self.MINIMUM_PASSPHRASE_LENGTH} chars)",
                 {
                     "required_length": self.MINIMUM_PASSPHRASE_LENGTH,
-                    "actual_length": len(passphrase),
+                    "actual_length": len(passphrase_bytes),
                 },
             )
 
-        return passphrase.encode("utf-8")
+        logger.debug(
+            "passphrase_retrieved",
+            backend=backend.value,
+        )
+        return passphrase_bytes
 
     def generate_key_pair(self) -> tuple[RSAPrivateKey, RSAPublicKey]:
         """Generate new RSA key pair.
