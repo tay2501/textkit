@@ -9,7 +9,7 @@ Follows clig.dev guidelines:
 Examples:
     tt '/t/l'                    # Trim and lowercase (clipboard)
     echo "HELLO" | tt '/lower'   # Pipeline mode
-    tt '/upper' -t "text"        # Direct input
+    tt '/upper' -i "text"        # Direct input
 """
 
 from __future__ import annotations
@@ -45,9 +45,15 @@ def _print_version() -> None:
     print(f"tt version {__version__} (Polylith)")
 
 
-def get_input_text(text: str | None) -> str:
-    """Get input from argument, stdin, or clipboard (priority order)."""
+def get_input_text(text: str | None, input_text: str | None = None) -> str:
+    """Get input from argument, stdin, or clipboard (priority order).
+
+    Priority: input_text (-i) > text (-t) > stdin > clipboard
+    """
     import contextlib
+
+    if input_text is not None:
+        return input_text
 
     if text is not None:
         return text
@@ -100,6 +106,7 @@ def output_text(
 def main(
     rules: str | None = None,
     text: str | None = None,
+    input_text: str | None = None,
     no_clipboard: bool = False,
     quiet: bool = False,
     verbose: int = 0,
@@ -132,8 +139,8 @@ def main(
         from components.text_core import TextTransformationEngine
 
         engine = TextTransformationEngine()
-        input_text = get_input_text(text)
-        result = engine.apply_transformations(input_text, rules)
+        resolved_input = get_input_text(text, input_text)
+        result = engine.apply_transformations(resolved_input, rules)
         output_text(result, no_clipboard, quiet, verbose)
         return 0
 
@@ -156,7 +163,10 @@ def cli() -> None:
     @app.command()
     def _main(
         rules: str = typer.Argument(..., help="Transformation rules (e.g., '/t/l')"),
-        text: str | None = typer.Option(None, "--text", "-t", help="Input text"),
+        input_text: str | None = typer.Option(None, "--input", "-i", help="Input text"),
+        text: str | None = typer.Option(
+            None, "--text", "-t", help="Input text (deprecated, use -i)"
+        ),
         no_clipboard: bool = typer.Option(
             False, "--no-clipboard", "-n", help="Disable clipboard"
         ),
@@ -201,15 +211,17 @@ def cli() -> None:
         Examples:
             tt '/t/l'                    # Trim + lowercase
             echo "text" | tt '/upper'    # Uppercase via pipe
-            tt '/upper' -t "Hello"       # Direct text input
+            tt '/upper' -i "Hello"       # Direct text input
+            tt '/upper' -t "Hello"       # Same (deprecated)
             tt '/t' -n                   # No clipboard copy
             tt '/l' -q                   # Quiet mode
             tt '/l' -v                   # Verbose mode
-            NO_COLOR=1 tt '/l' -t "X"    # Disable colors
+            NO_COLOR=1 tt '/l' -i "X"   # Disable colors
         """
         exit_code = main(
             rules=rules,
             text=text,
+            input_text=input_text,
             no_clipboard=no_clipboard,
             quiet=quiet,
             verbose=verbose,
