@@ -1,30 +1,38 @@
-"""Tests for parallel crypto engine."""
+"""Tests for parallel crypto engine.
+
+This module tests the ParallelCryptoEngine using modern pytest-asyncio
+patterns and the current HybridCryptoService API.
+"""
 
 from __future__ import annotations
 
 import asyncio
-import os
+from typing import TYPE_CHECKING
 
 import pytest
-from textkit.config_manager import ConfigurationManager
-from textkit.crypto_engine import CRYPTOGRAPHY_AVAILABLE, CryptographyManager
-from textkit.crypto_engine.parallel_crypto import ParallelCryptoEngine
-from textkit.exceptions import CryptoTransformationError
+import pytest_asyncio
+
+from components.crypto_engine import CRYPTOGRAPHY_AVAILABLE
+from components.crypto_engine.encryption import AESGCMEngine
+from components.crypto_engine.key_management import RSAKeyManager
+from components.crypto_engine.parallel_crypto import ParallelCryptoEngine
+from components.crypto_engine.service import HybridCryptoService
+from components.exceptions import CryptoTransformationError
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 @pytest.fixture(autouse=True)
-def setup_test_passphrase():
-    """Set up test passphrase environment variable for all tests."""
-    original_passphrase = os.environ.get("TEXTKIT_KEY_PASSPHRASE")
-    os.environ["TEXTKIT_KEY_PASSPHRASE"] = (
-        "test-passphrase-for-development-only-minimum-32-chars-long"
+def setup_test_passphrase(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Set up test passphrase environment variable for all tests.
+
+    Uses monkeypatch for clean environment variable management.
+    """
+    monkeypatch.setenv(
+        "TEXTKIT_KEY_PASSPHRASE",
+        "test-passphrase-for-development-only-minimum-32-chars-long",
     )
-    yield
-    # Restore original passphrase if it existed
-    if original_passphrase is not None:
-        os.environ["TEXTKIT_KEY_PASSPHRASE"] = original_passphrase
-    else:
-        os.environ.pop("TEXTKIT_KEY_PASSPHRASE", None)
 
 
 @pytest.mark.skipif(
@@ -32,45 +40,55 @@ def setup_test_passphrase():
     reason="cryptography library not available",
 )
 class TestParallelCryptoEngine:
-    """Test suite for ParallelCryptoEngine."""
+    """Test suite for ParallelCryptoEngine.
 
-    @pytest.fixture
-    def config_dir(self, tmp_path):
-        """Create temporary config directory."""
-        config_dir = tmp_path / "config"
-        config_dir.mkdir()
-        return config_dir
+    Uses HybridCryptoService directly instead of deprecated CryptographyManager.
+    """
 
-    @pytest.fixture
-    def crypto_manager(self, tmp_path):
-        """Create CryptographyManager instance with temporary key directory."""
-        config_dir = tmp_path / "config"
-        config_dir.mkdir()
+    @pytest_asyncio.fixture
+    async def crypto_service(self, tmp_path: Path) -> HybridCryptoService:
+        """Create HybridCryptoService with temporary key directory.
+
+        This fixture creates isolated RSA keys for each test to ensure
+        test independence and prevent cross-test contamination.
+        """
         key_dir = tmp_path / "rsa"
-        key_dir.mkdir()
+        key_dir.mkdir(mode=0o700, exist_ok=True)
 
-        config = ConfigurationManager(config_dir)
-        manager = CryptographyManager(config)
-        # Override key directory to use temp path
-        manager.key_directory = key_dir
-        manager.private_key_path = key_dir / "private_key.pem"
-        manager.public_key_path = key_dir / "public_key.pem"
-        manager.ensure_key_pair()
-        return manager
+        # Create key manager with temp directory
+        key_manager = RSAKeyManager(key_directory=key_dir)
 
-    @pytest.fixture
-    def parallel_engine(self, crypto_manager):
+        # Generate keys for testing
+        key_manager.ensure_key_pair()
+
+        # Create encryption engine
+        encryption_engine = AESGCMEngine(key_manager=key_manager)
+
+        # Create and return the service
+        return HybridCryptoService(
+            key_manager=key_manager,
+            encryption_engine=encryption_engine,
+        )
+
+    @pytest_asyncio.fixture
+    async def parallel_engine(
+        self, crypto_service: HybridCryptoService
+    ) -> ParallelCryptoEngine:
         """Create ParallelCryptoEngine instance."""
-        return ParallelCryptoEngine(crypto_manager, max_workers=4)
+        return ParallelCryptoEngine(crypto_service, max_workers=4)
 
     @pytest.mark.asyncio
-    async def test_initialization(self, parallel_engine):
+    async def test_initialization(
+        self, parallel_engine: ParallelCryptoEngine
+    ) -> None:
         """Test parallel engine initialization."""
         assert parallel_engine.max_workers == 4
         assert parallel_engine.crypto_manager is not None
 
     @pytest.mark.asyncio
-    async def test_encrypt_text_async(self, parallel_engine):
+    async def test_encrypt_text_async(
+        self, parallel_engine: ParallelCryptoEngine
+    ) -> None:
         """Test async text encryption."""
         text = "Hello, Parallel World!"
         encrypted = await parallel_engine.encrypt_text_async(text)
@@ -80,7 +98,9 @@ class TestParallelCryptoEngine:
         assert encrypted != text
 
     @pytest.mark.asyncio
-    async def test_decrypt_text_async(self, parallel_engine):
+    async def test_decrypt_text_async(
+        self, parallel_engine: ParallelCryptoEngine
+    ) -> None:
         """Test async text decryption."""
         text = "Hello, Parallel World!"
         encrypted = await parallel_engine.encrypt_text_async(text)
@@ -89,8 +109,10 @@ class TestParallelCryptoEngine:
         assert decrypted == text
 
     @pytest.mark.asyncio
-    async def test_encrypt_decrypt_roundtrip_async(self, parallel_engine):
-        """Test async encryption/decryption round trip."""
+    async def test_encrypt_decrypt_roundtrip_async(
+        self, parallel_engine: ParallelCryptoEngine
+    ) -> None:
+        """Test async encryption/decryption round trip with various inputs."""
         test_cases = [
             "Simple text",
             "Text with special chars: !@#$%^&*()",
@@ -106,13 +128,17 @@ class TestParallelCryptoEngine:
             assert decrypted == text, f"Failed for: {text[:50]}"
 
     @pytest.mark.asyncio
-    async def test_encrypt_batch_async_empty(self, parallel_engine):
+    async def test_encrypt_batch_async_empty(
+        self, parallel_engine: ParallelCryptoEngine
+    ) -> None:
         """Test batch encryption with empty list."""
         encrypted = await parallel_engine.encrypt_batch_async([])
         assert encrypted == []
 
     @pytest.mark.asyncio
-    async def test_encrypt_batch_async_single(self, parallel_engine):
+    async def test_encrypt_batch_async_single(
+        self, parallel_engine: ParallelCryptoEngine
+    ) -> None:
         """Test batch encryption with single text."""
         texts = ["Hello World"]
         encrypted = await parallel_engine.encrypt_batch_async(texts)
@@ -121,7 +147,9 @@ class TestParallelCryptoEngine:
         assert encrypted[0] != texts[0]
 
     @pytest.mark.asyncio
-    async def test_encrypt_batch_async_multiple(self, parallel_engine):
+    async def test_encrypt_batch_async_multiple(
+        self, parallel_engine: ParallelCryptoEngine
+    ) -> None:
         """Test batch encryption with multiple texts."""
         texts = [
             "First text",
@@ -136,17 +164,21 @@ class TestParallelCryptoEngine:
         # All encrypted texts should be different
         assert len(set(encrypted)) == len(encrypted)
         # None should match original
-        for enc, orig in zip(encrypted, texts, strict=False):
+        for enc, orig in zip(encrypted, texts, strict=True):
             assert enc != orig
 
     @pytest.mark.asyncio
-    async def test_decrypt_batch_async_empty(self, parallel_engine):
+    async def test_decrypt_batch_async_empty(
+        self, parallel_engine: ParallelCryptoEngine
+    ) -> None:
         """Test batch decryption with empty list."""
         decrypted = await parallel_engine.decrypt_batch_async([])
         assert decrypted == []
 
     @pytest.mark.asyncio
-    async def test_encrypt_decrypt_batch_roundtrip(self, parallel_engine):
+    async def test_encrypt_decrypt_batch_roundtrip(
+        self, parallel_engine: ParallelCryptoEngine
+    ) -> None:
         """Test batch encryption/decryption round trip."""
         texts = [
             "Text 1",
@@ -164,7 +196,9 @@ class TestParallelCryptoEngine:
         assert decrypted == texts
 
     @pytest.mark.asyncio
-    async def test_large_batch_encryption(self, parallel_engine):
+    async def test_large_batch_encryption(
+        self, parallel_engine: ParallelCryptoEngine
+    ) -> None:
         """Test encryption of large batch."""
         texts = [f"Text number {i}" for i in range(100)]
         encrypted = await parallel_engine.encrypt_batch_async(texts)
@@ -173,7 +207,9 @@ class TestParallelCryptoEngine:
         assert decrypted == texts
 
     @pytest.mark.asyncio
-    async def test_concurrent_operations(self, parallel_engine):
+    async def test_concurrent_operations(
+        self, parallel_engine: ParallelCryptoEngine
+    ) -> None:
         """Test concurrent encrypt and decrypt operations."""
         texts1 = ["Batch 1 - Text 1", "Batch 1 - Text 2"]
         texts2 = ["Batch 2 - Text 1", "Batch 2 - Text 2"]
@@ -197,7 +233,9 @@ class TestParallelCryptoEngine:
         assert decrypted2 == texts2
 
     @pytest.mark.asyncio
-    async def test_health_check(self, parallel_engine):
+    async def test_health_check(
+        self, parallel_engine: ParallelCryptoEngine
+    ) -> None:
         """Test health check."""
         health = await parallel_engine.health_check()
 
@@ -207,7 +245,9 @@ class TestParallelCryptoEngine:
         assert "key_info" in health
 
     @pytest.mark.asyncio
-    async def test_context_manager(self, parallel_engine):
+    async def test_context_manager(
+        self, parallel_engine: ParallelCryptoEngine
+    ) -> None:
         """Test async context manager."""
         async with parallel_engine as engine:
             text = "Context manager test"
@@ -216,9 +256,11 @@ class TestParallelCryptoEngine:
             assert decrypted == text
 
     @pytest.mark.asyncio
-    async def test_semaphore_control(self, crypto_manager):
+    async def test_semaphore_control(
+        self, crypto_service: HybridCryptoService
+    ) -> None:
         """Test semaphore limits concurrency."""
-        engine = ParallelCryptoEngine(crypto_manager, max_workers=2)
+        engine = ParallelCryptoEngine(crypto_service, max_workers=2)
 
         # Create more tasks than workers
         texts = [f"Text {i}" for i in range(10)]
@@ -228,13 +270,17 @@ class TestParallelCryptoEngine:
         assert len(encrypted) == 10
 
     @pytest.mark.asyncio
-    async def test_error_handling_invalid_encrypted(self, parallel_engine):
+    async def test_error_handling_invalid_encrypted(
+        self, parallel_engine: ParallelCryptoEngine
+    ) -> None:
         """Test error handling with invalid encrypted data."""
         with pytest.raises(CryptoTransformationError):
             await parallel_engine.decrypt_text_async("invalid_base64")
 
     @pytest.mark.asyncio
-    async def test_batch_preserves_order(self, parallel_engine):
+    async def test_batch_preserves_order(
+        self, parallel_engine: ParallelCryptoEngine
+    ) -> None:
         """Test that batch operations preserve order."""
         texts = [f"Text {i:03d}" for i in range(50)]
         encrypted = await parallel_engine.encrypt_batch_async(texts)

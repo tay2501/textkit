@@ -30,7 +30,8 @@ def register_crypto_services(container: Container) -> None:
     from .service import HybridCryptoService
 
     # Register key manager as singleton
-    container[KeyManagerProtocol] = Singleton(RSAKeyManager)
+    # Use lambda to avoid Lagom reflection issues with union type hints
+    container[KeyManagerProtocol] = Singleton(lambda c: RSAKeyManager())
 
     # Register encryption engine (depends on KeyManager)
     container[EncryptionEngineProtocol] = Singleton(
@@ -57,7 +58,8 @@ def get_crypto_service() -> TextCryptoServiceProtocol:
     container = get_container()
 
     # Auto-register if not already registered
-    if TextCryptoServiceProtocol not in container:
+    # Use defined_types to avoid triggering reflection-based resolution
+    if TextCryptoServiceProtocol not in container.defined_types:
         register_crypto_services(container)
 
     return container[TextCryptoServiceProtocol]

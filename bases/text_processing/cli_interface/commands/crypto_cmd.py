@@ -214,10 +214,10 @@ def create_crypto_subcommand(
 
             # Generate RSA key pair now that passphrase is configured
             console.print("[dim]Generating RSA key pair...[/dim]")
-            from textkit.crypto_engine import CryptographyManager
+            from components.crypto_engine.key_management import RSAKeyManager
 
-            crypto_manager = CryptographyManager(config_manager)
-            crypto_manager.ensure_key_pair()
+            key_manager = RSAKeyManager(key_directory=key_dir)
+            key_manager.ensure_key_pair()
 
             console.print("[green]RSA key pair generated successfully[/green]")
             console.print(

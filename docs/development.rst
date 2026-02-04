@@ -53,12 +53,17 @@ The project follows the Polylith architecture:
 .. code-block:: text
 
     text-processing-toolkit/
-    ├── components/          # Reusable components
+    ├── 3rdparty/           # Third-party dependencies
     ├── bases/              # Application entry points
-    ├── projects/           # Deployable applications
+    ├── bin/                # Binary scripts
+    ├── components/         # Reusable components
+    ├── config/             # Configuration files
+    ├── demos/              # Demo scripts and examples
     ├── development/        # Development environment
-    ├── test/               # Test suites
     ├── docs/               # Documentation
+    ├── projects/           # Deployable applications
+    ├── test/               # Test suites
+    ├── textkit/            # Main package
     ├── pyproject.toml      # Project configuration
     └── workspace.toml      # Polylith workspace configuration
 
@@ -82,20 +87,20 @@ Run all tests:
 
 .. code-block:: console
 
-    $ pytest
+    $ uv run pytest
 
 Run specific test suites:
 
 .. code-block:: console
 
-    $ pytest test/components/text-core/
-    $ pytest test/integration/
+    $ uv run pytest test/components/text-core/
+    $ uv run pytest test/integration/
 
 Run tests with coverage:
 
 .. code-block:: console
 
-    $ pytest --cov=components --cov-report=html
+    $ uv run pytest --cov=components --cov-report=html
 
 Code Quality
 ~~~~~~~~~~~~
@@ -104,15 +109,13 @@ Format code:
 
 .. code-block:: console
 
-    $ black .
-    $ ruff format
+    $ uv run ruff format .
 
 Lint code:
 
 .. code-block:: console
 
-    $ ruff check
-    $ mypy .
+    $ uv run ruff check --fix .
 
 Type Checking
 ~~~~~~~~~~~~~
@@ -121,7 +124,7 @@ The project uses comprehensive type annotations. Run type checking:
 
 .. code-block:: console
 
-    $ mypy components/ bases/ projects/
+    $ uv run mypy .
 
 Configuration Management
 -------------------------

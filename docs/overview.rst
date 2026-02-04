@@ -22,9 +22,33 @@ Project Structure
 
 The project follows the Polylith workspace structure:
 
-* ``components/`` - Reusable business logic components
-* ``bases/`` - Application entry points
-* ``projects/`` - Deployable applications
+* ``components/`` - 11 reusable business logic components:
+
+  - ``async_core`` - Async processing utilities
+  - ``command_handler`` - Command processing logic
+  - ``common_utils`` - Shared utilities
+  - ``config_manager`` - Configuration management
+  - ``crypto_engine`` - Cryptographic operations
+  - ``dependency_injection`` - DI container integration
+  - ``exceptions`` - Error handling
+  - ``help_system`` - Help generation
+  - ``io_handler`` - I/O operations
+  - ``rule_parser`` - Rule parsing
+  - ``text_core`` - Text transformation engine
+
+* ``bases/`` - 2 application entry points:
+
+  - ``cli_interface`` - Command-line interface
+  - ``interactive_session`` - Interactive session handler
+
+* ``projects/`` - 5 deployable applications:
+
+  - ``crypto_processor`` - Cryptographic text processor
+  - ``encoding_specialist`` - Character encoding converter
+  - ``format_converter`` - Format conversion tool
+  - ``text_transformer`` - Text transformation tool
+  - ``tsv_translator`` - TSV translation tool
+
 * ``development/`` - Development environment
 * ``test/`` - Test suites
 
