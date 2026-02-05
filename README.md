@@ -14,7 +14,7 @@ A modern, Unix-philosophy compliant text processing toolkit with seamless pipe a
 **TextKit excels at:**
 - 🔄 **Character Conversion Made Easy**: `/h2u` (hyphen→underscore), `/u2h` (underscore→hyphen), `/ue` (Unicode escape), `/ud` (Unicode unescape)
 - 📝 **Bulk Text Replacement**: TSV-based multi-pattern substitution for complex transformations
-- 🔌 **Seamless I/O**: Simple clipboard operations and pipe-friendly processing
+- 🔌 **Seamless I/O**: Simple clipboard operations, pipe-friendly processing, and clipboard guard (prevent overwrites)
 - ⚡ **High Performance**: SIMD-accelerated string operations with StringZilla
 - 🔐 **Secure Random Generation**: Cryptographically secure random numbers for passwords and security tokens
 
@@ -354,6 +354,25 @@ uv run python main.py clip get
 uv run python main.py clip set "Hello, World!"
 uv run python main.py clip clear
 ```
+
+**Clipboard Guard** (protect clipboard from overwrites):
+```bash
+# Hold text in clipboard for 30 seconds (default), restoring on any external change
+uv run python main.py clip hold "secret text"
+
+# Hold for 60 seconds
+uv run python main.py clip hold "my password" -d 60
+
+# Hold current clipboard content for 10 seconds
+uv run python main.py clip hold -d 10
+
+# Pipe input
+echo "secret" | uv run python main.py clip hold -d 30
+
+# Press Ctrl+C to release the guard early
+```
+
+Uses Win32 `AddClipboardFormatListener` API on Windows for event-driven monitoring (~0% CPU, ~1ms restore latency). Falls back to polling on other platforms.
 
 **Cryptographically Secure Random Generation**:
 ```bash

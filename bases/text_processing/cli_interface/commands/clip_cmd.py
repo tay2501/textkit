@@ -18,6 +18,7 @@ console = Console()
 def _get_logger():
     """Get structlog logger (lazy loaded to optimize --help performance)."""
     import structlog
+
     return structlog.get_logger(__name__)
 
 
@@ -145,7 +146,9 @@ def register_clip_commands(
                 _get_logger().warning("clip_clear_verification_failed")
 
         except Exception as e:
-            _get_logger().error("clip_clear_error", error=str(e), error_type=type(e).__name__)
+            _get_logger().error(
+                "clip_clear_error", error=str(e), error_type=type(e).__name__
+            )
             handle_cli_error_func(e, "clip clear")
 
     @clip_app.command("get")
@@ -179,7 +182,9 @@ def register_clip_commands(
                 _get_logger().info("clip_get_empty")
 
         except Exception as e:
-            _get_logger().error("clip_get_error", error=str(e), error_type=type(e).__name__)
+            _get_logger().error(
+                "clip_get_error", error=str(e), error_type=type(e).__name__
+            )
             handle_cli_error_func(e, "clip get")
 
     @clip_app.command("set")
@@ -224,7 +229,9 @@ def register_clip_commands(
                 _get_logger().warning("clip_set_failed")
 
         except Exception as e:
-            _get_logger().error("clip_set_error", error=str(e), error_type=type(e).__name__)
+            _get_logger().error(
+                "clip_set_error", error=str(e), error_type=type(e).__name__
+            )
             handle_cli_error_func(e, "clip set")
 
     # ========================================================================
@@ -335,8 +342,110 @@ def register_clip_commands(
             _get_logger().info("clip_status_success", status=status)
 
         except Exception as e:
-            _get_logger().error("clip_status_error", error=str(e), error_type=type(e).__name__)
+            _get_logger().error(
+                "clip_status_error", error=str(e), error_type=type(e).__name__
+            )
             handle_cli_error_func(e, "clip status")
+
+    @clip_app.command("hold")
+    def hold_clipboard(
+        text: Annotated[
+            str | None,
+            typer.Argument(
+                help="Text to hold in clipboard (omit to hold current content)"
+            ),
+        ] = None,
+        duration: Annotated[
+            float,
+            typer.Option(
+                "-d",
+                "--duration",
+                help="Guard duration in seconds",
+                min=1.0,
+                max=3600.0,
+            ),
+        ] = 30.0,
+    ) -> None:
+        """Hold clipboard content and prevent external overwrites.
+
+        Monitors clipboard changes and immediately restores the guarded value.
+        Uses Win32 event-driven API on Windows for near-zero latency.
+        Press Ctrl+C to release early.
+
+        **Examples:**
+
+        ```bash
+        # Hold text for 30 seconds (default)
+        textkit clip hold "secret text"
+
+        # Hold for 60 seconds
+        textkit clip hold "my password" -d 60
+
+        # Hold current clipboard content
+        textkit clip hold -d 10
+
+        # Pipe input
+        echo "secret" | textkit clip hold -d 30
+        ```
+        """
+        try:
+            _get_logger().info(
+                "clip_hold_requested",
+                has_text=text is not None,
+                duration=duration,
+            )
+
+            # Determine target text
+            target: str
+            if text is not None:
+                target = text
+            elif not sys.stdin.isatty():
+                target = sys.stdin.read()
+            else:
+                # Hold current clipboard content
+                app_instance = get_app_func()
+                target = app_instance.io_manager.get_clipboard_text()
+                if not target:
+                    console.print(
+                        "[yellow]WARNING[/yellow] Clipboard is empty, nothing to hold",
+                        style="bold",
+                    )
+                    return
+
+            from components.io_handler.clipboard_guard import ClipboardGuard
+
+            guard = ClipboardGuard(target)
+
+            console.print(
+                f"[green]GUARD[/green] Holding clipboard ({len(target)} chars) "
+                f"for {duration:.0f}s [dim](Ctrl+C to release)[/dim]",
+                style="bold",
+            )
+
+            guard.start(duration=duration)
+
+            restore_msg = ""
+            if guard.restore_count > 0:
+                restore_msg = f" (restored {guard.restore_count} time(s))"
+
+            console.print(
+                f"[green]OK[/green] Clipboard guard released{restore_msg}",
+                style="bold",
+            )
+            _get_logger().info(
+                "clip_hold_success",
+                duration=duration,
+                restore_count=guard.restore_count,
+            )
+
+        except KeyboardInterrupt:
+            console.print("\n[yellow]RELEASED[/yellow] Clipboard guard cancelled")
+            _get_logger().info("clip_hold_cancelled")
+        except Exception as e:
+            _get_logger().error(
+                "clip_hold_error", error=str(e), error_type=type(e).__name__
+            )
+            handle_cli_error_func(e, "clip hold")
 
     # Add clip subcommand to main app with multiple aliases
     # - clip: Legacy/compatibility name (Microsoft clip.exe compatible)
