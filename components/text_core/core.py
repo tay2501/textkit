@@ -7,8 +7,6 @@ all text transformation operations in a modular, extensible way.
 
 from __future__ import annotations
 
-import structlog
-
 from components.common_utils import (
     handle_validation_error,
     safe_execute,
@@ -22,8 +20,18 @@ from .types import (
     TransformationRule,
 )
 
-# Initialize logger
-logger = structlog.get_logger(__name__)
+# Lazy logger for faster startup
+_logger = None
+
+
+def _get_logger():
+    """Get logger with lazy initialization."""
+    global _logger
+    if _logger is None:
+        import structlog
+
+        _logger = structlog.get_logger(__name__)
+    return _logger
 
 
 class TextTransformationEngine:
@@ -106,12 +114,12 @@ class TextTransformationEngine:
         validation_result, validation_error = handle_validation_error(
             lambda data: TextTransformationRequest(**data),
             {"text": text, "rule_string": rule_string},
-            logger,
+            _get_logger(),
             {"operation": "request_validation"},
         )
 
         if validation_error:
-            logger.error(
+            _get_logger().error(
                 "transformation_validation_failed",
                 text_length=len(text) if isinstance(text, str) else 0,
                 rule_string=rule_string,
@@ -155,7 +163,7 @@ class TextTransformationEngine:
 
                     applied_rules.append(rule_name)
 
-                    logger.debug(
+                    _get_logger().debug(
                         "rule_applied_successfully",
                         rule_name=rule_name,
                         args=args,
@@ -177,7 +185,7 @@ class TextTransformationEngine:
                         .add_context("args", args)
                     )
 
-                    logger.exception(
+                    _get_logger().exception(
                         "unexpected_rule_error",
                         rule_name=rule_name,
                         args=args,
@@ -188,7 +196,7 @@ class TextTransformationEngine:
             processing_time = (time.perf_counter() - start_time) * 1000
 
             # Log successful transformation with structured data
-            logger.info(
+            _get_logger().info(
                 "transformation_completed",
                 applied_rules=applied_rules,
                 processing_time_ms=processing_time,
@@ -202,7 +210,7 @@ class TextTransformationEngine:
         except (ValidationError, TransformationError):  # Python 3.14 PEP 758: brackets optional
             # Log and re-raise our custom exceptions
             processing_time = (time.perf_counter() - start_time) * 1000
-            logger.error(
+            _get_logger().error(
                 "transformation_failed",
                 applied_rules=applied_rules,
                 processing_time_ms=processing_time,
@@ -224,7 +232,7 @@ class TextTransformationEngine:
                 .add_context("processing_time_ms", processing_time)
             )
 
-            logger.exception(
+            _get_logger().exception(
                 "transformation_unexpected_error",
                 applied_rules=applied_rules,
                 processing_time_ms=processing_time,

@@ -24,9 +24,12 @@ from components.text_core.core import TextTransformationEngine
 logger = structlog.get_logger(__name__)
 
 
-@dataclass
+@dataclass(slots=True)
 class StreamingConfig:
-    """Configuration for streaming operations."""
+    """Configuration for streaming operations.
+
+    Uses slots=True for memory efficiency.
+    """
 
     chunk_size: int = 1024 * 64  # 64KB chunks
     max_buffer_size: int = 1024 * 1024 * 10  # 10MB buffer limit

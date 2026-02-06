@@ -11,13 +11,11 @@ from collections.abc import Callable
 from contextlib import contextmanager, suppress
 from typing import Any, TypeVar
 
-import structlog
-
 T = TypeVar("T")
 
 
 def get_structured_logger(name: str, context: dict[str, Any] | None = None):
-    """Get a structured logger instance.
+    """Get a structured logger instance with lazy initialization.
 
     Args:
         name: Logger name (usually module name)
@@ -26,6 +24,8 @@ def get_structured_logger(name: str, context: dict[str, Any] | None = None):
     Returns:
         Configured logger instance
     """
+    import structlog
+
     logger = structlog.get_logger(name)
     if context:
         logger = logger.bind(**context)

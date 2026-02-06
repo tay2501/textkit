@@ -12,12 +12,13 @@ from dataclasses import dataclass
 from typing import Any
 
 
-@dataclass
+@dataclass(slots=True)
 class CommandContext:
     """Context information for command execution.
 
     This dataclass encapsulates all context information needed
     for command execution, promoting loose coupling.
+    Uses slots=True for memory efficiency.
     """
 
     command_name: str

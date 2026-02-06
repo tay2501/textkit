@@ -11,12 +11,22 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Annotated, Any
 
-import structlog
 from pydantic import Field, computed_field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# Initialize logger
-logger = structlog.get_logger(__name__)
+# Lazy logger - avoid importing structlog at module level for faster startup
+_logger = None
+
+
+def _get_logger():
+    """Get logger with lazy initialization."""
+    global _logger
+    if _logger is None:
+        import structlog
+
+        ensure_logging_configured()
+        _logger = structlog.get_logger(__name__)
+    return _logger
 
 
 def configure_logging() -> None:
@@ -59,6 +69,8 @@ def configure_logging() -> None:
     import shutil
     import sys
     from pathlib import Path
+
+    import structlog
 
     # Avoid double configuration
     if structlog.is_configured():
@@ -241,8 +253,20 @@ def configure_logging() -> None:
     )
 
 
-# Auto-configure logging when module is imported
-configure_logging()
+# Lazy logging configuration flag
+_logging_configured: bool = False
+
+
+def ensure_logging_configured() -> None:
+    """Ensure logging is configured (lazy initialization).
+
+    Call this before any logging operation. Safe to call multiple times.
+    This replaces the previous auto-configure behavior for better startup performance.
+    """
+    global _logging_configured
+    if not _logging_configured:
+        configure_logging()
+        _logging_configured = True
 
 
 class LogLevel(StrEnum):
@@ -380,7 +404,7 @@ class HotkeyConfig(BaseSettings):
         # Check if at least one modifier is present
         modifiers = set(parts[:-1])
         if not modifiers.intersection(valid_keys):
-            logger.warning(
+            _get_logger().warning(
                 "hotkey_validation_warning",
                 hotkey=v,
                 message="No recognized modifiers found",
@@ -573,7 +597,7 @@ class ApplicationSettings(BaseSettings):
         estimated_memory_mb = (v * 4) / (1024 * 1024)  # 4x overhead estimate
 
         if estimated_memory_mb > 1000:  # 1GB warning
-            logger.warning(
+            _get_logger().warning(
                 "high_memory_configuration",
                 max_text_length=v,
                 estimated_memory_mb=estimated_memory_mb,
@@ -592,14 +616,14 @@ class ApplicationSettings(BaseSettings):
         try:
             Path(v).mkdir(parents=True, exist_ok=True)
         except OSError as e:
-            logger.error("directory_creation_failed", path=v, error=str(e))
+            _get_logger().error("directory_creation_failed", path=v, error=str(e))
             # Don't raise error - allow configuration to proceed
 
         return v
 
     def model_post_init(self, _: Any) -> None:
         """Post-initialization hook."""
-        logger.info(
+        _get_logger().info(
             "configuration_initialized",
             app_name=self.app_name,
             app_version=self.app_version,
@@ -629,7 +653,7 @@ def get_settings(reload: bool = False) -> ApplicationSettings:
 
     if _settings is None or reload:
         _settings = ApplicationSettings()
-        logger.info("settings_loaded", reload=reload)
+        _get_logger().info("settings_loaded", reload=reload)
 
     return _settings
 
