@@ -25,7 +25,11 @@ def create_container() -> Container:
     Returns:
         Container: Configured Lagom container with all dependencies
     """
-    container = Container(log_undefined_deps=True)
+    import os
+
+    # Only log DI resolution in debug mode (Unix Rule of Silence)
+    debug_deps = int(os.environ.get("TEXTKIT_VERBOSE", "0")) >= 2
+    container = Container(log_undefined_deps=debug_deps)
 
     # Configure abstract interfaces to concrete implementations
     # These imports are done here to avoid circular dependencies

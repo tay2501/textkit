@@ -81,9 +81,11 @@ def configure_logging() -> None:
     log_dir.mkdir(exist_ok=True)
     log_file = log_dir / "textkit.log"
 
-    # Environment variables (2025 standards)
+    # Environment variables
+    # Default WARNING follows Unix Rule of Silence: no output unless error.
+    # Use TEXTKIT_LOG_LEVEL=INFO or -v flag for operational messages.
     quiet_mode = os.environ.get("TEXTKIT_QUIET", "0") == "1"
-    log_level = os.environ.get("TEXTKIT_LOG_LEVEL", "INFO").upper()
+    log_level = os.environ.get("TEXTKIT_LOG_LEVEL", "WARNING").upper()
     log_format = os.environ.get("TEXTKIT_LOG_FORMAT", "auto").lower()
     async_logging = os.environ.get("TEXTKIT_LOG_ASYNC", "0") == "1"
 
@@ -198,7 +200,13 @@ def configure_logging() -> None:
                     "handlers": ["file"] if quiet_mode else ["console", "file"],
                     "level": log_level,
                     "propagate": True,
-                }
+                },
+                # Suppress lagom DI noise (Undefined dependency warnings)
+                "lagom": {
+                    "handlers": ["file"],
+                    "level": "ERROR",
+                    "propagate": False,
+                },
             },
         }
     )
@@ -488,7 +496,7 @@ class ApplicationSettings(BaseSettings):
     # Core Settings
     debug_mode: bool = Field(default=False, description="Enable debug mode")
 
-    log_level: LogLevel = Field(default=LogLevel.INFO, description="Logging level")
+    log_level: LogLevel = Field(default=LogLevel.WARNING, description="Logging level")
 
     # Text Processing Configuration
     max_text_length: Annotated[

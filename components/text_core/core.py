@@ -28,6 +28,10 @@ def _get_logger():
     """Get logger with lazy initialization."""
     global _logger
     if _logger is None:
+        from textkit.config_manager import ensure_logging_configured
+
+        ensure_logging_configured()
+
         import structlog
 
         _logger = structlog.get_logger(__name__)

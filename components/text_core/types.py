@@ -188,14 +188,13 @@ class TransformationRule(BaseModel):
 
         # Allow empty list when requires_args is True but don't require it
         if requires_args and v is not None and len(v) == 0:
-            # Empty list is allowed, just warn
-            logger.warning(
+            logger.debug(
                 "default_args is empty but requires_args is True",
                 rule_name=info.data.get("name", "unknown"),
             )
 
         if not requires_args and v:
-            logger.warning(
+            logger.debug(
                 "default_args provided but requires_args is False",
                 rule_name=info.data.get("name", "unknown"),
             )

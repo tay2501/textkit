@@ -68,25 +68,36 @@ class BaseCommandHandler(ABC):
     def _output_result(self, result: str, should_output: bool = True) -> None:
         """Output result using application's I/O manager.
 
+        Follows Unix Rule of Silence: messages only when verbose.
+
         Args:
             result: Result text to output
             should_output: Whether to actually output the result
         """
-        from rich.console import Console
+        import os
 
-        console = Console()
+        verbose_level = int(os.environ.get("TEXTKIT_VERBOSE", "0"))
 
         if should_output:
             try:
                 self.app.io_manager.set_output_text(result)
+            except Exception:
+                if verbose_level >= 1:
+                    from rich.console import Console
+
+                    console = Console(stderr=True)
+                    console.print(
+                        "[yellow]Warning: clipboard unavailable[/yellow]"
+                    )
+
+        # Only show messages when verbose
+        if verbose_level >= 1:
+            from rich.console import Console
+
+            console = Console(stderr=True)
+            if should_output:
                 console.print(
                     "[green]Success: Result copied to clipboard and printed[/green]"
                 )
-            except Exception:
-                console.print(
-                    "[yellow]Warning: Result printed (clipboard unavailable)[/yellow]"
-                )
-
-        # Show preview
-        preview = result[:100] + "..." if len(result) > 100 else result
-        console.print(f"[cyan]Result:[/cyan] '{preview}'")
+            preview = result[:100] + "..." if len(result) > 100 else result
+            console.print(f"[cyan]Result:[/cyan] '{preview}'")

@@ -131,12 +131,17 @@ class OutputManager:
     ) -> None:
         """Show completion message with output summary and preview.
 
+        Follows Unix Rule of Silence: only show messages when verbose.
+        Default: no messages (data only on stdout).
+        -v: show success summary and result preview on stderr.
+
         Args:
             outputs_performed: List of successful output destinations
             result: The processed result for preview
         """
-        # Skip messages in quiet mode (for pipe-friendly operation)
-        if os.environ.get("TEXTKIT_QUIET", "0") == "1":
+        # Only show messages when verbose is explicitly requested
+        verbose_level = int(os.environ.get("TEXTKIT_VERBOSE", "0"))
+        if verbose_level < 1:
             return
 
         # Show success message
@@ -148,7 +153,7 @@ class OutputManager:
                 "[cyan]Result processed (no output destinations specified)[/cyan]"
             )
 
-        # Show preview regardless of output destinations
+        # Show preview
         preview = result[:100] + "..." if len(result) > 100 else result
         console.print(f"[cyan]Result:[/cyan] '{preview}'")
 
@@ -187,14 +192,19 @@ def output_result_simple(
     if should_output:
         try:
             app_instance.io_manager.set_output_text(result)
+        except Exception:
+            verbose_level = int(os.environ.get("TEXTKIT_VERBOSE", "0"))
+            if verbose_level >= 1:
+                console.print(
+                    "[yellow]Warning: clipboard unavailable[/yellow]"
+                )
+
+    # Only show preview when verbose
+    verbose_level = int(os.environ.get("TEXTKIT_VERBOSE", "0"))
+    if verbose_level >= 1:
+        if should_output:
             console.print(
                 "[green]Success: Result copied to clipboard and printed[/green]"
             )
-        except Exception:
-            console.print(
-                "[yellow]Warning: Result printed (clipboard unavailable)[/yellow]"
-            )
-
-    # Show preview
-    preview = result[:100] + "..." if len(result) > 100 else result
-    console.print(f"[cyan]Result:[/cyan] '{preview}'")
+        preview = result[:100] + "..." if len(result) > 100 else result
+        console.print(f"[cyan]Result:[/cyan] '{preview}'")

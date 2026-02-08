@@ -31,7 +31,7 @@ def test_application_settings_defaults():
     assert settings.app_name == "TextKit"
     assert settings.app_version == "0.1.0"
     assert settings.debug_mode is False
-    assert settings.log_level == LogLevel.INFO
+    assert settings.log_level == LogLevel.WARNING
     assert settings.max_text_length == 10_000_000
     assert settings.auto_clipboard_monitoring is False
 

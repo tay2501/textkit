@@ -130,6 +130,12 @@ def main(
     elif verbose >= 2:
         os.environ["TEXTKIT_LOG_LEVEL"] = "DEBUG"
 
+    # Configure structlog BEFORE any component imports (prevents stdout leaks).
+    # structlog defaults to PrintLogger (stdout) when unconfigured.
+    from components.config_manager import ensure_logging_configured
+
+    ensure_logging_configured()
+
     if rules is None:
         _print_error("Missing required argument: RULES")
         return 1

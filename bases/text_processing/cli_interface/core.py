@@ -198,12 +198,26 @@ Documentation: Use --help on any command for detailed information and examples
                 "-q",
                 help="Suppress log messages (only output results, ideal for piping)",
             ),
+            verbose: int = typer.Option(
+                0,
+                "--verbose",
+                "-v",
+                count=True,
+                help="Increase verbosity (-v info, -vv debug)",
+            ),
         ) -> None:
             """Global options for all commands."""
             import os
 
             if quiet:
                 os.environ["TEXTKIT_QUIET"] = "1"
+
+            if verbose >= 2:
+                os.environ["TEXTKIT_LOG_LEVEL"] = "DEBUG"
+                os.environ["TEXTKIT_VERBOSE"] = "2"
+            elif verbose == 1:
+                os.environ["TEXTKIT_LOG_LEVEL"] = "INFO"
+                os.environ["TEXTKIT_VERBOSE"] = "1"
 
     return _typer_app_instance
 
@@ -429,20 +443,32 @@ def run_cli() -> None:
     - Logger initialized only on first use (lazy singleton pattern)
     """
     try:
-        # Check for --quiet flag early and set environment variable
+        # Check for --quiet and --verbose flags early
         import os
         import sys
 
         if "--quiet" in sys.argv or "-q" in sys.argv:
             os.environ["TEXTKIT_QUIET"] = "1"
 
-        # Performance optimization: Skip logging for --help commands
-        # Saves ~162ms of structlog import time (30% of --help execution)
-        is_help_command = "--help" in sys.argv or len(sys.argv) == 1
+        # Early verbose detection (before Typer parses args)
+        verbose_count = sys.argv.count("-v") + sys.argv.count("--verbose")
+        if verbose_count >= 2:
+            os.environ.setdefault("TEXTKIT_LOG_LEVEL", "DEBUG")
+            os.environ.setdefault("TEXTKIT_VERBOSE", "2")
+        elif verbose_count == 1:
+            os.environ.setdefault("TEXTKIT_LOG_LEVEL", "INFO")
+            os.environ.setdefault("TEXTKIT_VERBOSE", "1")
 
+        # Configure logging BEFORE any component imports (prevents stdout leaks)
+        # structlog defaults to PrintLogger (stdout) when unconfigured.
+        # Must configure AFTER env vars are set so log level is correct.
+        is_help_command = "--help" in sys.argv or len(sys.argv) == 1
         if not is_help_command:
-            # Initialize structured logging only for actual operations
-            # Uses lazy singleton pattern to defer import until first use
+            from textkit.config_manager import ensure_logging_configured
+
+            ensure_logging_configured()
+
+        if not is_help_command and verbose_count >= 1:
             logger = _get_logger()
             logger.info("application_starting", version="0.1.0")
 
@@ -453,7 +479,7 @@ def run_cli() -> None:
         app = _get_typer_app()
         app()
 
-        if not is_help_command:
+        if not is_help_command and verbose_count >= 1:
             logger = _get_logger()
             logger.info("application_completed")
 
