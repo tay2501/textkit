@@ -41,9 +41,12 @@ echo "HELLO" | tt //l -n       # Output: hello
 - `//to-utf8` - convert to UTF-8
 
 **Options**:
-- `-t, --text TEXT` - Direct text input
+- `-i, --input TEXT` - Direct text input (recommended)
+- `-t, --text TEXT` - Direct text input (deprecated, use `-i`)
 - `-n, --no-clipboard` - Disable clipboard operations
-- `-v, --version` - Show version
+- `-q, --quiet` - Suppress informational messages
+- `-v, --verbose` - Increase verbosity (-v info, -vv debug)
+- `-V, --version` - Show version
 
 ---
 
@@ -162,8 +165,8 @@ Reduce typing by 60-75% with shell aliases. This follows the same pattern as Doc
 ### Bash / Zsh (~/.bashrc or ~/.zshrc)
 
 ```bash
-# Basic aliases
-alias tt='uv run python /path/to/textkit/bin/tt.py'
+# Basic aliases (using fast launcher for best performance)
+alias tt='UV_NO_SYNC=1 uv run python /path/to/textkit/bin/tt.py'
 alias encrypt='uv run python /path/to/textkit/bin/encrypt.py'
 alias decrypt='uv run python /path/to/textkit/bin/decrypt.py'
 
@@ -180,8 +183,8 @@ alias ttlc='tt //t//l -c -C' # Trim + lowercase + clipboard
 ### PowerShell ($PROFILE)
 
 ```powershell
-# Basic functions
-function tt { uv run python H:\path\to\textkit\bin\tt.py $args }
+# Basic functions (using UV_NO_SYNC for faster startup)
+function tt { $env:UV_NO_SYNC=1; uv run python H:\path\to\textkit\bin\tt.py $args }
 function encrypt { uv run python H:\path\to\textkit\bin\encrypt.py $args }
 function decrypt { uv run python H:\path\to\textkit\bin\decrypt.py $args }
 
@@ -255,11 +258,43 @@ tt '/l' -t "HELLO"    # Works correctly
 
 ---
 
+## Performance: Fast Launchers
+
+For faster startup on low-spec machines, use the pre-built launcher scripts:
+
+### `tt.cmd` (Windows) / `tt.sh` (Unix)
+
+These launchers set `UV_NO_SYNC=1` to skip the `uv sync` bytecode recompilation (~400ms savings per invocation).
+
+```bash
+# Windows (add bin/ to PATH or copy tt.cmd to a PATH location)
+tt /u -i "hello"
+
+# Unix/macOS
+./bin/tt.sh /u -i "hello"
+```
+
+**Performance Architecture:**
+
+`tt.py` implements a three-layer startup optimization:
+
+1. **UV_NO_SYNC** (`tt.cmd`/`tt.sh`): Skips `uv sync` bytecode recompilation (~400ms)
+2. **Typer Bypass** (`_fast_parse_args()`): Parses common args without importing Typer (~152ms)
+3. **Deferred Logging**: Logging is initialized only when text transformation runs, not for `--version`/`--help` (~303ms)
+
+| Path | Savings |
+|------|---------|
+| `tt -V` (version) | ~855ms (all three layers) |
+| `tt /u -i "text"` (transform) | ~552ms (UV_NO_SYNC + Typer bypass) |
+| `tt --help` | ~400ms (UV_NO_SYNC only, Typer required) |
+
 ## Architecture
 
 ```
 bin/
-├── tt.py          # Text transformer
+├── tt.py          # Text transformer (main script)
+├── tt.cmd         # Windows fast launcher (UV_NO_SYNC=1)
+├── tt.sh          # Unix fast launcher (UV_NO_SYNC=1)
 ├── encrypt.py     # Encryption tool
 ├── decrypt.py     # Decryption tool
 └── clip.py        # Clipboard manager

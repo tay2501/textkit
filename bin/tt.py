@@ -17,6 +17,7 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 # Add parent directory to path (must be before local imports)
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -130,18 +131,17 @@ def main(
     elif verbose >= 2:
         os.environ["TEXTKIT_LOG_LEVEL"] = "DEBUG"
 
-    # Configure structlog BEFORE any component imports (prevents stdout leaks).
-    # structlog defaults to PrintLogger (stdout) when unconfigured.
-    from components.config_manager import ensure_logging_configured
-
-    ensure_logging_configured()
-
     if rules is None:
         _print_error("Missing required argument: RULES")
         return 1
 
     try:
-        # Lazy import heavy modules AFTER setting environment variables
+        # Configure structlog BEFORE component imports to prevent
+        # unconfigured PrintLogger leaking debug messages to stderr.
+        from components.config_manager import ensure_logging_configured
+
+        ensure_logging_configured()
+
         from components.text_core import TextTransformationEngine
 
         engine = TextTransformationEngine()
@@ -153,6 +153,74 @@ def main(
     except Exception as e:
         _print_error(str(e))
         return 1
+
+
+def _fast_parse_args(argv: list[str]) -> dict[str, Any] | None:
+    """Parse simple args without Typer for faster startup.
+
+    Returns a dict of keyword arguments for main(), or None to fall back to Typer
+    (for --help, empty args, or unrecognized flags).
+    """
+    args = argv[1:]  # skip script name
+
+    # Fallback cases: no args or help requested
+    if not args or "--help" in args or "-h" in args:
+        return None
+
+    result: dict[str, Any] = {
+        "rules": None,
+        "text": None,
+        "input_text": None,
+        "no_clipboard": False,
+        "quiet": False,
+        "verbose": 0,
+        "version": False,
+    }
+
+    i = 0
+    while i < len(args):
+        arg = args[i]
+
+        if arg in ("-V", "--version"):
+            result["version"] = True
+        elif arg in ("-n", "--no-clipboard"):
+            result["no_clipboard"] = True
+        elif arg in ("-q", "--quiet"):
+            result["quiet"] = True
+        elif arg in ("-v", "--verbose"):
+            result["verbose"] += 1
+        elif arg in ("-i", "--input"):
+            i += 1
+            if i >= len(args):
+                return None  # missing value
+            result["input_text"] = args[i]
+        elif arg in ("-t", "--text"):
+            i += 1
+            if i >= len(args):
+                return None  # missing value
+            result["text"] = args[i]
+        elif arg.startswith("-"):
+            # Handle combined short flags like -vv, -nq, -vvq
+            if len(arg) > 2 and not arg.startswith("--"):
+                for ch in arg[1:]:
+                    if ch == "v":
+                        result["verbose"] += 1
+                    elif ch == "n":
+                        result["no_clipboard"] = True
+                    elif ch == "q":
+                        result["quiet"] = True
+                    else:
+                        return None  # unknown short flag
+            else:
+                return None  # unknown flag -> Typer fallback
+        elif result["rules"] is None:
+            result["rules"] = arg
+        else:
+            return None  # unexpected positional arg
+
+        i += 1
+
+    return result
 
 
 def cli() -> None:
@@ -239,4 +307,8 @@ def cli() -> None:
 
 
 if __name__ == "__main__":
-    cli()
+    parsed = _fast_parse_args(sys.argv)
+    if parsed is not None:
+        sys.exit(main(**parsed))
+    else:
+        cli()

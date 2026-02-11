@@ -812,10 +812,21 @@ tail -f logs/textkit.log | nc graylog.example.com 12201
 
 Simple Unix-philosophy tools in `bin/`:
 - **`tt.py`**: Text transformer
+- **`tt.cmd`** / **`tt.sh`**: Fast launchers for `tt.py` (skip `uv sync`, ~400ms faster)
 - **`encrypt.py`** / **`decrypt.py`**: Encryption tools
 - **`clip.py`**: Clipboard manager
 
-See [bin/README.md](bin/README.md) for details.
+**Fast startup**: For best performance on low-spec machines, use the launcher scripts instead of `uv run python bin/tt.py`:
+
+```bash
+# Windows (add bin/ to PATH)
+tt /u -i "hello"
+
+# Unix/macOS
+./bin/tt.sh /u -i "hello"
+```
+
+See [bin/README.md](bin/README.md) for details and performance benchmarks.
 
 ## 🛠️ Development
 

@@ -420,6 +420,23 @@ def parse_rule_string(self, rule_string: str) -> list[tuple[str, list[str]]]:
     return self._parser.parse(rule_string)
 ```
 
+### 3. CLI Startup Fast Path (bin/tt.py)
+
+`bin/tt.py` implements a multi-layer startup optimization to minimize latency on low-spec machines:
+
+```
+sys.argv ──► _fast_parse_args() ──► main() ──► [deferred logging] ──► TextTransformationEngine
+                  │                                                          │
+                  │ (fallback: --help, no args, unknown flags)               │
+                  └──► cli() ──► Typer ──► main() ──────────────────────────►│
+```
+
+**Fast Path**: `_fast_parse_args()` parses `sys.argv` directly for common flags, bypassing the Typer import chain (~152ms). Unknown flags and `--help` fall through to Typer.
+
+**Deferred Logging**: `ensure_logging_configured()` is called only inside the transformation `try` block, so `--version` and `--help` paths never incur the ~303ms logging setup cost.
+
+**UV_NO_SYNC Launchers**: `bin/tt.cmd` (Windows) and `bin/tt.sh` (Unix) set `UV_NO_SYNC=1` to skip `uv sync` bytecode recompilation (~400ms).
+
 ## Security Considerations
 
 ### 1. Input Validation

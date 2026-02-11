@@ -356,6 +356,45 @@ def process_lines(file_path: str):
         return [process(line) for line in f.readlines()]
 ```
 
+### 4. CLI Startup Performance (bin/tt.py)
+
+Low-spec machines can experience slow CLI startup. Three optimization layers are applied:
+
+**Layer 1: UV_NO_SYNC (`tt.cmd`/`tt.sh`)**
+- `uv run` recompiles ~3,335 bytecode files on every invocation by default
+- Setting `UV_NO_SYNC=1` skips this (~400ms savings)
+- Use the `bin/tt.cmd` (Windows) or `bin/tt.sh` (Unix) fast launchers
+
+**Layer 2: Typer Bypass (`_fast_parse_args()`)**
+- Typer import chain (typer -> click -> rich -> markdown_it) costs ~152ms
+- `_fast_parse_args()` handles common args (rules, `-i`, `-n`, `-q`, `-v`, `-V`) without Typer
+- Falls back to Typer for `--help`, empty args, or unknown flags
+
+**Layer 3: Deferred Logging**
+- `ensure_logging_configured()` is called inside `main()`'s `try` block, just before component imports
+- `--version` and `--help` paths skip logging entirely (~303ms savings)
+- Important: logging **must** be configured before `TextTransformationEngine` import to prevent unconfigured structlog PrintLogger from leaking debug messages
+
+```python
+# ✅ Good: Deferred logging (only when components are needed)
+def main(...):
+    if version:
+        _print_version()
+        return 0  # No logging import needed
+    ...
+    try:
+        from components.config_manager import ensure_logging_configured
+        ensure_logging_configured()
+        from components.text_core import TextTransformationEngine
+        ...
+
+# ❌ Bad: Eager logging (always imported)
+def main(...):
+    from components.config_manager import ensure_logging_configured
+    ensure_logging_configured()  # 303ms even for --version
+    ...
+```
+
 ## Security
 
 ### 1. Input Validation

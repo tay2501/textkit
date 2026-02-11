@@ -293,6 +293,26 @@
   - development/profile_baseline.stats (cProfile結果)
   - development/profiling_analysis.txt (ボトルネック分析)
 
+### Phase 2.5: CLI Startup Optimization - ✅ Completed
+
+**tt.py Startup Performance Optimization**
+- Status: ✅ Completed
+- Target: ~6s → ~1-2s on low-spec machines
+- Implementation:
+  1. **Deferred Logging**: Moved `ensure_logging_configured()` inside `main()`'s `try` block.
+     `--version`/`--help` paths skip the ~303ms logging setup entirely.
+  2. **Typer Bypass**: Added `_fast_parse_args()` that parses common args without importing Typer (~152ms savings).
+     Falls back to Typer for `--help`, empty args, or unknown flags.
+  3. **UV_NO_SYNC Launchers**: Created `bin/tt.cmd` (Windows) and `bin/tt.sh` (Unix) that set `UV_NO_SYNC=1` (~400ms savings).
+- Performance Results:
+  - `tt -V` (version): 258ms → 75ms (**71% reduction**)
+  - Normal transformation: ~552ms savings (UV_NO_SYNC + Typer bypass)
+- Files Modified:
+  - `bin/tt.py`: Deferred logging, `_fast_parse_args()`, modified `__main__`
+  - `bin/tt.cmd`: New (Windows fast launcher)
+  - `bin/tt.sh`: New (Unix fast launcher)
+- Completion Date: 2026-02-11
+
 ### Phase 3: Strategic Improvements（戦略的改善、今後1-3ヶ月）
 8. **StringZilla導入検討**
    - 高速文字列処理ライブラリ（SIMD/SWAR）
