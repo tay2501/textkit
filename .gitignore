@@ -380,3 +380,10 @@ test-output/
 .work/
 # Pytest benchmark cache
 .benchmarks/
+
+# Pants build system (removed)
+3rdparty/
+
+# Development artifacts
+emergency_output.txt
+ruff_unicode_errors.json

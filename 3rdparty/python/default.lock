@@ -1,6 +1,0 @@
-# Generated lockfile placeholder
-# Run: pants generate-lockfiles --resolve=python-default
-# This will generate a comprehensive lockfile from requirements.txt
-
-# For now, this is a placeholder. Pants will generate the actual
-# lockfile when the command is executed.
