@@ -8,13 +8,13 @@ with enhanced error handling, performance monitoring, and recovery capabilities.
 import time
 from typing import Any
 
-from components.common_utils import (
+from textkit.common_utils import (
     get_structured_logger,
     with_error_context,
 )
-from components.exceptions import TransformationError, ValidationError
-from components.factories import TransformationFactory
-from components.parsers import ParsedRule
+from textkit.exceptions import TransformationError, ValidationError
+from textkit.factories import TransformationFactory
+from textkit.parsers import ParsedRule
 
 
 class TransformationOrchestrator:

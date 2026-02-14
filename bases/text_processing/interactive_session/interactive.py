@@ -10,9 +10,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import ClassVar
 
-from components.io.clipboard import ClipboardMonitor
-
-from components.exceptions import ClipboardError, ValidationError
+from textkit.exceptions import ClipboardError, ValidationError
+from textkit.io.clipboard import ClipboardMonitor
 
 from .types import (
     CommandResult,

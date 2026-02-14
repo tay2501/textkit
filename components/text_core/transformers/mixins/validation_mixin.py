@@ -7,9 +7,9 @@ into transformer classes for consistent input validation.
 
 import contextlib
 
-from components.common_utils import validate_text_input
-from components.common_utils.validation_helpers import is_list, is_string
-from components.exceptions import ParameterValidationError, ValidationError
+from textkit.common_utils import validate_text_input
+from textkit.common_utils.validation_helpers import is_list, is_string
+from textkit.exceptions import ParameterValidationError, ValidationError
 
 
 class ValidationMixin:

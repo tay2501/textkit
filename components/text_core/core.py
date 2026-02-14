@@ -7,11 +7,11 @@ all text transformation operations in a modular, extensible way.
 
 from __future__ import annotations
 
-from components.common_utils import (
+from textkit.common_utils import (
     handle_validation_error,
     safe_execute,
 )
-from components.rule_parser.types import RuleParserProtocol
+from textkit.rule_parser.types import RuleParserProtocol
 
 from .exceptions import TransformationError, ValidationError
 from .types import (
@@ -84,8 +84,7 @@ class TextTransformationEngine:
 
         # Use factory to create and manage transformers
         self._transformation_factory = TransformationFactory()
-        self._available_rules: dict[str, TransformationRule] = {}
-        self._build_available_rules()
+        self._available_rules: dict[str, TransformationRule] | None = None
 
     def set_crypto_manager(self, crypto_manager: CryptoManagerProtocol) -> None:
         """Set the crypto manager instance."""
@@ -298,7 +297,9 @@ class TextTransformationEngine:
         return self._rule_parser.parse(rule_string)
 
     def get_available_rules(self) -> dict[str, TransformationRule]:
-        """Get dictionary of all available transformation rules."""
+        """Get dictionary of all available transformation rules (lazy-built)."""
+        if self._available_rules is None:
+            self._build_available_rules()
         return self._available_rules.copy()
 
     def _build_available_rules(self) -> None:
@@ -322,7 +323,7 @@ class TextTransformationEngine:
             TypeError: If transformer_class is invalid
         """
         self._transformation_factory.register_transformer(name, transformer_class)
-        self._build_available_rules()  # Rebuild rules after adding transformer
+        self._available_rules = None  # Invalidate cache to rebuild on next access
 
     def get_transformer_factory(self):
         """Get the transformation factory instance.

@@ -24,8 +24,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import typer
 from rich.console import Console
-
-from components.io_handler import InputOutputManager
+from textkit.io_handler import InputOutputManager
 
 app = typer.Typer(
     name="clip",

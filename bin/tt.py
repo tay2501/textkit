@@ -63,7 +63,7 @@ def get_input_text(text: str | None, input_text: str | None = None) -> str:
         return sys.stdin.read().rstrip("\n")
 
     # Lazy import clipboard handler
-    from components.io_handler import InputOutputManager
+    from textkit.io_handler import InputOutputManager
 
     io_manager = InputOutputManager()
 
@@ -94,7 +94,7 @@ def output_text(
 
     # Clipboard copy: only in TTY mode and not disabled
     if not no_clipboard and sys.stdout.isatty():
-        from components.io_handler import InputOutputManager
+        from textkit.io_handler import InputOutputManager
 
         io_manager = InputOutputManager()
         with contextlib.suppress(Exception):
@@ -138,11 +138,11 @@ def main(
     try:
         # Configure structlog BEFORE component imports to prevent
         # unconfigured PrintLogger leaking debug messages to stderr.
-        from components.config_manager import ensure_logging_configured
+        from textkit.config_manager import ensure_logging_configured
 
         ensure_logging_configured()
 
-        from components.text_core import TextTransformationEngine
+        from textkit.text_core import TextTransformationEngine
 
         engine = TextTransformationEngine()
         resolved_input = get_input_text(text, input_text)

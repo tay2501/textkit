@@ -10,7 +10,7 @@ import time
 from collections.abc import Callable
 from typing import Any, TypeVar
 
-from components.common_utils import create_log_context, get_structured_logger
+from textkit.common_utils import create_log_context, get_structured_logger
 
 T = TypeVar("T")
 

@@ -18,8 +18,7 @@ from threading import Lock
 from typing import TYPE_CHECKING, Any, Final, ReadOnly, TypedDict, TypeIs
 
 import structlog
-
-from components.exceptions import (  # type: ignore[import-not-found]
+from textkit.exceptions import (  # type: ignore[import-not-found]
     ConfigurationError,
     CryptographyError,
 )
@@ -685,7 +684,7 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
         """
         try:
             # Phase 2: Get passphrase from secure storage
-            from components.crypto_engine.passphrase_manager import (
+            from textkit.crypto_engine.passphrase_manager import (
                 SecurePassphraseManager,
             )
 
@@ -763,7 +762,7 @@ class CryptographyManager(ConfigurableComponent[dict[str, Any]]):
 
         try:
             # Phase 2: Get passphrase from secure storage
-            from components.crypto_engine.passphrase_manager import (
+            from textkit.crypto_engine.passphrase_manager import (
                 SecurePassphraseManager,
             )
 

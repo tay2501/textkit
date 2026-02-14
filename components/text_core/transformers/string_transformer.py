@@ -2,13 +2,22 @@
 
 from pathlib import Path
 
-import structlog
-
-from components.text_core.types import TransformationRule, TransformationRuleType
+from textkit.text_core.types import TransformationRule, TransformationRuleType
 
 from .base_transformer import BaseTransformer
 
-logger = structlog.get_logger(__name__)
+# Lazy logger for faster startup
+_logger = None
+
+
+def _get_logger():
+    """Get logger with lazy initialization."""
+    global _logger
+    if _logger is None:
+        import structlog
+
+        _logger = structlog.get_logger(__name__)
+    return _logger
 
 
 class StringTransformer(BaseTransformer):
@@ -165,7 +174,7 @@ class StringTransformer(BaseTransformer):
 
                 # Validate TSV format
                 if len(row) < 2:
-                    logger.warning(
+                    _get_logger().warning(
                         "insufficient_tsv_columns",
                         line=line_num,
                         file=tsv_file,
@@ -203,7 +212,7 @@ class StringTransformer(BaseTransformer):
                 replacements = self._load_tsv_with_csv(file_path, tsv_file)
 
             if not replacements:
-                logger.warning("no_valid_replacements", file=tsv_file)
+                _get_logger().warning("no_valid_replacements", file=tsv_file)
 
             return replacements
 
@@ -274,7 +283,7 @@ class StringTransformer(BaseTransformer):
             import re
 
             # Performance optimization: Use cached compiled patterns
-            from components.common_utils.regex_cache import get_escaped_pattern
+            from textkit.common_utils.regex_cache import get_escaped_pattern
 
             for old, new in replacements:
                 # Create case-insensitive pattern (cached)
@@ -313,7 +322,7 @@ class StringTransformer(BaseTransformer):
         combined_pattern = "|".join(grouped_patterns)
 
         # Compile with appropriate flags (performance: cached)
-        from components.common_utils.regex_cache import get_compiled_pattern
+        from textkit.common_utils.regex_cache import get_compiled_pattern
 
         flags = 0 if case_sensitive else re.IGNORECASE
         regex = get_compiled_pattern(combined_pattern, flags)
@@ -419,19 +428,19 @@ class StringTransformer(BaseTransformer):
 
         except ImportError as e:
             # StringZilla not available - fallback to standard implementation
-            logger.debug(
+            _get_logger().debug(
                 "stringzilla_unavailable", fallback=True, error=str(e)
             )
             return text.replace(old_text, new_text)
         except AttributeError as e:
             # StringZilla API compatibility issue - fallback to standard implementation
-            logger.warning(
+            _get_logger().warning(
                 "stringzilla_api_issue", fallback=True, error=str(e)
             )
             return text.replace(old_text, new_text)
         except Exception as e:
             # Unexpected error in StringZilla - fallback with logging
-            logger.error(
+            _get_logger().error(
                 "stringzilla_unexpected_error", error=str(e), exc_info=True
             )
             return text.replace(old_text, new_text)

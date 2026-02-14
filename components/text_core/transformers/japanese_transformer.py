@@ -4,7 +4,7 @@ This module provides transformations for converting between full-width and
 half-width Japanese characters using the jaconv library.
 """
 
-from components.text_core.types import TransformationRule, TransformationRuleType
+from textkit.text_core.types import TransformationRule, TransformationRuleType
 
 from .base_transformer import BaseTransformer
 

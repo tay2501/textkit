@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import Protocol
 
-from components.text_core.types import TransformationRule
+from textkit.text_core.types import TransformationRule
 
 
 class TransformerProtocol(Protocol):

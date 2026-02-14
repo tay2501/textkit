@@ -15,8 +15,7 @@ import time
 from unittest.mock import MagicMock, patch
 
 import pytest
-
-from components.io_handler.clipboard_guard import (
+from textkit.io_handler.clipboard_guard import (
     _MAX_DURATION,
     ClipboardGuard,
 )
@@ -73,8 +72,8 @@ class TestClipboardGuardDurationValidation:
 class TestClipboardGuardPollingMode:
     """Test suite for polling-based guard mode (non-Windows fallback)."""
 
-    @patch("components.io_handler.clipboard_guard._is_windows", return_value=False)
-    @patch("components.io_handler.clipboard_guard._set_clipboard_text")
+    @patch("textkit.io_handler.clipboard_guard._is_windows", return_value=False)
+    @patch("textkit.io_handler.clipboard_guard._set_clipboard_text")
     def test_guard_starts_and_stops(
         self, mock_set: MagicMock, mock_is_win: MagicMock
     ) -> None:
@@ -87,8 +86,8 @@ class TestClipboardGuardPollingMode:
         assert guard.restore_count == 0
         mock_set.assert_called_once_with("test text")
 
-    @patch("components.io_handler.clipboard_guard._is_windows", return_value=False)
-    @patch("components.io_handler.clipboard_guard._set_clipboard_text")
+    @patch("textkit.io_handler.clipboard_guard._is_windows", return_value=False)
+    @patch("textkit.io_handler.clipboard_guard._set_clipboard_text")
     def test_guard_restores_on_change(
         self, mock_set: MagicMock, mock_is_win: MagicMock
     ) -> None:
@@ -114,8 +113,8 @@ class TestClipboardGuardPollingMode:
         assert guard.restore_count >= 1
         mock_copy.assert_called_with("guarded text")
 
-    @patch("components.io_handler.clipboard_guard._is_windows", return_value=False)
-    @patch("components.io_handler.clipboard_guard._set_clipboard_text")
+    @patch("textkit.io_handler.clipboard_guard._is_windows", return_value=False)
+    @patch("textkit.io_handler.clipboard_guard._set_clipboard_text")
     def test_guard_stop_cancels_early(
         self, mock_set: MagicMock, mock_is_win: MagicMock
     ) -> None:
@@ -137,8 +136,8 @@ class TestClipboardGuardPollingMode:
         # Should stop well before the 10s duration
         assert elapsed < 2.0
 
-    @patch("components.io_handler.clipboard_guard._is_windows", return_value=False)
-    @patch("components.io_handler.clipboard_guard._set_clipboard_text")
+    @patch("textkit.io_handler.clipboard_guard._is_windows", return_value=False)
+    @patch("textkit.io_handler.clipboard_guard._set_clipboard_text")
     def test_guard_handles_clipboard_error_gracefully(
         self, mock_set: MagicMock, mock_is_win: MagicMock
     ) -> None:
@@ -158,8 +157,8 @@ class TestClipboardGuardRestoreCount:
         guard = ClipboardGuard("test")
         assert guard.restore_count == 0
 
-    @patch("components.io_handler.clipboard_guard._is_windows", return_value=False)
-    @patch("components.io_handler.clipboard_guard._set_clipboard_text")
+    @patch("textkit.io_handler.clipboard_guard._is_windows", return_value=False)
+    @patch("textkit.io_handler.clipboard_guard._set_clipboard_text")
     def test_restore_count_increments(
         self, mock_set: MagicMock, mock_is_win: MagicMock
     ) -> None:
@@ -181,8 +180,8 @@ class TestClipboardGuardRestoreCount:
 
         assert guard.restore_count >= 1
 
-    @patch("components.io_handler.clipboard_guard._is_windows", return_value=False)
-    @patch("components.io_handler.clipboard_guard._set_clipboard_text")
+    @patch("textkit.io_handler.clipboard_guard._is_windows", return_value=False)
+    @patch("textkit.io_handler.clipboard_guard._set_clipboard_text")
     def test_restore_count_resets_on_new_start(
         self, mock_set: MagicMock, mock_is_win: MagicMock
     ) -> None:

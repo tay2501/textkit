@@ -4,8 +4,7 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-
-from components.crypto_engine.passphrase_manager import (
+from textkit.crypto_engine.passphrase_manager import (
     PassphraseBackend,
     SecurePassphraseManager,
 )

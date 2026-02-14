@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from components.exceptions import TransformationError
+from textkit.exceptions import TransformationError
 
 from .constants import ERROR_CONTEXT_KEYS
 from .transformation_base import TransformationBase

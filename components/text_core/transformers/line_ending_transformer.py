@@ -6,7 +6,7 @@ supporting conversion between different line ending formats (Unix, Windows, Mac 
 
 import re
 
-from components.text_core.types import TransformationRule, TransformationRuleType
+from textkit.text_core.types import TransformationRule, TransformationRuleType
 
 from .base_transformer import BaseTransformer
 

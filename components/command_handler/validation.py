@@ -173,7 +173,7 @@ class CommonValidators:
 
         Performance optimized: Uses cached compiled patterns.
         """
-        from components.common_utils.regex_cache import get_compiled_pattern
+        from textkit.common_utils.regex_cache import get_compiled_pattern
 
         compiled_pattern = get_compiled_pattern(pattern)
 

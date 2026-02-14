@@ -29,7 +29,7 @@ from .service import HybridCryptoService
 
 
 # Backward compatibility: Provide legacy CryptographyManager
-# TODO(tay2501): Remove in v2.0.0 https://github.com/tay2501/textkit/issues/1
+# TODO(tay2501): Remove in v2.0.0 https://github.com/tay2501/textkit/issues/1  # noqa: FIX002
 class CryptographyManager(HybridCryptoService):
     """Legacy CryptographyManager for backward compatibility.
 

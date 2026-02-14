@@ -12,9 +12,8 @@ import time
 from typing import Final
 
 import structlog
-
-from components.exceptions import ClipboardError, ValidationError
-from components.text_core.types import IOManagerProtocol, ThreadCallback
+from textkit.exceptions import ClipboardError, ValidationError
+from textkit.text_core.types import IOManagerProtocol, ThreadCallback
 
 logger = structlog.get_logger(__name__)
 

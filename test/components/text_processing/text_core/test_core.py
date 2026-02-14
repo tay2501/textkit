@@ -32,8 +32,10 @@ class TestTextTransformationEngine:
         assert engine.config_manager is not None
         assert isinstance(engine.config_manager, ConfigurationManager)
         assert engine.crypto_manager is None
-        assert isinstance(engine._available_rules, dict)
-        assert len(engine._available_rules) > 0
+        # Rules are lazy-loaded; verify via public API
+        available = engine.get_available_rules()
+        assert isinstance(available, dict)
+        assert len(available) > 0
 
     def test_engine_initialization_with_config(
         self, engine_with_config, mock_config_manager

@@ -56,13 +56,16 @@ def create_container() -> Container:
         config_manager=c[ConfigurationManagerInterface], rule_parser=c[RuleParser]
     )
 
-    # Cryptography manager (optional dependency)
-    # Register crypto services directly into CLI container to avoid dual-container issues
-    from components.crypto_engine import register_crypto_services
-    from components.crypto_engine.protocols import TextCryptoServiceProtocol
+    # Cryptography manager (optional dependency, lazy-loaded)
+    # Defer crypto import until actually resolved to avoid loading OpenSSL bindings at startup
+    def _resolve_crypto(c):
+        from textkit.crypto_engine import register_crypto_services
+        from textkit.crypto_engine.protocols import TextCryptoServiceProtocol
 
-    register_crypto_services(container)
-    container[CryptographyManagerInterface] = lambda c: c[TextCryptoServiceProtocol]
+        register_crypto_services(c)
+        return c[TextCryptoServiceProtocol]
+
+    container[CryptographyManagerInterface] = _resolve_crypto
 
     # Application service (facade) - lazy import to avoid circular dependency
     def create_application_service(container_instance):

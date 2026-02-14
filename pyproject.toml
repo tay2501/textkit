@@ -170,7 +170,7 @@ unfixable = []
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]  # Unused imports in __init__.py
+"__init__.py" = ["F401", "F822"]  # Unused imports and __getattr__ lazy loading in __init__.py
 "bin/*.py" = ["E402"]  # Module imports after sys.path modification (intentional)
 "test/**/*.py" = ["E402", "S"]  # Test files: sys.path + security checks
 

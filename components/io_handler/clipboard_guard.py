@@ -20,8 +20,7 @@ import time
 from typing import ClassVar, Final
 
 import structlog
-
-from components.exceptions import ClipboardError
+from textkit.exceptions import ClipboardError
 
 logger = structlog.get_logger(__name__)
 

@@ -133,7 +133,7 @@ def create_crypto_subcommand(
         import secrets
         from pathlib import Path
 
-        from components.crypto_engine.passphrase_manager import (
+        from textkit.crypto_engine.passphrase_manager import (
             PassphraseBackend,
             SecurePassphraseManager,
         )
@@ -214,7 +214,7 @@ def create_crypto_subcommand(
 
             # Generate RSA key pair now that passphrase is configured
             console.print("[dim]Generating RSA key pair...[/dim]")
-            from components.crypto_engine.key_management import RSAKeyManager
+            from textkit.crypto_engine.key_management import RSAKeyManager
 
             key_manager = RSAKeyManager(key_directory=key_dir)
             key_manager.ensure_key_pair()
@@ -265,7 +265,7 @@ def create_crypto_subcommand(
         """
         import platform
 
-        from components.crypto_engine.passphrase_manager import SecurePassphraseManager
+        from textkit.crypto_engine.passphrase_manager import SecurePassphraseManager
 
         try:
             manager = SecurePassphraseManager()

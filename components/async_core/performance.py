@@ -17,8 +17,7 @@ from dataclasses import dataclass, field
 from typing import Any, NamedTuple
 
 import structlog
-
-from components.config_manager.settings import ApplicationSettings, get_settings
+from textkit.config_manager.settings import ApplicationSettings, get_settings
 
 # Initialize logger
 logger = structlog.get_logger(__name__)

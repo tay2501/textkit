@@ -11,7 +11,7 @@ from collections.abc import Callable
 from contextlib import contextmanager
 from typing import Any, TypeVar
 
-from components.exceptions import (
+from textkit.exceptions import (
     BaseTextProcessingError,
     TransformationError,
     ValidationError,

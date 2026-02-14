@@ -17,10 +17,9 @@ from typing import Any
 
 import aiofiles
 import structlog
-
-from components.common_utils.validation_helpers import is_exception
-from components.config_manager.settings import ApplicationSettings, get_settings
-from components.exceptions import FileOperationError
+from textkit.common_utils.validation_helpers import is_exception
+from textkit.config_manager.settings import ApplicationSettings, get_settings
+from textkit.exceptions import FileOperationError
 
 # Initialize logger
 logger = structlog.get_logger(__name__)

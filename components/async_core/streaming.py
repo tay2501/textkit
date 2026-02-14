@@ -16,9 +16,8 @@ from dataclasses import dataclass
 from typing import Any
 
 import structlog
-
-from components.config_manager.settings import ApplicationSettings, get_settings
-from components.text_core.core import TextTransformationEngine
+from textkit.config_manager.settings import ApplicationSettings, get_settings
+from textkit.text_core.core import TextTransformationEngine
 
 # Initialize logger
 logger = structlog.get_logger(__name__)

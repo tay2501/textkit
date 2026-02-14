@@ -54,7 +54,7 @@ def get_input_text(text: str | None) -> str:
     if not sys.stdin.isatty():
         return sys.stdin.read().rstrip("\n")
 
-    from components.io_handler import InputOutputManager
+    from textkit.io_handler import InputOutputManager
 
     io_manager = InputOutputManager()
     with contextlib.suppress(Exception):
@@ -72,7 +72,7 @@ def output_text(text: str, no_clipboard: bool, quiet: bool = False) -> None:
     print(text)
 
     if not no_clipboard and sys.stdout.isatty():
-        from components.io_handler import InputOutputManager
+        from textkit.io_handler import InputOutputManager
 
         io_manager = InputOutputManager()
         with contextlib.suppress(Exception):
@@ -103,7 +103,7 @@ def main(
 
     try:
         # Lazy import heavy modules AFTER setting environment variables
-        from components.crypto_engine import CryptographyManager
+        from textkit.crypto_engine import CryptographyManager
 
         crypto = CryptographyManager()
         input_text = get_input_text(text)

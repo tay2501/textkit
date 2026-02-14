@@ -412,7 +412,7 @@ def register_clip_commands(
                     )
                     return
 
-            from components.io_handler.clipboard_guard import ClipboardGuard
+            from textkit.io_handler.clipboard_guard import ClipboardGuard
 
             guard = ClipboardGuard(target)
 

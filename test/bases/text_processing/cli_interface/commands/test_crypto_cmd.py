@@ -349,7 +349,7 @@ def test_timeout_recommended_values(cli_runner, crypto_app, mock_app_instance):
 def test_passphrase_status_command_success(cli_runner, crypto_app):
     """Test passphrase-status command displays backend information."""
     with patch(
-        "components.crypto_engine.passphrase_manager.SecurePassphraseManager"
+        "textkit.crypto_engine.passphrase_manager.SecurePassphraseManager"
     ) as mock_manager_class:
         # Mock manager instance
         mock_manager = Mock()
@@ -373,7 +373,7 @@ def test_passphrase_status_windows_display(cli_runner, crypto_app):
     with (
         patch("platform.system") as mock_platform,
         patch(
-            "components.crypto_engine.passphrase_manager.SecurePassphraseManager"
+            "textkit.crypto_engine.passphrase_manager.SecurePassphraseManager"
         ) as mock_manager_class,
     ):
         mock_platform.return_value = "Windows"
@@ -402,7 +402,7 @@ def test_passphrase_status_linux_display(cli_runner, crypto_app):
     with (
         patch("platform.system") as mock_platform,
         patch(
-            "components.crypto_engine.passphrase_manager.SecurePassphraseManager"
+            "textkit.crypto_engine.passphrase_manager.SecurePassphraseManager"
         ) as mock_manager_class,
     ):
         mock_platform.return_value = "Linux"
@@ -427,7 +427,7 @@ def test_passphrase_status_linux_display(cli_runner, crypto_app):
 def test_passphrase_status_no_passphrase_configured(cli_runner, crypto_app):
     """Test passphrase-status when no passphrase is configured."""
     with patch(
-        "components.crypto_engine.passphrase_manager.SecurePassphraseManager"
+        "textkit.crypto_engine.passphrase_manager.SecurePassphraseManager"
     ) as mock_manager_class:
         mock_manager = Mock()
         mock_manager._is_tpm_available.return_value = False

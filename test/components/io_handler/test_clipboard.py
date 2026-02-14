@@ -11,9 +11,8 @@ import time
 from unittest.mock import MagicMock, patch
 
 import pytest
-
-from components.exceptions import ClipboardError, ValidationError
-from components.io_handler.clipboard import ClipboardMonitor
+from textkit.exceptions import ClipboardError, ValidationError
+from textkit.io_handler.clipboard import ClipboardMonitor
 
 
 class MockIOManager:
@@ -262,7 +261,7 @@ class TestClipboardMonitorBackgroundMonitoring:
         monitor = ClipboardMonitor(io_manager)
         monitor.set_check_interval(0.1)
 
-        with patch("components.io_handler.clipboard.logger") as mock_logger:
+        with patch("textkit.io_handler.clipboard.logger") as mock_logger:
             monitor.start_monitoring()
             time.sleep(0.3)  # Allow multiple checks
             monitor.stop_monitoring()

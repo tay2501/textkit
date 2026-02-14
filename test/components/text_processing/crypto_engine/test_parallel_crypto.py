@@ -11,13 +11,12 @@ from typing import TYPE_CHECKING
 
 import pytest
 import pytest_asyncio
-
-from components.crypto_engine import CRYPTOGRAPHY_AVAILABLE
-from components.crypto_engine.encryption import AESGCMEngine
-from components.crypto_engine.key_management import RSAKeyManager
-from components.crypto_engine.parallel_crypto import ParallelCryptoEngine
-from components.crypto_engine.service import HybridCryptoService
-from components.exceptions import CryptoTransformationError
+from textkit.crypto_engine import CRYPTOGRAPHY_AVAILABLE
+from textkit.crypto_engine.encryption import AESGCMEngine
+from textkit.crypto_engine.key_management import RSAKeyManager
+from textkit.crypto_engine.parallel_crypto import ParallelCryptoEngine
+from textkit.crypto_engine.service import HybridCryptoService
+from textkit.exceptions import CryptoTransformationError
 
 if TYPE_CHECKING:
     from pathlib import Path

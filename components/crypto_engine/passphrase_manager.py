@@ -14,7 +14,7 @@ Security Improvements:
     - Provides clear security warnings
 
 Example:
-    >>> from components.crypto_engine.passphrase_manager import SecurePassphraseManager
+    >>> from textkit.crypto_engine.passphrase_manager import SecurePassphraseManager
     >>> manager = SecurePassphraseManager()
     >>> passphrase, backend = manager.get_passphrase()
     >>> print(f"Using {backend.value} backend")
