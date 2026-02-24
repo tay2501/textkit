@@ -72,10 +72,18 @@ except ImportError:
     ConfigDict = dict
     ValidationInfo = object
 
-import structlog
+# Lazy logger for faster startup
+_logger = None
 
-# Logger for validation warnings
-logger = structlog.get_logger(__name__)
+
+def _get_logger():
+    """Get logger with lazy initialization."""
+    global _logger
+    if _logger is None:
+        import structlog
+
+        _logger = structlog.get_logger(__name__)
+    return _logger
 T = TypeVar("T")
 ConfigT = TypeVar("ConfigT", bound=dict[str, Any])
 
@@ -188,13 +196,13 @@ class TransformationRule(BaseModel):
 
         # Allow empty list when requires_args is True but don't require it
         if requires_args and v is not None and len(v) == 0:
-            logger.debug(
+            _get_logger().debug(
                 "default_args is empty but requires_args is True",
                 rule_name=info.data.get("name", "unknown"),
             )
 
         if not requires_args and v:
-            logger.debug(
+            _get_logger().debug(
                 "default_args provided but requires_args is False",
                 rule_name=info.data.get("name", "unknown"),
             )

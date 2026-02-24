@@ -9,11 +9,20 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-import structlog
 from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
-# Logger for validation messages
-logger = structlog.get_logger(__name__)
+# Lazy logger for faster startup
+_logger = None
+
+
+def _get_logger():
+    """Get logger with lazy initialization."""
+    global _logger
+    if _logger is None:
+        import structlog
+
+        _logger = structlog.get_logger(__name__)
+    return _logger
 
 
 class TextTransformationRequest(BaseModel):
@@ -75,7 +84,7 @@ class TextTransformationRequest(BaseModel):
                 raise ValueError("Unbalanced double quotes in rule string")
 
         # Log rule validation for monitoring
-        logger.debug(
+        _get_logger().debug(
             "rule_validation_passed", rule_string=v, validation_context=info.data
         )
 
@@ -91,7 +100,7 @@ class TextTransformationRequest(BaseModel):
 
         for i, line in enumerate(lines):
             if len(line) > max_line_length:
-                logger.warning(
+                _get_logger().warning(
                     "very_long_line_detected",
                     line_number=i + 1,
                     line_length=len(line),
@@ -211,7 +220,7 @@ class ConfigurationModel(BaseModel):
         estimated_memory_mb = (v * 4) / (1024 * 1024)  # 4x overhead estimate
 
         if estimated_memory_mb > 1000:  # 1GB warning
-            logger.warning(
+            _get_logger().warning(
                 "high_memory_configuration",
                 max_text_length=v,
                 estimated_memory_mb=estimated_memory_mb,

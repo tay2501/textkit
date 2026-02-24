@@ -107,21 +107,23 @@ def register_sql_commands(
             app_instance = get_app_func()
 
             # Determine input source with explicit priority
+            import sys
+
             if input_text is not None:
                 # Explicit text input has highest priority
                 text = input_text
             elif from_clipboard:
                 # Explicit clipboard flag
                 text = app_instance.io_manager.get_clipboard_text()
+            elif not sys.stdin.isatty():
+                # Pipe/stdin input
+                text = sys.stdin.read()
             else:
-                # Fallback to pipe/stdin or error
-                import sys
-
-                if not sys.stdin.isatty():
-                    text = sys.stdin.read()
-                else:
+                # TTY mode: auto-read from clipboard (consistent with `tt` behavior)
+                text = app_instance.io_manager.get_clipboard_text()
+                if not text.strip():
                     console.print(
-                        "[yellow]Warning: No input specified. Use -i, --from-clipboard, or pipe input.[/yellow]"
+                        "[yellow]Warning: Clipboard is empty. Use -i to specify input or pipe data.[/yellow]"
                     )
                     raise typer.Exit(1)
 
@@ -135,11 +137,13 @@ def register_sql_commands(
             result = formatter.format_in_clause(text, space_separated=space_separated)
 
             # Output result
+            # In TTY mode, auto-copy to clipboard (consistent with `tt` behavior)
+            auto_clipboard = sys.stdout.isatty()
             output_mgr = OutputManager(app_instance)
             output_mgr.handle_output(
                 result=result,
                 output_folder=None,
-                clipboard=to_clipboard,
+                clipboard=to_clipboard or auto_clipboard,
             )
 
             _get_logger().info(

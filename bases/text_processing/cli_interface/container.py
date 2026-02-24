@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from contextlib import suppress
 
-from lagom import Container
+from lagom import Container, Singleton
 
 from .abstractions import (
     ApplicationServiceInterface,
@@ -65,7 +65,7 @@ def create_container() -> Container:
         register_crypto_services(c)
         return c[TextCryptoServiceProtocol]
 
-    container[CryptographyManagerInterface] = _resolve_crypto
+    container[CryptographyManagerInterface] = Singleton(_resolve_crypto)
 
     # Application service (facade) - lazy import to avoid circular dependency
     def create_application_service(container_instance):

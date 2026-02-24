@@ -8,10 +8,7 @@ from __future__ import annotations
 import re
 import shlex
 
-import structlog
 from textkit.exceptions import ValidationError
-
-logger = structlog.get_logger(__name__)
 
 
 class RuleParser:
