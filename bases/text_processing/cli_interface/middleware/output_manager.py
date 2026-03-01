@@ -36,23 +36,31 @@ class OutputManager:
     ) -> None:
         """Enhanced output handling with file output and clipboard control.
 
+        Unix philosophy: primary data always goes to stdout (pipeable).
+        Clipboard and file are additional, opt-in output destinations.
+
         Handles both file paths and directory paths for output:
         - If output_folder is a file path (ends with .txt, .csv, etc.), saves directly to that file
         - If output_folder is a directory, creates timestamped file
         - Prompts for overwrite confirmation if file exists
-        - Preserves original text encoding and line endings from clipboard
-        - If no output destination specified, outputs to stdout (Unix philosophy)
 
         Follows EAFP principle and modern pathlib best practices.
 
         Args:
             result: The processed text result
             output_folder: Output destination (file or directory path)
-            clipboard: Whether to copy to clipboard
+            clipboard: Whether to also copy to clipboard
         """
+        import sys
+
         outputs_performed = []
 
-        # Handle clipboard output
+        # Primary output: always write data to stdout (clig.dev compliance)
+        sys.stdout.write(result)
+        sys.stdout.flush()
+        outputs_performed.append("stdout")
+
+        # Secondary output: optionally copy to clipboard
         if clipboard:
             try:
                 self.app_instance.io_manager.set_output_text(result)
@@ -60,19 +68,11 @@ class OutputManager:
             except Exception:
                 console.print("[yellow]Warning: Failed to copy to clipboard[/yellow]")
 
-        # Handle file output
+        # Optional output: write to file
         if output_folder:
             file_output_result = self._handle_file_output(result, output_folder)
             if file_output_result:
                 outputs_performed.append(file_output_result)
-
-        # If no output destinations specified, output to stdout (Unix philosophy)
-        if not outputs_performed:
-            import sys
-
-            sys.stdout.write(result)
-            sys.stdout.flush()
-            outputs_performed.append("stdout")
 
         # Show success message
         self._show_completion_message(outputs_performed, result)
@@ -188,7 +188,17 @@ def output_result_simple(
     result: str,
     should_output: bool = True,
 ) -> None:
-    """Simple output handling for basic use cases."""
+    """Simple output handling for basic use cases.
+
+    Always writes result to stdout. Optionally copies to clipboard.
+    """
+    import sys
+
+    # Primary output: always write data to stdout (clig.dev compliance)
+    sys.stdout.write(result)
+    sys.stdout.flush()
+
+    # Secondary output: optionally copy to clipboard
     if should_output:
         try:
             app_instance.io_manager.set_output_text(result)

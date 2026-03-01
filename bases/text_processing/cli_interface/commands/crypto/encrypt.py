@@ -18,7 +18,8 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from typing import Any
 
-console = Console()
+# Status/warning messages go to stderr (clig.dev: data→stdout, messages→stderr)
+console = Console(stderr=True)
 
 
 def create_encrypt_command(

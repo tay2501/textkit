@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import contextlib
 import secrets
+import sys
 import threading
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Annotated, Any
@@ -20,7 +21,8 @@ from rich.console import Console
 if TYPE_CHECKING:
     from typing import Any
 
-console = Console()
+# Status/warning messages go to stderr (clig.dev: data→stdout, messages→stderr)
+console = Console(stderr=True)
 
 
 def _get_logger():
@@ -291,10 +293,11 @@ def register_random_commands(
                 console.print("[red]Error: Too many arguments (maximum 3)[/red]")
                 raise typer.Exit(1)
 
-            # Output result to console
+            # Output result to stdout (clig.dev: primary data on stdout)
             if result_value is not None:
                 result_str = str(result_value)
-                console.print(result_str)
+                sys.stdout.write(result_str + "\n")
+                sys.stdout.flush()
 
                 # Handle clipboard output
                 _handle_clipboard_output(

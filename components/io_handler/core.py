@@ -112,13 +112,16 @@ class InputOutputManager:
             ) from e
 
     def set_output_text(self, text: str) -> None:
-        """Set text to clipboard and/or stdout.
+        """Copy text to clipboard only (SRP: single responsibility).
+
+        Callers are responsible for writing to stdout separately.
+        Use safe_copy_to_clipboard() if you only need the bool result.
 
         Args:
-            text: Text to output
+            text: Text to copy to clipboard
 
         Raises:
-            IOError: If output operations fail
+            IOError: If input is invalid or clipboard copy fails
         """
         if not isinstance(text, str):
             raise IOError(
@@ -126,35 +129,19 @@ class InputOutputManager:
                 {"text_type": type(text).__name__},
             )
 
-        success_count = 0
-        errors = []
-
-        # Try clipboard output
-        if self.clipboard_available:
-            try:
-                pyperclip.copy(text)
-                success_count += 1
-            except Exception as e:
-                errors.append(f"Clipboard: {e}")
-
-        # Always try stdout output
-        try:
-            print(text, end="")  # Print without extra newline
-            sys.stdout.flush()
-            success_count += 1
-        except Exception as e:
-            errors.append(f"Stdout: {e}")
-
-        # Check if any output method succeeded
-        if success_count == 0:
+        if not self.clipboard_available:
             raise IOError(
-                f"All output methods failed: {'; '.join(errors)}",
-                {
-                    "clipboard_available": self.clipboard_available,
-                    "errors": errors,
-                    "text_length": len(text),
-                },
+                "Clipboard is not available",
+                {"clipboard_available": False, "text_length": len(text)},
             )
+
+        try:
+            pyperclip.copy(text)
+        except Exception as e:
+            raise IOError(
+                f"Failed to copy to clipboard: {e}",
+                {"error_type": type(e).__name__, "text_length": len(text)},
+            ) from e
 
     def get_pipe_input(self) -> str:
         """Get input from pipe/stdin.

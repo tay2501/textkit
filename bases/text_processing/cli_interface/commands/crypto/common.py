@@ -17,7 +17,8 @@ from rich.console import Console
 if TYPE_CHECKING:
     from typing import Any
 
-console = Console()
+# Status/warning messages go to stderr (clig.dev: data→stdout, messages→stderr)
+console = Console(stderr=True)
 
 
 def get_input_text(

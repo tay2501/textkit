@@ -82,7 +82,8 @@ def test_encrypt_with_timeout_option(cli_runner, crypto_app, mock_app_instance):
     )
 
     assert result.exit_code == 0
-    assert "⏱" in result.stdout or "auto-clear" in result.stdout.lower()
+    # Status messages go to stderr; result.output captures combined stdout+stderr
+    assert "⏱" in result.output or "auto-clear" in result.output.lower()
     mock_app_instance.encrypt_text.assert_called_once_with("secret")
     mock_app_instance.io_manager.safe_copy_to_clipboard.assert_called_once()
 
@@ -96,7 +97,8 @@ def test_encrypt_with_timeout_short_form(cli_runner, crypto_app, mock_app_instan
     )
 
     assert result.exit_code == 0
-    assert "30 seconds" in result.stdout.lower() or "30" in result.stdout
+    # Status messages go to stderr; result.output captures combined stdout+stderr
+    assert "30 seconds" in result.output.lower() or "30" in result.output
     mock_app_instance.io_manager.safe_copy_to_clipboard.assert_called_once()
 
 
@@ -175,7 +177,8 @@ def test_decrypt_with_timeout_option(cli_runner, crypto_app, mock_app_instance):
     )
 
     assert result.exit_code == 0
-    assert "60 seconds" in result.stdout.lower() or "60" in result.stdout
+    # Status messages go to stderr; result.output captures combined stdout+stderr
+    assert "60 seconds" in result.output.lower() or "60" in result.output
     mock_app_instance.decrypt_text.assert_called_once_with("encrypted")
     mock_app_instance.io_manager.safe_copy_to_clipboard.assert_called_once()
 
@@ -189,7 +192,8 @@ def test_decrypt_with_timeout_short_form(cli_runner, crypto_app, mock_app_instan
     )
 
     assert result.exit_code == 0
-    assert "45" in result.stdout
+    # Status messages go to stderr; result.output captures combined stdout+stderr
+    assert "45" in result.output
     mock_app_instance.io_manager.safe_copy_to_clipboard.assert_called_once()
 
 
@@ -336,7 +340,8 @@ def test_timeout_recommended_values(cli_runner, crypto_app, mock_app_instance):
             crypto_app, ["encrypt", "-i", "test", "-C", "-T", str(timeout)]
         )
         assert result.exit_code == 0
-        assert str(timeout) in result.stdout
+        # Status messages go to stderr; result.output captures combined stdout+stderr
+        assert str(timeout) in result.output
 
 
 # ============================================================================
@@ -361,9 +366,10 @@ def test_passphrase_status_command_success(cli_runner, crypto_app):
         result = cli_runner.invoke(crypto_app, ["passphrase-status"])
 
         assert result.exit_code == 0
-        assert "Passphrase Backend Status" in result.stdout
-        assert "OS Keyring" in result.stdout
-        assert "Currently using: keyring" in result.stdout
+        # Status messages go to stderr; result.output captures combined stdout+stderr
+        assert "Passphrase Backend Status" in result.output
+        assert "OS Keyring" in result.output
+        assert "Currently using: keyring" in result.output
 
 
 @pytest.mark.unit
@@ -387,12 +393,11 @@ def test_passphrase_status_windows_display(cli_runner, crypto_app):
         result = cli_runner.invoke(crypto_app, ["passphrase-status"])
 
         assert result.exit_code == 0
-        # Windows-specific display
-        assert "TPM 2.0 (Direct)" in result.stdout
-        assert "OS Keyring (DPAPI)" in result.stdout
-        assert "Windows: use via DPAPI" in result.stdout
-        # Actionable hint for Windows
-        assert "Windows Hello" in result.stdout
+        # Status messages go to stderr; result.output captures combined stdout+stderr
+        assert "TPM 2.0 (Direct)" in result.output
+        assert "OS Keyring (DPAPI)" in result.output
+        assert "Windows: use via DPAPI" in result.output
+        assert "Windows Hello" in result.output
 
 
 @pytest.mark.unit
@@ -416,10 +421,10 @@ def test_passphrase_status_linux_display(cli_runner, crypto_app):
         result = cli_runner.invoke(crypto_app, ["passphrase-status"])
 
         assert result.exit_code == 0
-        # Linux: Standard display without Windows-specific notes
-        assert "TPM 2.0" in result.stdout
-        assert "OS Keyring" in result.stdout
-        assert "DPAPI" not in result.stdout
+        # Status messages go to stderr; result.output captures combined stdout+stderr
+        assert "TPM 2.0" in result.output
+        assert "OS Keyring" in result.output
+        assert "DPAPI" not in result.output
 
 
 @pytest.mark.unit
@@ -438,6 +443,6 @@ def test_passphrase_status_no_passphrase_configured(cli_runner, crypto_app):
         result = cli_runner.invoke(crypto_app, ["passphrase-status"])
 
         assert result.exit_code == 0
-        assert "No passphrase configured" in result.stdout
-        # Actionable suggestion (clig.dev best practice)
-        assert "textkit crypto set-passphrase" in result.stdout
+        # Status messages go to stderr; result.output captures combined stdout+stderr
+        assert "No passphrase configured" in result.output
+        assert "textkit crypto set-passphrase" in result.output

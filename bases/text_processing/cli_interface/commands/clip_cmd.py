@@ -6,13 +6,15 @@ Supports standard input (pipe/redirect) and subcommands for clipboard operations
 
 from __future__ import annotations
 
+import sys
 from collections.abc import Callable
 from typing import Annotated, Any
 
 import typer
 from rich.console import Console
 
-console = Console()
+# Status/warning messages go to stderr (clig.dev: data→stdout, messages→stderr)
+console = Console(stderr=True)
 
 
 def _get_logger():
@@ -34,8 +36,6 @@ def register_clip_commands(
         get_app_func: Function to get the application service
         handle_cli_error_func: Function to handle CLI errors
     """
-    import sys
-
     # Create clip subcommand group
     clip_app = typer.Typer(
         name="clip",
@@ -175,7 +175,9 @@ def register_clip_commands(
             content = app_instance.io_manager.get_clipboard_text()
 
             if content:
-                console.print(content, end="")
+                # Primary data output goes to stdout (clig.dev compliance)
+                sys.stdout.write(content)
+                sys.stdout.flush()
                 _get_logger().info("clip_get_success", content_length=len(content))
             else:
                 console.print("[dim](clipboard is empty)[/dim]")

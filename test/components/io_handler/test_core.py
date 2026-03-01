@@ -183,48 +183,40 @@ class TestInputOutputManager:
 
     @pytest.mark.skipif(not CLIPBOARD_AVAILABLE, reason="clipboard not available")
     def test_set_output_text_success(self, io_manager):
-        """Test successful output to both clipboard and stdout."""
+        """Test successful clipboard copy (SRP: clipboard only, no stdout side effect)."""
         test_text = "Hello output"
-        with (
-            patch("pyperclip.copy") as mock_copy,
-            patch("builtins.print") as mock_print,
-        ):
+        with patch("pyperclip.copy") as mock_copy:
             io_manager.clipboard_available = True
             io_manager.set_output_text(test_text)
             mock_copy.assert_called_once_with(test_text)
-            mock_print.assert_called_once_with(test_text, end="")
 
     def test_set_output_text_clipboard_only(
         self, io_manager, mock_clipboard_unavailable
     ):
-        """Test output when only stdout is available."""
+        """Test set_output_text raises IOError when clipboard is unavailable."""
         test_text = "Hello output"
-        with patch("builtins.print") as mock_print:
-            io_manager.clipboard_available = False
+        io_manager.clipboard_available = False
+        with pytest.raises(IOError) as exc_info:
             io_manager.set_output_text(test_text)
-            mock_print.assert_called_once_with(test_text, end="")
+        assert "Clipboard is not available" in str(exc_info.value)
 
     def test_set_output_text_all_fail(self, io_manager, mock_clipboard_unavailable):
-        """Test set_output_text when all output methods fail."""
+        """Test set_output_text raises IOError when clipboard is unavailable."""
         test_text = "Hello output"
-        with patch("builtins.print", side_effect=Exception("Print error")):
-            io_manager.clipboard_available = False
-            with pytest.raises(IOError) as exc_info:
-                io_manager.set_output_text(test_text)
-            assert "All output methods failed" in str(exc_info.value)
+        io_manager.clipboard_available = False
+        with pytest.raises(IOError) as exc_info:
+            io_manager.set_output_text(test_text)
+        assert "Clipboard is not available" in str(exc_info.value)
 
     @pytest.mark.skipif(not CLIPBOARD_AVAILABLE, reason="clipboard not available")
     def test_set_output_text_clipboard_fails(self, io_manager):
-        """Test set_output_text when clipboard fails but stdout succeeds."""
+        """Test set_output_text raises IOError when pyperclip.copy fails."""
         test_text = "Hello output"
-        with (
-            patch("pyperclip.copy", side_effect=Exception("Clipboard error")),
-            patch("builtins.print") as mock_print,
-            patch("sys.stdout.flush"),
-        ):
+        with patch("pyperclip.copy", side_effect=Exception("Clipboard error")):
             io_manager.clipboard_available = True
-            io_manager.set_output_text(test_text)  # Should not raise
-            mock_print.assert_called_once_with(test_text, end="")
+            with pytest.raises(IOError) as exc_info:
+                io_manager.set_output_text(test_text)
+            assert "Failed to copy to clipboard" in str(exc_info.value)
 
     @pytest.mark.parametrize(
         "test_text",
@@ -368,16 +360,14 @@ class TestInputOutputManager:
                 assert "stdin_isatty" in e.context
                 assert "clipboard_available" in e.context
 
-        # Test set_output_text error context
-        with patch("builtins.print", side_effect=Exception("Print error")):
-            io_manager.clipboard_available = False
-            try:
-                io_manager.set_output_text("test")
-            except IOError as e:
-                assert hasattr(e, "context")
-                assert "clipboard_available" in e.context
-                assert "errors" in e.context
-                assert "text_length" in e.context
+        # Test set_output_text error context (clipboard unavailable)
+        io_manager.clipboard_available = False
+        try:
+            io_manager.set_output_text("test")
+        except IOError as e:
+            assert hasattr(e, "context")
+            assert "clipboard_available" in e.context
+            assert "text_length" in e.context
 
 
 def test_module_availability():

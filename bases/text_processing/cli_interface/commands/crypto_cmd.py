@@ -28,7 +28,8 @@ from bases.text_processing.cli_interface.commands.crypto.encrypt import (
     create_encrypt_command,
 )
 
-console = Console()
+# Status/warning messages go to stderr (clig.dev: data→stdout, messages→stderr)
+console = Console(stderr=True)
 
 
 def create_crypto_subcommand(
