@@ -57,6 +57,10 @@ def pytest_configure(config: pytest.Config) -> None:
         "markers",
         "config: Tests for configuration management",
     )
+    config.addinivalue_line(
+        "markers",
+        "path: Tests for path string manipulation (filename, directory extraction)",
+    )
 
 
 # ============================================================================

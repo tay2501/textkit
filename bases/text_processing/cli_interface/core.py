@@ -355,6 +355,8 @@ def _register_all_commands() -> None:
         textkit clipboard set
         textkit clipboard clear
         textkit clipboard status
+        textkit path name           - Extract filename from path string
+        textkit path dir            - Extract directory from path string
         textkit status              - Show application status
         textkit version             - Show version information
     """
@@ -421,6 +423,15 @@ def _register_all_commands() -> None:
         get_app_func=get_app,
         handle_cli_error_func=error_handler.handle_cli_error,
     )
+
+    # path subcommand group: textkit path {name,dir}
+    from .commands.path_cmd import create_path_subcommand
+
+    path_subcommand = create_path_subcommand(
+        get_app_func=get_app,
+        handle_cli_error_func=error_handler.handle_cli_error,
+    )
+    app.add_typer(path_subcommand, name="path")
 
     # status and version commands (top-level utilities)
     from .commands.status_cmd import register_status_commands

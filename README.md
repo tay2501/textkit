@@ -17,6 +17,7 @@ A modern, Unix-philosophy compliant text processing toolkit with seamless pipe a
 - 🔌 **Seamless I/O**: Simple clipboard operations, pipe-friendly processing, and clipboard guard (prevent overwrites)
 - ⚡ **High Performance**: SIMD-accelerated string operations with StringZilla
 - 🔐 **Secure Random Generation**: Cryptographically secure random numbers for passwords and security tokens
+- 📂 **Path String Manipulation**: Extract filename or directory from Windows/Unix path strings with clipboard integration
 
 **Perfect for developers who need:**
 - Quick identifier format conversions (`my-file.js` ↔ `my_file.js`)
@@ -34,6 +35,7 @@ A modern, Unix-philosophy compliant text processing toolkit with seamless pipe a
 - [Security](#-security-configuration)
 - [Development](#️-development)
 - [Support](#-support)
+
 
 ## 🔐 Security Documentation
 
@@ -374,6 +376,34 @@ echo "secret" | uv run python main.py clip hold -d 30
 
 Uses Win32 `AddClipboardFormatListener` API on Windows for event-driven monitoring (~0% CPU, ~1ms restore latency). Falls back to polling on other platforms.
 
+**Path String Manipulation** (no filesystem access required):
+```bash
+# Extract filename (with extension, default)
+uv run python main.py path name "C:\Windows\System32\cmd.exe"
+# → cmd.exe
+
+# Extract filename without extension
+uv run python main.py path name "/etc/systemd/system/apple.service" --no-ext
+# → apple
+
+# Extract directory part
+uv run python main.py path dir "C:\Windows\System32\cmd.exe"
+# → C:\Windows\System32
+
+uv run python main.py path dir "/etc/systemd/system/apple.service"
+# → /etc/systemd/system
+
+# Clipboard integration (-c: read from clipboard, -C: write to clipboard)
+uv run python main.py path name -c          # Read path from clipboard → print filename
+uv run python main.py path dir -c -C        # Read path from clipboard, write dir to clipboard
+
+# Pipe input
+echo "C:\Users\admin\report.xlsx" | uv run python main.py path name
+# → report.xlsx
+```
+
+Works with both Windows paths (`C:\...`) and Unix paths (`/etc/...`) regardless of the host OS.
+
 **Cryptographically Secure Random Generation**:
 ```bash
 # Generate random float (0.0 <= x < 1.0)
@@ -550,6 +580,61 @@ Platform-specific guidance:
 - Encrypted output is Base64-encoded for safe transmission
 - See [Security Configuration](#-security-configuration) for passphrase management
 
+### Path String Manipulation
+
+Extract filename or directory components from path strings. Supports Windows (`C:\...`) and Unix (`/etc/...`) formats without accessing the filesystem.
+
+```bash
+# --- path name: Extract filename ---
+
+# With extension (default)
+uv run python main.py path name "C:\Windows\System32\notepad.exe"
+# → notepad.exe
+
+# Without extension
+uv run python main.py path name "C:\Windows\System32\notepad.exe" --no-ext
+# → notepad
+
+uv run python main.py path name "/var/log/syslog" --no-ext
+# → syslog
+
+# --- path dir: Extract directory ---
+
+uv run python main.py path dir "C:\Users\admin\Documents\report.xlsx"
+# → C:\Users\admin\Documents
+
+uv run python main.py path dir "/etc/nginx/nginx.conf"
+# → /etc/nginx
+
+# --- Clipboard integration ---
+uv run python main.py path name -c           # from clipboard, print filename
+uv run python main.py path dir  -c           # from clipboard, print directory
+uv run python main.py path name -c -C        # from clipboard, result → clipboard
+uv run python main.py path dir  -c -C        # from clipboard, result → clipboard
+
+# --- Pipe input ---
+echo "C:\Program Files\Git\bin\git.exe" | uv run python main.py path name
+# → git.exe
+
+echo "/etc/systemd/system/nginx.service" | uv run python main.py path dir
+# → /etc/systemd/system
+```
+
+**Options for `path name`:**
+
+| Flag | Description |
+|------|-------------|
+| `--no-ext` | Return stem only (strip file extension) |
+| `-c / --from-clipboard` | Read path from clipboard |
+| `-C / --to-clipboard` | Write result to clipboard |
+
+**Options for `path dir`:**
+
+| Flag | Description |
+|------|-------------|
+| `-c / --from-clipboard` | Read path from clipboard |
+| `-C / --to-clipboard` | Write result to clipboard |
+
 ### Getting Help
 
 ```bash
@@ -580,7 +665,7 @@ TEXTKIT_QUIET=1 uv run python main.py text transform '/l' -i "HELLO"
 
 **Common short flags** (saves 25-40% keystrokes):
 ```bash
-# Clipboard operations
+# Clipboard operations (consistent across all commands)
 -c  --from-clipboard    # Read from clipboard
 -C  --to-clipboard      # Write to clipboard
 
@@ -593,11 +678,14 @@ TEXTKIT_QUIET=1 uv run python main.py text transform '/l' -i "HELLO"
 -t  --to-encoding       # Target encoding
 
 # Other operations
--r  --show-rules        # Display transformation rules
--s  --search            # Search/filter keyword
--e  --error             # Error handling mode
+-r  --show-rules        # Display transformation rules (text transform)
+-s  --search            # Search/filter keyword (rules)
+-e  --error             # Error handling mode (text encode)
 -v  --verbose           # Verbose output
 -q  --quiet             # Quiet mode
+
+# Path manipulation (path name only)
+    --no-ext            # Strip file extension (return stem)
 ```
 
 **Usage examples:**
