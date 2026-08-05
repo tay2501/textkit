@@ -13,7 +13,7 @@ dependencies = [
     "rich>=14.1.0",
     "pyperclip>=1.9.0",
     "watchdog>=6.0.0",
-    "cryptography>=45.0.6",
+    "cryptography>=50.0.0",
     "sqlalchemy>=2.0.43",
     "structlog>=25.4.0",
 ]
@@ -22,10 +22,10 @@ dependencies = [
 dev = [
     "hatch-polylith-bricks>=1.5.2",
     "polylith-cli>=1.35.0",
-    "pytest>=8.4.1",
+    "pytest>=9.0.3",
     "pytest-cov>=6.2.1",
     "mypy>=1.17.1",
-    "black>=24.0.0",
+    "black>=26.3.1",
     "ruff>=0.6.0",
 ]
 docs = [
